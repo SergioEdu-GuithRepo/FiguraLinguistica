@@ -1,0 +1,17 @@
+{
+  "name": "FiguraLinguística",
+  "short_name": "FiguraLinguística",
+  "description": "Aprende a conversar em inglês, francês e japonês em 10 a 15 minutos por dia.",
+  "lang": "pt",
+  "start_url": "/inicio",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#F2F6FA",
+  "theme_color": "#F2F6FA",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "/icon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}

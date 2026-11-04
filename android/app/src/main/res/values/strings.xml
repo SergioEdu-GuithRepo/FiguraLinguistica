@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">FiguraLinguística</string>
+    <string name="title_activity_main">FiguraLinguística</string>
+    <string name="package_name">ao.figuralinguistica.app</string>
+    <string name="custom_url_scheme">ao.figuralinguistica.app</string>
+</resources>
