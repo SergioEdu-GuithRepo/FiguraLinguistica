@@ -278,12 +278,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)) return "Email inválido.";
     if (password.length < 6) return "A palavra-passe deve ter pelo menos 6 caracteres.";
     const accounts = readAccounts();
-    if (accounts[e]) return "Já existe uma conta com este email.";
+    const existingLocal = accounts[e];
 
-    const localId = randomId();
-    const salt = randomId();
+    const localId = existingLocal?.id ?? randomId();
+    const salt = existingLocal?.salt ?? randomId();
     const localHash = await hashPassword(password, salt);
-    let st = defaultState(name.trim());
+    let st = existingLocal ? loadState(existingLocal.id, name.trim()) : defaultState(name.trim());
     let finalId = localId;
     let cloudToken: string | undefined;
     let pendingPassword: string | undefined = password;
@@ -318,6 +318,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         if (data.provider) setCloudProvider(data.provider);
       }
     } catch {
+      if (existingLocal) return "Já existe uma conta com este email.";
       setSyncStatus("offline");
     }
 
@@ -327,7 +328,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       email: e,
       salt,
       hash: localHash,
-      createdAt: Date.now(),
+      createdAt: existingLocal?.createdAt ?? Date.now(),
       cloudToken,
       pendingPassword,
     };
@@ -347,6 +348,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     const localAcc = accounts[e];
     const localState = localAcc ? loadState(localAcc.id, localAcc.name) : undefined;
     const localUpdated = localAcc ? Number(localStorage.getItem(updatedKey(localAcc.id)) || 0) : undefined;
+    let cloudNotFound = false;
 
     // 1) Tenta autenticar na base de dados na nuvem (permite entrar em qualquer dispositivo)
     try {
@@ -392,17 +394,66 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       if (res.status === 401) {
         return "Palavra-passe incorrecta.";
       }
+      if (res.status === 404) {
+        cloudNotFound = true;
+      }
     } catch {
       /* sem rede: recorre à conta local */
     }
 
-    // 2) Recurso offline local
+    // 2) Recurso local (e migração automática para a nuvem se a conta foi criada antes do Supabase)
     if (!localAcc) return "Não encontrámos uma conta com este email.";
     const h = await hashPassword(password, localAcc.salt);
     if (h !== localAcc.hash) return "Palavra-passe incorrecta.";
+
+    if (cloudNotFound && localState) {
+      try {
+        const migRes = await fetch("/api/auth", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            action: "register",
+            id: localAcc.id,
+            name: localAcc.name,
+            email: e,
+            password,
+            state: localState,
+          }),
+        });
+        if (migRes.ok) {
+          const data = await migRes.json();
+          const merged = hydrateState(data.state, data.user.name);
+          const now = Number(data.updatedAt) || Date.now();
+          const acc: Account = {
+            ...localAcc,
+            id: data.user.id,
+            cloudToken: data.token,
+            pendingPassword: undefined,
+          };
+          accounts[e] = acc;
+          writeAccounts(accounts);
+          localStorage.setItem(SESSION, acc.id);
+          localStorage.setItem(stateKey(acc.id), JSON.stringify(merged));
+          localStorage.setItem(updatedKey(acc.id), String(now));
+          localStorage.setItem(syncedKey(acc.id), String(now));
+          if (data.provider) setCloudProvider(data.provider);
+          setLastSyncedAt(now);
+          setSyncStatus("synced");
+          setUser({ id: acc.id, name: acc.name, email: acc.email });
+          setState(merged);
+          return null;
+        }
+      } catch {
+        /* mantém sessão local */
+      }
+    }
+
+    localAcc.pendingPassword = password;
+    accounts[e] = localAcc;
+    writeAccounts(accounts);
     localStorage.setItem(SESSION, localAcc.id);
     setUser({ id: localAcc.id, name: localAcc.name, email: localAcc.email });
-    setState(loadState(localAcc.id, localAcc.name));
+    setState(localState ?? defaultState(localAcc.name));
     setSyncStatus("offline");
     return null;
   }, []);

@@ -255,17 +255,43 @@ function normalizeRow(row: CloudAccountRow | undefined): CloudAccountRow | null 
   };
 }
 
+// Conta do fundador criada em local-cloud antes da migração para o Supabase:
+// migrada automaticamente na primeira consulta caso ainda não exista na tabela fl_accounts.
+const FOUNDER_BOOTSTRAP: Record<string, CloudAccountRow> = {
+  "sergio.eduardo.kuroko@gmail.com": {
+    id: "xdfikngffxkmw18u8p6",
+    email: "sergio.eduardo.kuroko@gmail.com",
+    name: "Sergio",
+    salt: "20c03d68eac39b362de89f3b2ba45ea8",
+    password_hash: "71282020868dd5cf5836f64469134ef9354bd3986eca7d91a24c7f7b094c6f99",
+    token_hash: "bee9b39c2d12f3032426a32e506c7eb1e6bbd196918f02ce68822b7113942888",
+    state: {
+      ...defaultState("Sergio"),
+      onboarded: true,
+      plan: "lifetime",
+    },
+    updated_at: 1793743982411,
+    created_at: "2026-11-03T22:12:42.112Z",
+  },
+};
+
 async function findByEmail(email: string): Promise<CloudAccountRow | null> {
   const e = email.trim().toLowerCase();
   if (cloudProvider() === "supabase") {
     const res = await sbFetch(`fl_accounts?email=eq.${encodeURIComponent(e)}&select=*&limit=1`);
     if (res.ok) {
       const rows = (await res.json()) as CloudAccountRow[];
-      return normalizeRow(rows[0]);
+      if (rows[0]) return normalizeRow(rows[0]);
+      const seed = FOUNDER_BOOTSTRAP[e];
+      if (seed) {
+        await upsertAccount(seed);
+        return normalizeRow(seed);
+      }
+      return null;
     }
   }
   const db = await readLocalCloud();
-  return normalizeRow(db.accounts[e]);
+  return normalizeRow(db.accounts[e] ?? FOUNDER_BOOTSTRAP[e]);
 }
 
 async function findById(id: string): Promise<CloudAccountRow | null> {
@@ -273,11 +299,17 @@ async function findById(id: string): Promise<CloudAccountRow | null> {
     const res = await sbFetch(`fl_accounts?id=eq.${encodeURIComponent(id)}&select=*&limit=1`);
     if (res.ok) {
       const rows = (await res.json()) as CloudAccountRow[];
-      return normalizeRow(rows[0]);
+      if (rows[0]) return normalizeRow(rows[0]);
+      const seed = Object.values(FOUNDER_BOOTSTRAP).find((a) => a.id === id);
+      if (seed) {
+        await upsertAccount(seed);
+        return normalizeRow(seed);
+      }
+      return null;
     }
   }
   const db = await readLocalCloud();
-  return normalizeRow(Object.values(db.accounts).find((a) => a.id === id));
+  return normalizeRow(Object.values(db.accounts).find((a) => a.id === id) ?? Object.values(FOUNDER_BOOTSTRAP).find((a) => a.id === id));
 }
 
 async function upsertAccount(row: CloudAccountRow): Promise<void> {
