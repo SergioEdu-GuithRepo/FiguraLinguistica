@@ -579,3 +579,84 @@ export function recommendedPack(s: UserState, lang: LangCode): {
 export function recommendedUnitId(s: UserState, lang: LangCode): string | null {
   return recommendedPack(s, lang)?.unitId ?? null;
 }
+
+const STEP_BASE_XP: Record<StepId, number> = {
+  ouvir: 10,
+  moldes: 10,
+  vocabulario: 10,
+  montar: 15,
+  falar: 15,
+  conversa: 20,
+};
+
+/** Une eventos de XP reais de dois estados sem duplicar o mesmo evento. */
+export function mergeXpEvents(a: XpEvent[] = [], b: XpEvent[] = []): XpEvent[] {
+  const seen = new Map<string, XpEvent>();
+  for (const e of [...a, ...b]) {
+    if (!e || typeof e.value !== "number" || e.value <= 0 || e.type === "sync:reconcile") continue;
+    const key = `${e.lang}:${e.type}:${e.value}:${e.at}`;
+    if (!seen.has(key)) seen.set(key, e);
+  }
+  return Array.from(seen.values())
+    .sort((x, y) => x.at - y.at)
+    .slice(-2000);
+}
+
+/**
+ * Reconcilia de forma idempotente (CRDT) o XP de cada idioma (`progress[lang].xp`),
+ * o histórico `xpEvents` e os passos/unidades/lições/exames concluídos.
+ */
+export function reconcileUserXp(s: UserState): UserState {
+  const langs: LangCode[] = ["en", "fr", "ja"];
+  let xpEvents = mergeXpEvents(s.xpEvents ?? [], []);
+  const nextProgress: Record<LangCode, LangProgress> = { ...s.progress };
+
+  for (const l of langs) {
+    const lp = nextProgress[l];
+    if (!lp) continue;
+
+    let floorXp = 0;
+    let latestAt = 0;
+    for (const up of Object.values(lp.units ?? {})) {
+      for (const [stId, ts] of Object.entries(up.steps ?? {}) as [StepId, number | undefined][]) {
+        if (ts) {
+          floorXp += STEP_BASE_XP[stId] ?? 10;
+          if (ts > latestAt) latestAt = ts;
+        }
+      }
+      if (up.completedAt) {
+        floorXp += 25;
+        if (up.completedAt > latestAt) latestAt = up.completedAt;
+      }
+    }
+    for (const v of Object.values(lp.lessons ?? {})) {
+      if (v >= 1) floorXp += 10;
+    }
+    floorXp += (lp.stageExams?.length ?? 0) * 50;
+
+    const langEvents = xpEvents.filter((e) => e.lang === l);
+    const realEventsSum = langEvents.reduce((acc, e) => acc + e.value, 0);
+    for (const e of langEvents) {
+      if (e.at > latestAt) latestAt = e.at;
+    }
+    for (const c of s.conversations ?? []) {
+      if (c.lang === l && c.at > latestAt) latestAt = c.at;
+    }
+
+    const targetXp = Math.max(lp.xp ?? 0, realEventsSum, floorXp);
+    nextProgress[l] = { ...lp, xp: targetXp };
+
+    if (realEventsSum < targetXp) {
+      const diff = targetXp - realEventsSum;
+      const reconcileAt = latestAt > 0 ? latestAt : Date.now();
+      xpEvents = [...xpEvents, { lang: l, type: "sync:reconcile", value: diff, at: reconcileAt }];
+    }
+  }
+
+  xpEvents = xpEvents.sort((x, y) => x.at - y.at).slice(-2000);
+  return {
+    ...s,
+    progress: nextProgress,
+    xpEvents,
+  };
+}

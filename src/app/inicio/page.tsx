@@ -89,7 +89,12 @@ function Home() {
         <section className="card p-5" aria-label="XP ganho">
           <div className="flex items-center justify-between">
             <div className="font-extrabold">XP ganho</div>
-            <span className="rounded-full bg-[var(--color-coral-soft)] px-3 py-1 text-xs font-bold text-[var(--color-coral)]">Esta semana</span>
+            <div className="flex items-center gap-1.5">
+              <span className="rounded-full bg-[var(--color-yellow-soft)] px-3 py-1 text-xs font-extrabold text-[#8a6a12]">
+                ✨ {state.progress[lang].xp} XP total
+              </span>
+              <span className="rounded-full bg-[var(--color-coral-soft)] px-3 py-1 text-xs font-bold text-[var(--color-coral)]">7 dias</span>
+            </div>
           </div>
           <div className="mt-4 flex items-end gap-5">
             <div className="flex h-28 flex-1 items-stretch justify-between gap-2">

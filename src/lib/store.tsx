@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { defaultState, type UserState } from "./state";
+import { defaultState, reconcileUserXp, type UserState } from "./state";
 
 interface Account {
   id: string;
@@ -87,7 +87,7 @@ async function hashPassword(password: string, salt: string): Promise<string> {
 
 function hydrateState(parsed: Partial<UserState>, name: string): UserState {
   const base = defaultState(name);
-  return {
+  return reconcileUserXp({
     ...base,
     ...parsed,
     settings: { ...base.settings, ...(parsed.settings ?? {}) },
@@ -95,7 +95,7 @@ function hydrateState(parsed: Partial<UserState>, name: string): UserState {
     srs: { ...base.srs, ...(parsed.srs ?? {}) },
     errors: { ...base.errors, ...(parsed.errors ?? {}) },
     streak: { ...base.streak, ...(parsed.streak ?? {}) },
-  };
+  });
 }
 
 function loadState(id: string, name: string): UserState {
@@ -235,17 +235,33 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     setReady(true);
   }, []);
 
-  // Sincronização inicial ao abrir a app ou recuperar ligação
+  // Sincronização inicial ao abrir a app, ao focar o separador/ecrã ou ao recuperar ligação
   useEffect(() => {
     if (!ready || !user) return;
     const t = setTimeout(() => {
       void performSync(false);
     }, 300);
     const onOnline = () => void performSync(false);
+    const onFocus = () => void performSync(false);
+    const onVisibility = () => {
+      if (typeof document !== "undefined" && document.visibilityState === "visible") {
+        void performSync(false);
+      }
+    };
+    const interval = setInterval(() => {
+      if (typeof document === "undefined" || document.visibilityState === "visible") {
+        void performSync(false);
+      }
+    }, 20_000);
     window.addEventListener("online", onOnline);
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onVisibility);
     return () => {
       clearTimeout(t);
+      clearInterval(interval);
       window.removeEventListener("online", onOnline);
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onVisibility);
     };
   }, [ready, user, performSync]);
 

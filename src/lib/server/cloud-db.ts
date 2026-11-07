@@ -3,7 +3,15 @@ import { promises as fs } from "fs";
 import path from "path";
 import type { Card } from "@/lib/fsrs";
 import { LANG_LIST } from "@/lib/langs";
-import { defaultState, type LangProgress, type StepId, type UnitProgress, type UserState } from "@/lib/state";
+import {
+  defaultState,
+  mergeXpEvents,
+  reconcileUserXp,
+  type LangProgress,
+  type StepId,
+  type UnitProgress,
+  type UserState,
+} from "@/lib/state";
 import type { LangCode } from "@/lib/types";
 
 export type CloudProvider = "supabase" | "local-cloud";
@@ -141,8 +149,8 @@ export function mergeUserStates(
 ): UserState {
   const def = defaultState(fallbackName);
   if (!baseRaw && !incomingRaw) return def;
-  if (!baseRaw) return { ...def, ...incomingRaw };
-  if (!incomingRaw) return { ...def, ...baseRaw };
+  if (!baseRaw) return reconcileUserXp({ ...def, ...incomingRaw });
+  if (!incomingRaw) return reconcileUserXp({ ...def, ...baseRaw });
 
   const primary = incomingTime >= baseTime ? incomingRaw : baseRaw;
   const secondary = incomingTime >= baseTime ? baseRaw : incomingRaw;
@@ -174,6 +182,9 @@ export function mergeUserStates(
     .sort((x, y) => y.at - x.at)
     .slice(0, 60);
 
+  // Eventos de XP: união sem duplicados entre dispositivos
+  const xpEvents = mergeXpEvents(baseRaw.xpEvents ?? [], incomingRaw.xpEvents ?? []);
+
   // Dias de actividade: máximo por dia
   const days: UserState["days"] = { ...(secondary.days ?? {}) };
   for (const [d, st] of Object.entries(primary.days ?? {})) {
@@ -190,7 +201,7 @@ export function mergeUserStates(
 
   const isLifetime = baseRaw.plan === "lifetime" || incomingRaw.plan === "lifetime";
 
-  return {
+  return reconcileUserXp({
     ...def,
     ...secondary,
     ...primary,
@@ -201,11 +212,12 @@ export function mergeUserStates(
     progress,
     srs,
     kana: mergeCards(baseRaw.kana, incomingRaw.kana),
+    xpEvents,
     errors,
     conversations,
     days,
     streak: streak ?? def.streak,
-  };
+  });
 }
 
 /* ---------------- Persistência Local-Cloud (data/cloud-db.json) ---------------- */
