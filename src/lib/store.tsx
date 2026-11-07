@@ -176,8 +176,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       }
 
       if (!acc.cloudToken) {
-        setSyncStatus("local");
-        return false;
+        acc.cloudToken = (randomId() + randomId()).replace(/[^a-z0-9]/gi, "").padEnd(64, "0").slice(0, 64);
+        accounts[u.email] = acc;
+        writeAccounts(accounts);
       }
 
       const localUpdated = Number(localStorage.getItem(updatedKey(u.id)) || Date.now());
@@ -186,6 +187,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           userId: u.id,
+          email: u.email,
           token: acc.cloudToken,
           state: st,
           updatedAt: localUpdated,
@@ -207,8 +209,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       if (data.provider) setCloudProvider(data.provider);
       setLastSyncedAt(now);
       setSyncStatus("synced");
-      if (merged.plan !== st.plan) {
-        setState((cur) => (cur ? { ...cur, plan: merged.plan, planExpires: merged.planExpires } : cur));
+      if (JSON.stringify(merged) !== JSON.stringify(st)) {
+        setState(merged);
       }
       return true;
     } catch {

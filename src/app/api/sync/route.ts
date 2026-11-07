@@ -7,6 +7,7 @@ export const runtime = "nodejs";
 
 const SyncBodySchema = z.object({
   userId: z.string().min(1).max(64),
+  email: z.string().email().max(120).optional(),
   token: z.string().min(16).max(200),
   state: z.record(z.string(), z.unknown()),
   updatedAt: z.number().optional(),
@@ -54,9 +55,10 @@ export async function POST(req: Request) {
     return Response.json({ error: "Formato de sincronização inválido." }, { status: 400 });
   }
 
-  const { userId, token, state, updatedAt, forceReplace } = parsed.data;
+  const { userId, email, token, state, updatedAt, forceReplace } = parsed.data;
   const res = await syncCloudState({
     userId,
+    email,
     token,
     clientState: state as unknown as UserState,
     clientUpdatedAt: updatedAt ?? Date.now(),

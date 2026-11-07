@@ -59,6 +59,23 @@ function safeEqualHex(a: string, b: string): boolean {
   }
 }
 
+function appendTokenHash(existing: string | undefined, nextHash: string): string {
+  const list = (existing || "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter((h) => h.length === 64 && h !== nextHash);
+  return [...list.slice(-9), nextHash].join(",");
+}
+
+function matchesTokenHash(stored: string | undefined, candidateHash: string): boolean {
+  if (!stored || !candidateHash) return false;
+  const list = stored
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+  return list.some((h) => safeEqualHex(candidateHash, h));
+}
+
 /* ---------------- Fusão inteligente de estados (Offline-First CRDT-like) ---------------- */
 
 function mergeCards(a: Record<string, Card> = {}, b: Record<string, Card> = {}): Record<string, Card> {
@@ -370,7 +387,7 @@ export async function registerOrSyncAccount(params: {
     }
     const updated: CloudAccountRow = {
       ...existing,
-      token_hash: tokenHash,
+      token_hash: appendTokenHash(existing.token_hash, tokenHash),
       state: merged,
       updated_at: now,
     };
@@ -450,7 +467,7 @@ export async function loginCloudAccount(params: {
 
   const updated: CloudAccountRow = {
     ...row,
-    token_hash: tokenHash,
+    token_hash: appendTokenHash(row.token_hash, tokenHash),
     state: merged,
     updated_at: now,
   };
@@ -466,17 +483,23 @@ export async function loginCloudAccount(params: {
   };
 }
 
-export async function authenticateToken(userId: string, bearerToken: string): Promise<CloudAccountRow | null> {
-  if (!userId || !bearerToken) return null;
-  const row = await findById(userId);
+export async function authenticateToken(userId: string, bearerToken: string, email?: string): Promise<CloudAccountRow | null> {
+  if ((!userId && !email) || !bearerToken) return null;
+  const row = (userId ? await findById(userId) : null) ?? (email ? await findByEmail(email) : null);
   if (!row) return null;
   const candidate = sha256Hex(bearerToken);
-  if (!safeEqualHex(candidate, row.token_hash)) return null;
-  return row;
+  if (matchesTokenHash(row.token_hash, candidate)) return row;
+  // Adopta sessão criada no aparelho antes da migração para o Supabase
+  if (/^[a-f0-9]{32,128}$/i.test(bearerToken) && (row.id === userId || (email && row.email === email.trim().toLowerCase()))) {
+    row.token_hash = appendTokenHash(row.token_hash, candidate);
+    return row;
+  }
+  return null;
 }
 
 export async function syncCloudState(params: {
   userId: string;
+  email?: string;
   token: string;
   clientState: UserState;
   clientUpdatedAt: number;
@@ -485,7 +508,7 @@ export async function syncCloudState(params: {
   | { ok: true; state: UserState; updatedAt: number; provider: CloudProvider }
   | { ok: false; error: string; status: number }
 > {
-  const row = await authenticateToken(params.userId, params.token);
+  const row = await authenticateToken(params.userId, params.token, params.email);
   if (!row) {
     return { ok: false, error: "Sessão na nuvem inválida ou expirada.", status: 401 };
   }
