@@ -1,6 +1,6 @@
 import type { CapacitorConfig } from "@capacitor/cli";
 
-const serverUrl = process.env.CAPACITOR_SERVER_URL || "http://192.168.1.235:3123";
+const serverUrl = process.env.CAPACITOR_SERVER_URL || "https://figura-linguistica.vercel.app";
 
 const config: CapacitorConfig = {
   appId: "ao.figuralinguistica.app",

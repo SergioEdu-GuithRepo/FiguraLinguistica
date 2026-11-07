@@ -209,6 +209,10 @@ html.dark .\!bg-\[var\(--color-ink\)\].\!text-white {
   border-color: var(--color-lilac);
   box-shadow: 0 0 0 4px var(--color-lilac-soft);
 }
+.input::-ms-reveal,
+.input::-ms-clear {
+  display: none;
+}
 
 :focus-visible {
   outline: 3px solid var(--color-lilac);
