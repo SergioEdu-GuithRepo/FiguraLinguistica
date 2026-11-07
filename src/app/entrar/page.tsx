@@ -17,6 +17,17 @@ export default function EntrarPage() {
   const [busy, setBusy] = useState(false);
 
   const passwordFieldId = mode === "login" ? "current-password" : "new-password";
+  const isAccountNotFound = error?.includes("Não encontrámos uma conta");
+  const isAccountExists = error?.includes("Já existe uma conta");
+  const isWrongPassword = error?.includes("Palavra-passe");
+
+  const errorTitle = isAccountNotFound
+    ? "Conta ainda não registada"
+    : isAccountExists
+      ? "Este email já está registado"
+      : isWrongPassword
+        ? "Palavra-passe incorreta"
+        : "Atenção";
 
   useEffect(() => {
     if (ready && user && state) router.replace(state.onboarded ? "/inicio" : "/boas-vindas");
@@ -68,7 +79,10 @@ export default function EntrarPage() {
               name="name"
               className="input"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => {
+                setName(e.target.value);
+                if (error) setError(null);
+              }}
               autoComplete="name"
               enterKeyHint="next"
               placeholder="Como te chamas?"
@@ -81,10 +95,15 @@ export default function EntrarPage() {
           <input
             id="email"
             name="email"
-            className="input"
+            className={`input ${isAccountNotFound || isAccountExists ? "!border-[var(--color-bad)]" : ""}`}
             type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              if (error) setError(null);
+            }}
+            aria-invalid={Boolean(isAccountNotFound || isAccountExists) || undefined}
+            aria-errormessage={isAccountNotFound || isAccountExists ? "auth-error" : undefined}
             autoComplete="username"
             spellCheck={false}
             enterKeyHint="next"
@@ -98,10 +117,15 @@ export default function EntrarPage() {
             <input
               id={passwordFieldId}
               name={passwordFieldId}
-              className="input !pr-12"
+              className={`input !pr-12 ${isWrongPassword ? "!border-[var(--color-bad)]" : ""}`}
               type={showPassword ? "text" : "password"}
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => {
+                setPassword(e.target.value);
+                if (error) setError(null);
+              }}
+              aria-invalid={Boolean(isWrongPassword) || undefined}
+              aria-errormessage={isWrongPassword ? "auth-error" : undefined}
               autoComplete={passwordFieldId}
               spellCheck={false}
               autoCapitalize="none"
@@ -136,9 +160,66 @@ export default function EntrarPage() {
           </div>
         </div>
         {error && (
-          <p role="alert" className="rounded-xl bg-[var(--color-bad-soft)] px-3 py-2 text-sm font-semibold text-[var(--color-bad)]">
-            {error}
-          </p>
+          <div
+            id="auth-error"
+            role="alert"
+            className="fade-in shake relative overflow-hidden rounded-2xl border border-[var(--color-bad)]/25 bg-[var(--color-bad-soft)] p-3.5 text-[var(--color-bad)] shadow-[var(--shadow-card)]"
+          >
+            <div className="flex items-start gap-3">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[var(--color-bad)]/15 text-[var(--color-bad)]" aria-hidden="true">
+                <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="12" />
+                  <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+              </div>
+              <div className="min-w-0 flex-1 pr-6">
+                <p className="text-sm font-extrabold leading-snug">{errorTitle}</p>
+                <p className="mt-0.5 text-xs font-medium leading-relaxed opacity-90">{error}</p>
+                {isAccountNotFound && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMode("registo");
+                      setError(null);
+                    }}
+                    className="mt-2.5 inline-flex items-center gap-1.5 rounded-xl bg-[var(--color-bad)] px-3 py-1.5 text-xs font-bold text-white shadow-sm transition hover:opacity-95 active:scale-95"
+                  >
+                    Criar conta com este email →
+                  </button>
+                )}
+                {isAccountExists && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMode("login");
+                      setError(null);
+                    }}
+                    className="mt-2.5 inline-flex items-center gap-1.5 rounded-xl bg-[var(--color-bad)] px-3 py-1.5 text-xs font-bold text-white shadow-sm transition hover:opacity-95 active:scale-95"
+                  >
+                    Entrar nesta conta →
+                  </button>
+                )}
+                {isWrongPassword && !showPassword && (
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(true)}
+                    className="mt-2 inline-flex items-center gap-1 text-xs font-extrabold underline underline-offset-2"
+                  >
+                    Ver palavra-passe escrita
+                  </button>
+                )}
+              </div>
+              <button
+                type="button"
+                aria-label="Fechar aviso"
+                onClick={() => setError(null)}
+                className="absolute right-2 top-2 inline-flex h-8 w-8 items-center justify-center rounded-lg text-[var(--color-bad)]/70 transition hover:bg-[var(--color-bad)]/10 hover:text-[var(--color-bad)]"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
         )}
         <button type="submit" className="btn btn-primary mt-2" disabled={busy}>
           {busy ? "Um momento…" : mode === "login" ? "Entrar" : "Começar a aprender"}
