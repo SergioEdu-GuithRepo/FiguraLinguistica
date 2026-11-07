@@ -16,13 +16,15 @@ export function StepHeader({ unit, step }: { unit: Unit; step: StepId }) {
   const idx = STEPS.findIndex((s) => s.id === step);
   return (
     <div className="mb-5">
-      <div className="flex items-center gap-3">
+      <div className="sticky top-0 z-30 -mx-5 flex items-center gap-3 bg-[var(--color-bg)]/90 px-5 py-2.5 backdrop-blur-md">
         <button
+          type="button"
           onClick={() => router.push(`/unidade/${unit.id}`)}
-          className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white shadow-[var(--shadow-card)] transition hover:-translate-x-0.5 active:scale-90"
+          className="flex h-10 shrink-0 items-center gap-1 rounded-full bg-white pl-2.5 pr-3.5 text-xs font-extrabold text-[var(--color-ink)] shadow-[var(--shadow-card)] transition hover:-translate-x-0.5 active:scale-90"
           aria-label="Voltar à unidade"
         >
-          <Icon name="close" size={20} />
+          <Icon name="chevron-left" size={20} />
+          <span>Unidade</span>
         </button>
         <div className="flex flex-1 gap-1.5" aria-label={`Passo ${idx + 1} de ${STEPS.length}`}>
           {STEPS.map((s, i) => (
@@ -33,7 +35,7 @@ export function StepHeader({ unit, step }: { unit: Unit; step: StepId }) {
           ))}
         </div>
       </div>
-      <div className="mt-4 text-xs font-bold uppercase tracking-wide text-[var(--color-muted)]">
+      <div className="mt-3 text-xs font-bold uppercase tracking-wide text-[var(--color-muted)]">
         {unit.emoji} {unit.title} · passo {idx + 1}/{STEPS.length}
       </div>
       <h1 className="text-2xl font-extrabold">{STEPS[idx].title}</h1>

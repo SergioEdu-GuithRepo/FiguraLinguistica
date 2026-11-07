@@ -150,9 +150,18 @@ function Kana() {
   const allChars = useMemo(() => [...rows.flat(), ...dak.flat()], [rows, dak]);
   const strong = allChars.filter(([k]) => isStrong(state.kana[k])).length;
 
+  const handleBack = () => {
+    if (mode !== "tabela") {
+      setMode("tabela");
+      return;
+    }
+    if (typeof window !== "undefined" && window.history.length > 2) router.back();
+    else router.push("/cursos");
+  };
+
   return (
     <>
-      <TopBar back={() => router.back()} title="Escrita japonesa: kana" />
+      <TopBar back={handleBack} title="Escrita japonesa: kana" />
       <div className="mb-4 flex rounded-2xl bg-white p-1 shadow-[var(--shadow-card)]" role="tablist">
         {(["hiragana", "katakana"] as const).map((s) => (
           <button

@@ -87,9 +87,20 @@ function Particles() {
     }
   };
 
+  const handleBack = () => {
+    if (round) {
+      setRound(null);
+      setDone(false);
+      setPicked(null);
+      return;
+    }
+    if (typeof window !== "undefined" && window.history.length > 2) router.back();
+    else router.push("/cursos");
+  };
+
   return (
     <>
-      <TopBar back={() => router.back()} title="Prática de partículas" />
+      <TopBar back={handleBack} title="Prática de partículas" />
       {!round && (
         <>
           <div className="card p-5">

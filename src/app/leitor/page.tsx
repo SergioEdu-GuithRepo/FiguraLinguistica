@@ -69,9 +69,19 @@ function Leitor() {
     }
   };
 
+  const handleBack = () => {
+    if (shown) {
+      setShown(null);
+      setAdapted(null);
+      return;
+    }
+    if (typeof window !== "undefined" && window.history.length > 2) router.back();
+    else router.push("/licoes");
+  };
+
   return (
     <>
-      <TopBar back={() => router.back()} title={`Importar texto · ${LANGS[lang].flag}`} />
+      <TopBar back={handleBack} title={`Importar texto · ${LANGS[lang].flag}`} />
       {!shown ? (
         <>
           <p className="mb-3 text-sm text-[var(--color-muted)]">

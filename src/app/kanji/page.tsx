@@ -257,9 +257,18 @@ function KanjiModule() {
     return i > 0 ? [...all.slice(i), ...all.slice(0, i)] : all;
   }, [traceStart]);
 
+  const handleBack = () => {
+    if (mode !== "lista") {
+      setMode("lista");
+      return;
+    }
+    if (typeof window !== "undefined" && window.history.length > 2) router.back();
+    else router.push("/cursos");
+  };
+
   return (
     <>
-      <TopBar back={() => router.back()} title="Escrita japonesa: kanji" />
+      <TopBar back={handleBack} title="Escrita japonesa: kanji" />
       <div className="card mb-4 p-4">
         <div className="flex justify-between text-sm font-semibold">
           <span>Kanji dominados</span>

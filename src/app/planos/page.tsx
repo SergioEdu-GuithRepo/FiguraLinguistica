@@ -60,9 +60,14 @@ function Planos() {
     </button>
   );
 
+  const handleBack = () => {
+    if (typeof window !== "undefined" && window.history.length > 2) router.back();
+    else router.push("/perfil");
+  };
+
   return (
     <>
-      <TopBar back={() => router.back()} title="Planos" />
+      <TopBar back={handleBack} title="Planos" />
       <div className="relative overflow-hidden rounded-[28px] bg-[var(--color-lilac)] p-6 text-white shadow-[var(--shadow-float)]">
         <div className="text-2xl font-extrabold">FiguraLinguística Premium</div>
         <ul className="mt-3 flex flex-col gap-1.5 text-sm">

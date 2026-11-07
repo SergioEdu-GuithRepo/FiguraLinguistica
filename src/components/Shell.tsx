@@ -326,15 +326,16 @@ function ThemeAndNetworkBar() {
 
 export function AppFrame({ children, nav = true }: { children: React.ReactNode; nav?: boolean }) {
   const path = usePathname();
+  void nav;
   return (
     <AuthGate>
-      <div className={`mx-auto min-h-dvh max-w-[480px] px-5 pt-[max(env(safe-area-inset-top),16px)] ${nav ? "pb-32" : "pb-10"}`}>
+      <div className="mx-auto min-h-dvh max-w-[480px] px-5 pb-32 pt-[max(env(safe-area-inset-top),16px)]">
         <ThemeAndNetworkBar />
         <div key={path} className="page-enter stagger-in">
           {children}
         </div>
       </div>
-      {nav && <BottomNav />}
+      <BottomNav />
     </AuthGate>
   );
 }

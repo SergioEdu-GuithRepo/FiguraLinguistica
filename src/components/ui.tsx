@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useApp } from "@/lib/store";
 import { speak, speakSequence, stopSpeaking } from "@/lib/speech";
 import { LANGS } from "@/lib/langs";
@@ -13,28 +13,34 @@ import { Icon } from "./Icon";
 
 export function useSpeaker() {
   const { state } = useApp();
-  const rate = state.settings.audioRate;
-  const voices = state.settings.voices;
-  const engine = state.settings.voiceEngine ?? "neural";
-  const neuralVoices = state.settings.neuralVoices;
-  const neuralFor = useCallback(
-    (lang: LangCode) => (engine === "neural" ? neuralVoiceFor(lang, neuralVoices?.[lang]) : null),
-    [engine, neuralVoices],
-  );
+  const settingsRef = useRef(state.settings);
+  settingsRef.current = state.settings;
+
   const say = useCallback(
-    (text: string, lang: LangCode, onEnd?: () => void, rateOverride?: number) =>
-      speak(plainText(text, lang), lang, { rate: rateOverride ?? rate, voiceURI: voices[lang], neuralVoice: neuralFor(lang), onEnd }),
-    [rate, voices, neuralFor],
+    (text: string, lang: LangCode, onEnd?: () => void, rateOverride?: number) => {
+      const s = settingsRef.current;
+      const engine = s.voiceEngine ?? "neural";
+      const nv = engine === "neural" ? neuralVoiceFor(lang, s.neuralVoices?.[lang]) : null;
+      return speak(plainText(text, lang), lang, {
+        rate: rateOverride ?? s.audioRate,
+        voiceURI: s.voices[lang],
+        neuralVoice: nv,
+        onEnd,
+      });
+    },
+    [],
   );
   const sayMany = useCallback(
     (texts: string[], lang: LangCode, onIndex?: (i: number) => void, onDone?: () => void, speakers?: (string | undefined)[]) => {
-      const nv = neuralFor(lang);
+      const s = settingsRef.current;
+      const engine = s.voiceEngine ?? "neural";
+      const nv = engine === "neural" ? neuralVoiceFor(lang, s.neuralVoices?.[lang]) : null;
       return speakSequence(
         texts.map((t) => plainText(t, lang)),
         lang,
         {
-          rate,
-          voiceURI: voices[lang],
+          rate: s.audioRate,
+          voiceURI: s.voices[lang],
           neuralVoice: nv,
           neuralVoices: nv && speakers ? speakers.map((sp) => voiceForSpeaker(lang, sp, LANGS[lang].tutor.name, nv)) : undefined,
           onIndex,
@@ -42,7 +48,7 @@ export function useSpeaker() {
         },
       );
     },
-    [rate, voices, neuralFor],
+    [],
   );
   useEffect(() => () => stopSpeaking(), []);
   return { say, sayMany, stop: stopSpeaking };
@@ -221,14 +227,16 @@ export function SkeletonScreen() {
 
 export function TopBar({ title, back, right }: { title?: React.ReactNode; back?: () => void; right?: React.ReactNode }) {
   return (
-    <div className="mb-4 flex items-center gap-3">
+    <div className="sticky top-0 z-30 -mx-5 mb-4 flex items-center gap-3 bg-[var(--color-bg)]/90 px-5 py-2.5 backdrop-blur-md">
       {back && (
         <button
+          type="button"
           onClick={back}
-          className="grid h-10 w-10 place-items-center rounded-full bg-white shadow-[var(--shadow-card)] transition hover:-translate-x-0.5 active:scale-90"
+          className="flex h-10 shrink-0 items-center gap-1 rounded-full bg-white pl-2.5 pr-3.5 text-xs font-extrabold text-[var(--color-ink)] shadow-[var(--shadow-card)] transition hover:-translate-x-0.5 active:scale-90"
           aria-label="Voltar"
         >
-          <Icon name="chevron-left" size={22} />
+          <Icon name="chevron-left" size={20} />
+          <span>Voltar</span>
         </button>
       )}
       <div className="min-w-0 flex-1 truncate text-lg font-extrabold">{title}</div>

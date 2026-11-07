@@ -5,7 +5,7 @@ import { notFound, useParams, useRouter } from "next/navigation";
 import { AppFrame } from "@/components/Shell";
 import { Icon } from "@/components/Icon";
 import { StepIcon } from "@/components/steps/StepShell";
-import { ProgressBar } from "@/components/ui";
+import { ProgressBar, TopBar } from "@/components/ui";
 import { getUnit } from "@/content";
 import { LANGS } from "@/lib/langs";
 import { STEPS, isUnitUnlocked, unitProgressPct } from "@/lib/state";
@@ -23,14 +23,14 @@ function UnitHub({ id }: { id: string }) {
 
   return (
     <>
-      <div className="mb-4 flex items-center gap-3">
-        <button onClick={() => router.push("/cursos")} className="grid h-10 w-10 place-items-center rounded-full bg-white shadow-[var(--shadow-card)]" aria-label="Voltar">
-          <Icon name="chevron-left" size={22} />
-        </button>
-        <span className="text-sm font-semibold text-[var(--color-muted)]">
-          {meta.flag} {meta.name} · Nível {unit.level}
-        </span>
-      </div>
+      <TopBar
+        back={() => router.push("/cursos")}
+        title={
+          <span className="text-sm font-semibold text-[var(--color-muted)]">
+            {meta.flag} {meta.name} · Nível {unit.level}
+          </span>
+        }
+      />
 
       <section className="relative overflow-hidden rounded-[28px] bg-[var(--color-coral)] p-6 text-white shadow-[var(--shadow-float)]">
         <div className="absolute -right-2 -top-2 text-[90px] leading-none opacity-90">{unit.emoji}</div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { Icon } from "@/components/Icon";
 import { AppFrame } from "@/components/Shell";
 import { TutorChat } from "@/components/steps/TutorChat";
@@ -43,7 +43,7 @@ function QuickResponseDrill({ onDone }: { onDone: () => void }) {
   const lang = state.activeLang;
   const dict = CONTENT[lang].dictionary;
   const lvl = currentLevel(state, lang);
-  const prompts = buildQuickResponsePrompts(lang, lvl, 5);
+  const prompts = useMemo(() => buildQuickResponsePrompts(lang, lvl, 5), [lang, lvl]);
   const [idx, setIdx] = useState(0);
   const [input, setInput] = useState("");
   const [timeLeft, setTimeLeft] = useState(8);
@@ -52,19 +52,29 @@ function QuickResponseDrill({ onDone }: { onDone: () => void }) {
   const [done, setDone] = useState(false);
   const startRef = useRef<number>(Date.now());
   const timesRef = useRef<number[]>([]);
+  const spokenIdxRef = useRef<number>(-1);
 
   const item = prompts[idx];
 
+  // Fala cada pergunta apenas 1 vez por índice (evita loop com o relógio de 1s e com a escrita)
+  useEffect(() => {
+    if (!item || done) return;
+    if (spokenIdxRef.current !== idx) {
+      spokenIdxRef.current = idx;
+      if (state.settings.tutorVoice) say(item.tutor, lang);
+    }
+  }, [idx, item, done, state.settings.tutorVoice, say, lang]);
+
+  // Temporizador regressivo de 1s separado da voz
   useEffect(() => {
     if (!item || feedback || done) return;
     startRef.current = Date.now();
     setTimeLeft(item.timeLimitSec);
-    if (state.settings.tutorVoice) say(item.tutor, lang);
     const id = setInterval(() => {
       setTimeLeft((t) => (t > 0 ? t - 1 : 0));
     }, 1000);
     return () => clearInterval(id);
-  }, [idx, item, feedback, done, state.settings.tutorVoice, say, lang]);
+  }, [idx, item, feedback, done]);
 
   if (!item) return null;
 
@@ -195,7 +205,7 @@ function TranslateSenseDrill({ onDone }: { onDone: () => void }) {
   const { say } = useSpeaker();
   const lang = state.activeLang;
   const lvl = currentLevel(state, lang);
-  const prompts = buildTranslateSensePrompts(lang, lvl, 5);
+  const prompts = useMemo(() => buildTranslateSensePrompts(lang, lvl, 5), [lang, lvl]);
   const [idx, setIdx] = useState(0);
   const [picked, setPicked] = useState<string | null>(null);
   const [score, setScore] = useState(0);
@@ -306,9 +316,19 @@ function QuickConversationInner() {
     { id: "sentido", label: "🧠 Sentido" },
   ];
 
+  const handleBack = () => {
+    if (typeof window !== "undefined" && window.history.length > 2) {
+      router.back();
+    } else if (searchParams.get("mode")) {
+      router.push("/cursos/conversas");
+    } else {
+      router.push("/inicio");
+    }
+  };
+
   return (
     <>
-      <TopBar back={() => router.push("/inicio")} title={`Conversa & Fluência · ${LANGS[lang].flag}`} right={<Timer key={`${tab}-${round}`} />} />
+      <TopBar back={handleBack} title={`Conversa & Fluência · ${LANGS[lang].flag}`} right={<Timer key={`${tab}-${round}`} />} />
       <div className="no-scrollbar -mx-5 mb-3 flex gap-1.5 overflow-x-auto px-5 pb-1" role="tablist" aria-label="Modos de conversa e fluência">
         {tabs.map((t) => (
           <button
