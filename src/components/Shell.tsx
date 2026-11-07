@@ -329,7 +329,7 @@ export function AppFrame({ children, nav = true }: { children: React.ReactNode; 
   void nav;
   return (
     <AuthGate>
-      <div className="mx-auto min-h-dvh max-w-[480px] px-5 pb-32 pt-[max(env(safe-area-inset-top),16px)]">
+      <div className="mx-auto min-h-dvh max-w-[480px] px-5 pb-32 pt-[max(env(safe-area-inset-top),44px)]">
         <ThemeAndNetworkBar />
         <div key={path} className="page-enter stagger-in">
           {children}

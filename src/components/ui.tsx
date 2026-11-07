@@ -227,7 +227,7 @@ export function SkeletonScreen() {
 
 export function TopBar({ title, back, right }: { title?: React.ReactNode; back?: () => void; right?: React.ReactNode }) {
   return (
-    <div className="sticky top-0 z-30 -mx-5 mb-4 flex items-center gap-3 bg-[var(--color-bg)]/90 px-5 py-2.5 backdrop-blur-md">
+    <div className="top-sticky-bar sticky top-0 z-40 -mx-5 -mt-[max(env(safe-area-inset-top),44px)] mb-4 flex items-center gap-3 border-b border-[var(--color-line)]/70 bg-[var(--color-bg)]/95 px-5 pb-3 pt-[max(env(safe-area-inset-top),44px)] backdrop-blur-md">
       {back && (
         <button
           type="button"
