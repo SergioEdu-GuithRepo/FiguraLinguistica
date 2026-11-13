@@ -296,12 +296,109 @@ function getSRCtor(): (new () => SpeechRec) | null {
   return w.SpeechRecognition || w.webkitSpeechRecognition || null;
 }
 
+let cloudSttAvailable = false;
+let cloudSttChecked = false;
+
+function ensureCloudSttCheck() {
+  if (cloudSttChecked || typeof window === "undefined" || typeof fetch === "undefined") return;
+  cloudSttChecked = true;
+  fetch("/api/stt")
+    .then((r) => r.json())
+    .then((j) => {
+      cloudSttAvailable = Boolean(j?.enabled);
+    })
+    .catch(() => {
+      cloudSttAvailable = false;
+    });
+}
+
+if (typeof window !== "undefined") {
+  ensureCloudSttCheck();
+}
+
 export function sttSupported(): boolean {
-  return !!getSRCtor();
+  ensureCloudSttCheck();
+  return !!getSRCtor() || (cloudSttAvailable && recorderSupported());
 }
 
 export interface ListenHandle {
   stop: () => void;
+}
+
+function listenViaCloudStt(
+  lang: LangCode,
+  handlers: {
+    onInterim?: (t: string) => void;
+    onFinal: (t: string, confidence: number, alternatives: { transcript: string; confidence: number }[]) => void;
+    onError?: (msg: string) => void;
+    onEnd?: () => void;
+  },
+): ListenHandle | null {
+  if (!recorderSupported()) {
+    handlers.onError?.("O teu aparelho não suporta gravação de microfone.");
+    return null;
+  }
+  let stopped = false;
+  let rec: MediaRecorder | null = null;
+  let stream: MediaStream | null = null;
+  let timer: ReturnType<typeof setTimeout> | null = null;
+
+  navigator.mediaDevices
+    .getUserMedia({ audio: true })
+    .then((s) => {
+      if (stopped) {
+        s.getTracks().forEach((t) => t.stop());
+        return;
+      }
+      stream = s;
+      const chunks: Blob[] = [];
+      rec = new MediaRecorder(s);
+      rec.ondataavailable = (e) => e.data.size && chunks.push(e.data);
+      rec.onstop = async () => {
+        s.getTracks().forEach((t) => t.stop());
+        if (!chunks.length) {
+          handlers.onError?.("Não ouvimos nada. Tenta outra vez.");
+          handlers.onEnd?.();
+          return;
+        }
+        handlers.onInterim?.("A avaliar pronúncia…");
+        try {
+          const blob = new Blob(chunks, { type: rec?.mimeType || "audio/webm" });
+          const fd = new FormData();
+          fd.append("audio", blob, "speech.webm");
+          fd.append("lang", lang);
+          const r = await fetch("/api/stt", { method: "POST", body: fd });
+          const j = await r.json();
+          if (r.ok && j.transcript) {
+            handlers.onFinal(j.transcript, j.confidence ?? 0.9, [{ transcript: j.transcript, confidence: j.confidence ?? 0.9 }]);
+          } else {
+            handlers.onError?.(j.error || "Não ouvimos nada. Tenta outra vez.");
+          }
+        } catch {
+          handlers.onError?.("Sem ligação para avaliar a voz.");
+        } finally {
+          handlers.onEnd?.();
+        }
+      };
+      rec.start();
+      handlers.onInterim?.("A ouvir… (toca novamente quando terminares)");
+      timer = setTimeout(() => {
+        if (rec && rec.state !== "inactive") rec.stop();
+      }, 5500);
+    })
+    .catch(() => {
+      handlers.onError?.("Permissão do microfone negada.");
+      handlers.onEnd?.();
+    });
+
+  return {
+    stop: () => {
+      stopped = true;
+      if (timer) clearTimeout(timer);
+      if (rec && rec.state !== "inactive") rec.stop();
+      else stream?.getTracks().forEach((t) => t.stop());
+    },
+  };
 }
 
 export function listen(
@@ -315,6 +412,9 @@ export function listen(
 ): ListenHandle | null {
   const Ctor = getSRCtor();
   if (!Ctor) {
+    if (cloudSttAvailable && recorderSupported()) {
+      return listenViaCloudStt(lang, handlers);
+    }
     handlers.onError?.("O teu navegador não suporta reconhecimento de voz.");
     return null;
   }
@@ -324,6 +424,7 @@ export function listen(
   rec.continuous = false;
   rec.maxAlternatives = 3;
   let gotFinal = false;
+  let fellBack = false;
   rec.onresult = (e) => {
     let interim = "";
     for (let i = 0; i < e.results.length; i++) {
@@ -338,6 +439,12 @@ export function listen(
     if (interim) handlers.onInterim?.(interim);
   };
   rec.onerror = (e) => {
+    // Em WebViews Android onde SpeechRecognition existe mas é bloqueado ("service-not-allowed"), usa STT na nuvem se disponível
+    if ((e.error === "service-not-allowed" || e.error === "language-not-supported") && cloudSttAvailable && recorderSupported()) {
+      fellBack = true;
+      listenViaCloudStt(lang, handlers);
+      return;
+    }
     const map: Record<string, string> = {
       "not-allowed": "Permissão do microfone negada.",
       "no-speech": "Não ouvimos nada. Tenta outra vez.",
@@ -347,12 +454,17 @@ export function listen(
     handlers.onError?.(map[e.error] ?? `Erro no reconhecimento de voz (${e.error}).`);
   };
   rec.onend = () => {
-    if (!gotFinal) handlers.onEnd?.();
-    else handlers.onEnd?.();
+    if (!fellBack) {
+      if (!gotFinal) handlers.onEnd?.();
+      else handlers.onEnd?.();
+    }
   };
   try {
     rec.start();
   } catch {
+    if (cloudSttAvailable && recorderSupported()) {
+      return listenViaCloudStt(lang, handlers);
+    }
     handlers.onError?.("Não foi possível iniciar o microfone.");
     return null;
   }

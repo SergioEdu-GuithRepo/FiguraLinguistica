@@ -16,16 +16,16 @@
         padding: 24px;
         font-family: -apple-system, BlinkMacSystemFont, "Plus Jakarta Sans", sans-serif;
         background: #f2f6fa;
-        color: #16181d;
+        color: #0f2038;
         text-align: center;
       }
       @media (prefers-color-scheme: dark) {
         body {
-          background: #111318;
-          color: #f3f5f8;
+          background: #0b1526;
+          color: #f1f5f9;
         }
         .card {
-          background: #1b1f27 !important;
+          background: #15233b !important;
         }
       }
       .card {
@@ -33,12 +33,12 @@
         background: #ffffff;
         border-radius: 28px;
         padding: 32px 24px;
-        box-shadow: 0 12px 32px rgba(22, 24, 29, 0.08);
+        box-shadow: 0 12px 32px rgba(15, 32, 56, 0.1);
       }
       .logo {
-        width: 68px;
-        height: 68px;
-        border-radius: 20px;
+        width: 72px;
+        height: 72px;
+        border-radius: 22px;
         background: #e8735a;
         display: grid;
         place-items: center;
@@ -46,6 +46,11 @@
         color: #fff;
         font-size: 30px;
         font-weight: 800;
+        box-shadow: 0 10px 24px rgba(232, 115, 90, 0.32);
+      }
+      .flags {
+        font-size: 16px;
+        margin-bottom: 8px;
       }
       h1 {
         font-size: 22px;
@@ -53,29 +58,67 @@
       }
       p {
         font-size: 14px;
-        opacity: 0.72;
-        line-height: 1.5;
-        margin: 0 0 20px;
+        opacity: 0.78;
+        line-height: 1.55;
+        margin: 0 0 22px;
       }
       button {
         appearance: none;
+        width: 100%;
         border: 0;
-        border-radius: 999px;
+        border-radius: 16px;
         background: #e8735a;
         color: #fff;
         font-weight: 700;
         font-size: 15px;
-        padding: 13px 24px;
+        padding: 14px 24px;
         cursor: pointer;
+        box-shadow: 0 8px 18px rgba(232, 115, 90, 0.28);
+      }
+      .status {
+        margin-top: 14px;
+        font-size: 12px;
+        opacity: 0.6;
       }
     </style>
   </head>
   <body>
     <div class="card">
       <div class="logo">FL</div>
-      <h1>FiguraLinguística</h1>
-      <p>A iniciar a aplicação nativa… Verifica a ligação ao servidor ou à internet.</p>
-      <button onclick="window.location.reload()">Tentar novamente</button>
+      <div class="flags">🇬🇧 · 🇫🇷 · 🇯🇵</div>
+      <h1>Sem ligação à internet</h1>
+      <p>
+        Liga os dados móveis ou o Wi-Fi para sincronizar a FiguraLinguística. Assim que a rede voltar, entramos automaticamente!
+      </p>
+      <button id="retry-btn" type="button">Tentar ligar agora</button>
+      <div id="status-txt" class="status">À espera de ligação…</div>
     </div>
+    <script>
+      (function () {
+        var TARGET = "https://figura-linguistica.vercel.app";
+        var statusEl = document.getElementById("status-txt");
+        var btn = document.getElementById("retry-btn");
+
+        function reconnect() {
+          if (statusEl) statusEl.textContent = "A ligar à FiguraLinguística…";
+          window.location.replace(TARGET);
+        }
+
+        if (btn) {
+          btn.addEventListener("click", reconnect);
+        }
+
+        window.addEventListener("online", reconnect);
+
+        setInterval(function () {
+          if (navigator.onLine === false) return;
+          fetch(TARGET + "/manifest.webmanifest", { mode: "no-cors", cache: "no-store" })
+            .then(function () {
+              reconnect();
+            })
+            .catch(function () {});
+        }, 5000);
+      })();
+    </script>
   </body>
 </html>

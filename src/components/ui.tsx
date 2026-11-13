@@ -7,6 +7,7 @@ import { LANGS } from "@/lib/langs";
 import type { LangCode } from "@/lib/types";
 import { plainText } from "@/lib/tokenize";
 import { neuralVoiceFor, voiceForSpeaker } from "@/lib/voices";
+import { sfxCelebrate } from "@/lib/sfx";
 import { Icon } from "./Icon";
 
 /* ---------- hooks ---------- */
@@ -177,6 +178,12 @@ const CONFETTI_PARTICLES = Array.from({ length: 24 }, (_, idx) => {
 });
 
 export function CelebrationBurst({ xp, label }: { xp?: number; label?: string }) {
+  const { state } = useApp();
+  const sfxOn = state.settings.soundEffects !== false;
+  useEffect(() => {
+    sfxCelebrate(sfxOn);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   return (
     <div className="relative flex flex-col items-center justify-center" data-testid="celebration-burst">
       <div className="pointer-events-none absolute inset-0 overflow-visible" aria-hidden="true">

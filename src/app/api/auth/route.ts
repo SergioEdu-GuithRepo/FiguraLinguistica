@@ -1,9 +1,12 @@
 import { z } from "zod";
 import {
+  changeAccountPassword,
   cloudProvider,
+  confirmPasswordReset,
   deleteCloudAccount,
   loginCloudAccount,
   registerOrSyncAccount,
+  requestPasswordReset,
 } from "@/lib/server/cloud-db";
 import { clientIp, rateLimit } from "@/lib/server/guard";
 import type { UserState } from "@/lib/state";
@@ -30,6 +33,24 @@ const AuthBodySchema = z.discriminatedUnion("action", [
     action: z.literal("delete"),
     userId: z.string().min(1).max(64),
     token: z.string().min(16).max(200),
+  }),
+  z.object({
+    action: z.literal("request-reset"),
+    email: z.string().email().max(120),
+  }),
+  z.object({
+    action: z.literal("confirm-reset"),
+    email: z.string().email().max(120),
+    code: z.string().min(6).max(6),
+    newPassword: z.string().min(6).max(200),
+  }),
+  z.object({
+    action: z.literal("change-password"),
+    userId: z.string().min(1).max(64),
+    email: z.string().email().max(120).optional(),
+    token: z.string().min(16).max(200),
+    currentPassword: z.string().min(1).max(200),
+    newPassword: z.string().min(6).max(200),
   }),
 ]);
 
@@ -77,6 +98,37 @@ export async function POST(req: Request) {
       password: data.password,
       localState: data.state as UserState | undefined,
       localUpdatedAt: data.updatedAt,
+    });
+    if (!res.ok) return Response.json({ error: res.error }, { status: res.status });
+    return Response.json(res);
+  }
+
+  if (data.action === "request-reset") {
+    if (!rateLimit(`reset:${ip}`, 8, 60_000)) {
+      return Response.json({ error: "Demasiados pedidos de código. Tenta dentro de 1 minuto." }, { status: 429 });
+    }
+    const res = await requestPasswordReset(data.email);
+    if (!res.ok) return Response.json({ error: res.error }, { status: res.status });
+    return Response.json(res);
+  }
+
+  if (data.action === "confirm-reset") {
+    const res = await confirmPasswordReset({
+      email: data.email,
+      code: data.code,
+      newPassword: data.newPassword,
+    });
+    if (!res.ok) return Response.json({ error: res.error }, { status: res.status });
+    return Response.json(res);
+  }
+
+  if (data.action === "change-password") {
+    const res = await changeAccountPassword({
+      userId: data.userId,
+      email: data.email,
+      token: data.token,
+      currentPassword: data.currentPassword,
+      newPassword: data.newPassword,
     });
     if (!res.ok) return Response.json({ error: res.error }, { status: res.status });
     return Response.json(res);

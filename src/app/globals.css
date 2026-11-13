@@ -486,6 +486,156 @@ dialog.sheet::backdrop {
   scrollbar-width: none;
 }
 
+/* Campo único de código OTP (6 dígitos) — sms-otp-form */
+.otp-input {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: 0.35em;
+  text-align: center;
+  min-height: 52px;
+  padding: 0.65rem 0.75rem;
+  box-sizing: border-box;
+}
+
+/* Tabela responsiva do Painel Admin — responsive-table */
+.admin-table-wrapper {
+  overflow: auto;
+  max-inline-size: 100%;
+  max-block-size: min(560px, 78vh);
+  container-type: inline-size;
+  border-radius: 20px;
+  border: 1px solid var(--color-line);
+  background: var(--color-surface);
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 0.85rem;
+  --label-2: "Plano";
+  --label-3: "Idioma / Nível";
+  --label-4: "XP Total";
+  --label-5: "Última actividade";
+  --label-6: "Acções";
+}
+
+.admin-table caption {
+  text-align: left;
+  padding: 0.85rem 1rem;
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: var(--color-ink);
+  border-bottom: 1px solid var(--color-line);
+}
+
+.admin-table thead {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 2;
+  background: var(--color-bg);
+}
+
+.admin-table thead th {
+  text-align: left;
+  padding: 0.7rem 0.9rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-muted);
+  border-bottom: 1px solid var(--color-line);
+  background: var(--color-bg);
+  white-space: nowrap;
+}
+
+.admin-table tbody th,
+.admin-table tbody td {
+  padding: 0.75rem 0.9rem;
+  border-bottom: 1px solid var(--color-line);
+  vertical-align: middle;
+}
+
+.admin-table tbody th {
+  position: sticky;
+  inset-inline-start: 0;
+  z-index: 1;
+  text-align: left;
+  font-weight: 700;
+  background: var(--color-surface);
+}
+
+@container (width < 600px) {
+  .admin-table,
+  .admin-table thead,
+  .admin-table tbody,
+  .admin-table tr,
+  .admin-table th,
+  .admin-table td {
+    display: block;
+  }
+
+  .admin-table thead {
+    /* MANDATORY: Hide column header from layout and screen readers. */
+    display: none;
+  }
+
+  .admin-table tbody tr {
+    margin: 0.75rem;
+    border: 1px solid var(--color-line);
+    border-radius: 16px;
+    overflow: hidden;
+    background: var(--color-surface);
+  }
+
+  .admin-table tbody th {
+    position: sticky;
+    inset-block-start: 0;
+    z-index: 2;
+    background: var(--color-bg);
+    padding: 0.7rem 0.9rem;
+  }
+
+  .admin-table tbody td {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.6rem 0.9rem;
+  }
+
+  .admin-table tbody td:last-child {
+    border-bottom: 0;
+  }
+
+  .admin-table td:nth-child(2)::before {
+    content: var(--label-2) ": ";
+    font-weight: 700;
+    color: var(--color-muted);
+  }
+  .admin-table td:nth-child(3)::before {
+    content: var(--label-3) ": ";
+    font-weight: 700;
+    color: var(--color-muted);
+  }
+  .admin-table td:nth-child(4)::before {
+    content: var(--label-4) ": ";
+    font-weight: 700;
+    color: var(--color-muted);
+  }
+  .admin-table td:nth-child(5)::before {
+    content: var(--label-5) ": ";
+    font-weight: 700;
+    color: var(--color-muted);
+  }
+  .admin-table td:nth-child(6)::before {
+    content: var(--label-6) ": ";
+    font-weight: 700;
+    color: var(--color-muted);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .confetti-piece,
   .flame-alive,

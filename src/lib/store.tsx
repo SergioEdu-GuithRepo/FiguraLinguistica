@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { defaultState, reconcileUserXp, type UserState } from "./state";
+import { defaultState, reconcileUserXp, type Plan, type UserState } from "./state";
 
 interface Account {
   id: string;
@@ -12,6 +12,7 @@ interface Account {
   createdAt: number;
   cloudToken?: string;
   pendingPassword?: string;
+  isAdmin?: boolean;
 }
 
 export interface AuthUser {
@@ -27,6 +28,7 @@ interface StoreValue {
   ready: boolean;
   user: AuthUser | null;
   state: UserState | null;
+  isAdmin: boolean;
   syncStatus: SyncStatus;
   lastSyncedAt: number | null;
   cloudProvider: CloudProviderName;
@@ -34,6 +36,11 @@ interface StoreValue {
   update: (fn: (s: UserState) => UserState) => void;
   register: (name: string, email: string, password: string) => Promise<string | null>;
   login: (email: string, password: string) => Promise<string | null>;
+  requestPasswordReset: (email: string) => Promise<{ err: string | null; delivery?: "email" | "support" }>;
+  confirmPasswordReset: (email: string, code: string, newPassword: string) => Promise<string | null>;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<string | null>;
+  redeemPassCode: (code: string) => Promise<{ err: string | null; plan?: Plan }>;
+  getCloudAuthHeaders: () => Record<string, string>;
   logout: () => void;
   deleteAccount: () => void;
   resetProgress: () => void;
@@ -41,6 +48,7 @@ interface StoreValue {
 
 const ACCOUNTS = "fl:accounts";
 const SESSION = "fl:session";
+const FOUNDER_EMAIL = "sergio.eduardo.kuroko@gmail.com";
 const stateKey = (id: string) => `fl:state:${id}`;
 const updatedKey = (id: string) => `fl:updated:${id}`;
 const syncedKey = (id: string) => `fl:synced:${id}`;
@@ -114,6 +122,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false);
   const [user, setUser] = useState<AuthUser | null>(null);
   const [state, setState] = useState<UserState | null>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const [syncStatus, setSyncStatus] = useState<SyncStatus>("local");
   const [lastSyncedAt, setLastSyncedAt] = useState<number | null>(null);
   const [cloudProvider, setCloudProvider] = useState<CloudProviderName>("local-cloud");
@@ -158,6 +167,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           const data = await regRes.json();
           acc.id = data.user.id;
           acc.cloudToken = data.token;
+          acc.isAdmin = Boolean(data.isAdmin ?? acc.email === FOUNDER_EMAIL);
           delete acc.pendingPassword;
           accounts[u.email] = acc;
           writeAccounts(accounts);
@@ -168,6 +178,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           localStorage.setItem(updatedKey(acc.id), String(now));
           localStorage.setItem(syncedKey(acc.id), String(now));
           if (data.provider) setCloudProvider(data.provider);
+          setIsAdmin(acc.isAdmin);
           setLastSyncedAt(now);
           setSyncStatus("synced");
           setState(merged);
@@ -203,6 +214,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       const data = await res.json();
       const now = Number(data.updatedAt) || Date.now();
       const merged = hydrateState(data.state, u.name);
+      if (typeof data.isAdmin === "boolean") {
+        acc.isAdmin = data.isAdmin;
+        accounts[u.email] = acc;
+        writeAccounts(accounts);
+        setIsAdmin(data.isAdmin);
+      }
       localStorage.setItem(stateKey(u.id), JSON.stringify(merged));
       localStorage.setItem(updatedKey(u.id), String(now));
       localStorage.setItem(syncedKey(u.id), String(now));
@@ -227,6 +244,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         const loaded = loadState(acc.id, acc.name);
         setUser({ id: acc.id, name: acc.name, email: acc.email });
         setState(loaded);
+        setIsAdmin(Boolean(acc.isAdmin ?? acc.email === FOUNDER_EMAIL));
         const lastSync = Number(localStorage.getItem(syncedKey(acc.id)) || 0);
         if (lastSync > 0) setLastSyncedAt(lastSync);
         if (acc.cloudToken) setSyncStatus("synced");
@@ -305,6 +323,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     let finalId = localId;
     let cloudToken: string | undefined;
     let pendingPassword: string | undefined = password;
+    let adminFlag = e === FOUNDER_EMAIL;
 
     // Regista também na base de dados na nuvem (com fallback offline transparente)
     try {
@@ -328,6 +347,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         finalId = data.user.id;
         cloudToken = data.token;
         pendingPassword = undefined;
+        adminFlag = Boolean(data.isAdmin ?? adminFlag);
         st = hydrateState(data.state, name.trim());
         const now = Number(data.updatedAt) || Date.now();
         localStorage.setItem(syncedKey(finalId), String(now));
@@ -349,12 +369,14 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       createdAt: existingLocal?.createdAt ?? Date.now(),
       cloudToken,
       pendingPassword,
+      isAdmin: adminFlag,
     };
     accounts[e] = acc;
     writeAccounts(accounts);
     localStorage.setItem(SESSION, acc.id);
     localStorage.setItem(stateKey(acc.id), JSON.stringify(st));
     localStorage.setItem(updatedKey(acc.id), String(Date.now()));
+    setIsAdmin(adminFlag);
     setUser({ id: acc.id, name: acc.name, email: acc.email });
     setState(st);
     return null;
@@ -387,6 +409,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         const hash = await hashPassword(password, salt);
         const merged = hydrateState(data.state, data.user.name);
         const now = Number(data.updatedAt) || Date.now();
+        const adminFlag = Boolean(data.isAdmin ?? e === FOUNDER_EMAIL);
         const acc: Account = {
           id: data.user.id,
           name: data.user.name,
@@ -395,6 +418,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           hash,
           createdAt: localAcc?.createdAt ?? now,
           cloudToken: data.token,
+          isAdmin: adminFlag,
         };
         accounts[e] = acc;
         writeAccounts(accounts);
@@ -403,6 +427,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
         localStorage.setItem(updatedKey(acc.id), String(now));
         localStorage.setItem(syncedKey(acc.id), String(now));
         if (data.provider) setCloudProvider(data.provider);
+        setIsAdmin(adminFlag);
         setLastSyncedAt(now);
         setSyncStatus("synced");
         setUser({ id: acc.id, name: acc.name, email: acc.email });
@@ -442,11 +467,13 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           const data = await migRes.json();
           const merged = hydrateState(data.state, data.user.name);
           const now = Number(data.updatedAt) || Date.now();
+          const adminFlag = Boolean(data.isAdmin ?? e === FOUNDER_EMAIL);
           const acc: Account = {
             ...localAcc,
             id: data.user.id,
             cloudToken: data.token,
             pendingPassword: undefined,
+            isAdmin: adminFlag,
           };
           accounts[e] = acc;
           writeAccounts(accounts);
@@ -455,6 +482,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           localStorage.setItem(updatedKey(acc.id), String(now));
           localStorage.setItem(syncedKey(acc.id), String(now));
           if (data.provider) setCloudProvider(data.provider);
+          setIsAdmin(adminFlag);
           setLastSyncedAt(now);
           setSyncStatus("synced");
           setUser({ id: acc.id, name: acc.name, email: acc.email });
@@ -470,16 +498,188 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     accounts[e] = localAcc;
     writeAccounts(accounts);
     localStorage.setItem(SESSION, localAcc.id);
+    setIsAdmin(Boolean(localAcc.isAdmin ?? e === FOUNDER_EMAIL));
     setUser({ id: localAcc.id, name: localAcc.name, email: localAcc.email });
     setState(localState ?? defaultState(localAcc.name));
     setSyncStatus("offline");
     return null;
   }, []);
 
+  const requestPasswordReset = useCallback(async (email: string) => {
+    const e = email.trim().toLowerCase();
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(e)) {
+      return { err: "Indica um endereço de email válido." };
+    }
+    try {
+      const res = await fetch("/api/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "request-reset", email: e }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        return { err: (data.error as string) || "Não foi possível pedir o código." };
+      }
+      return { err: null, delivery: (data.delivery as "email" | "support") ?? "support" };
+    } catch {
+      return { err: "Sem ligação à internet. Verifica a rede e tenta novamente." };
+    }
+  }, []);
+
+  const confirmPasswordReset = useCallback(async (email: string, code: string, newPassword: string) => {
+    const e = email.trim().toLowerCase();
+    const cleanCode = code.trim();
+    if (!/^\d{6}$/.test(cleanCode)) return "Indica o código de 6 dígitos.";
+    if (newPassword.length < 6) return "A nova palavra-passe deve ter pelo menos 6 caracteres.";
+    try {
+      const res = await fetch("/api/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "confirm-reset",
+          email: e,
+          code: cleanCode,
+          newPassword,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        return (data.error as string) || "Não foi possível redefinir a palavra-passe.";
+      }
+
+      const accounts = readAccounts();
+      const localAcc = accounts[e];
+      const salt = localAcc?.salt ?? randomId();
+      const hash = await hashPassword(newPassword, salt);
+      const merged = hydrateState(data.state, data.user.name);
+      const now = Number(data.updatedAt) || Date.now();
+      const adminFlag = Boolean(data.isAdmin ?? e === FOUNDER_EMAIL);
+      const acc: Account = {
+        id: data.user.id,
+        name: data.user.name,
+        email: e,
+        salt,
+        hash,
+        createdAt: localAcc?.createdAt ?? now,
+        cloudToken: data.token,
+        isAdmin: adminFlag,
+      };
+      accounts[e] = acc;
+      writeAccounts(accounts);
+      localStorage.setItem(SESSION, acc.id);
+      localStorage.setItem(stateKey(acc.id), JSON.stringify(merged));
+      localStorage.setItem(updatedKey(acc.id), String(now));
+      localStorage.setItem(syncedKey(acc.id), String(now));
+      if (data.provider) setCloudProvider(data.provider);
+      setIsAdmin(adminFlag);
+      setLastSyncedAt(now);
+      setSyncStatus("synced");
+      setUser({ id: acc.id, name: acc.name, email: acc.email });
+      setState(merged);
+      return null;
+    } catch {
+      return "Sem ligação à internet. Verifica a rede e tenta novamente.";
+    }
+  }, []);
+
+  const changePassword = useCallback(async (currentPassword: string, newPassword: string) => {
+    const u = userRef.current;
+    if (!u) return "Sessão inválida.";
+    if (newPassword.length < 6) return "A nova palavra-passe deve ter pelo menos 6 caracteres.";
+    const accounts = readAccounts();
+    const acc = accounts[u.email];
+    if (!acc) return "Conta não encontrada neste dispositivo.";
+
+    try {
+      const res = await fetch("/api/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "change-password",
+          userId: u.id,
+          email: u.email,
+          token: acc.cloudToken || "",
+          currentPassword,
+          newPassword,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        return (data.error as string) || "Não foi possível alterar a palavra-passe.";
+      }
+      const salt = randomId();
+      const hash = await hashPassword(newPassword, salt);
+      acc.salt = salt;
+      acc.hash = hash;
+      if (data.token) acc.cloudToken = data.token;
+      accounts[u.email] = acc;
+      writeAccounts(accounts);
+      return null;
+    } catch {
+      return "Precisas de ligação à internet para alterar a palavra-passe na nuvem.";
+    }
+  }, []);
+
+  const redeemPassCode = useCallback(async (code: string) => {
+    const u = userRef.current;
+    if (!u) return { err: "Entra na tua conta primeiro." };
+    const clean = code.trim().toUpperCase();
+    if (clean.length < 4) return { err: "Indica um código de activação válido." };
+    const accounts = readAccounts();
+    const acc = accounts[u.email];
+    if (!acc?.cloudToken) {
+      await performSync(false);
+    }
+    const freshAcc = readAccounts()[u.email];
+    if (!freshAcc?.cloudToken) {
+      return { err: "Precisas de ligação à internet para validar o código." };
+    }
+
+    try {
+      const res = await fetch("/api/passes", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: u.id,
+          email: u.email,
+          token: freshAcc.cloudToken,
+          code: clean,
+        }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        return { err: (data.error as string) || "Não foi possível activar o código." };
+      }
+      const now = Number(data.updatedAt) || Date.now();
+      const merged = hydrateState(data.state, u.name);
+      localStorage.setItem(stateKey(u.id), JSON.stringify(merged));
+      localStorage.setItem(updatedKey(u.id), String(now));
+      localStorage.setItem(syncedKey(u.id), String(now));
+      setLastSyncedAt(now);
+      setSyncStatus("synced");
+      setState(merged);
+      return { err: null, plan: data.plan as Plan };
+    } catch {
+      return { err: "Sem ligação à internet. Tenta novamente em instantes." };
+    }
+  }, [performSync]);
+
+  const getCloudAuthHeaders = useCallback((): Record<string, string> => {
+    const u = userRef.current;
+    if (!u) return {};
+    const acc = readAccounts()[u.email];
+    return {
+      Authorization: `Bearer ${acc?.cloudToken || ""}`,
+      "x-user-id": u.id,
+      "x-user-email": u.email,
+    };
+  }, []);
+
   const logout = useCallback(() => {
     localStorage.removeItem(SESSION);
     setUser(null);
     setState(null);
+    setIsAdmin(false);
   }, []);
 
   const deleteAccount = useCallback(() => {
@@ -502,6 +702,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem(SESSION);
     setUser(null);
     setState(null);
+    setIsAdmin(false);
   }, []);
 
   const resetProgress = useCallback(() => {
@@ -521,6 +722,7 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       ready,
       user,
       state,
+      isAdmin,
       syncStatus,
       lastSyncedAt,
       cloudProvider,
@@ -528,11 +730,36 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       update,
       register,
       login,
+      requestPasswordReset,
+      confirmPasswordReset,
+      changePassword,
+      redeemPassCode,
+      getCloudAuthHeaders,
       logout,
       deleteAccount,
       resetProgress,
     }),
-    [ready, user, state, syncStatus, lastSyncedAt, cloudProvider, syncNow, update, register, login, logout, deleteAccount, resetProgress],
+    [
+      ready,
+      user,
+      state,
+      isAdmin,
+      syncStatus,
+      lastSyncedAt,
+      cloudProvider,
+      syncNow,
+      update,
+      register,
+      login,
+      requestPasswordReset,
+      confirmPasswordReset,
+      changePassword,
+      redeemPassCode,
+      getCloudAuthHeaders,
+      logout,
+      deleteAccount,
+      resetProgress,
+    ],
   );
 
   return <StoreCtx.Provider value={value}>{children}</StoreCtx.Provider>;
@@ -546,7 +773,7 @@ export function useStore(): StoreValue {
 
 /** Para componentes dentro da área autenticada (estado garantido). */
 export function useApp() {
-  const { state, update, user } = useStore();
+  const { state, update, user, isAdmin } = useStore();
   if (!state || !user) throw new Error("useApp sem sessão");
-  return { state, update, user };
+  return { state, update, user, isAdmin };
 }

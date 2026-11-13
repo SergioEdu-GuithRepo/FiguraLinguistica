@@ -1,13 +1,16 @@
-import { createHash, randomBytes, randomUUID, timingSafeEqual } from "crypto";
+import { createHash, randomBytes, randomInt, randomUUID, timingSafeEqual } from "crypto";
 import { promises as fs } from "fs";
 import path from "path";
 import type { Card } from "@/lib/fsrs";
 import { LANG_LIST } from "@/lib/langs";
 import {
+  currentLevel,
   defaultState,
+  isPremium,
   mergeXpEvents,
   reconcileUserXp,
   type LangProgress,
+  type Plan,
   type StepId,
   type UnitProgress,
   type UserState,
@@ -31,7 +34,33 @@ export interface CloudAccountRow {
 const SUPABASE_URL = (process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || "").trim().replace(/\/$/, "");
 const SUPABASE_KEY = (process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY || "").trim();
 const LOCAL_DB_PATH = process.env.CLOUD_DB_PATH || path.join(process.cwd(), "data", "cloud-db.json");
-const ADMIN_EMAILS_RAW = (process.env.ADMIN_EMAILS ?? "*").trim();
+const ADMIN_EMAILS_RAW = (process.env.ADMIN_EMAILS ?? "sergio.eduardo.kuroko@gmail.com").trim();
+const SYSTEM_META_ID = "__system_meta__";
+const SYSTEM_META_EMAIL = "__system__@figuralinguistica.internal";
+
+export interface PassCodeRecord {
+  code: string;
+  plan: Plan;
+  days: number | null;
+  maxUses: number;
+  usedBy: { email: string; name: string; at: number }[];
+  note?: string;
+  createdAt: number;
+}
+
+export interface ResetRequestRecord {
+  email: string;
+  codeHash: string;
+  adminCode: string;
+  expiresAt: number;
+  attempts: number;
+  requestedAt: number;
+}
+
+interface SystemMetaPayload {
+  passCodes: Record<string, PassCodeRecord>;
+  resetRequests: Record<string, ResetRequestRecord>;
+}
 
 export function isAdminEmail(email: string): boolean {
   if (ADMIN_EMAILS_RAW === "*") return true;
@@ -377,10 +406,14 @@ export async function registerOrSyncAccount(params: {
   password: string;
   initialState?: UserState;
 }): Promise<
-  | { ok: true; user: { id: string; name: string; email: string }; token: string; state: UserState; updatedAt: number; provider: CloudProvider }
+  | { ok: true; user: { id: string; name: string; email: string }; token: string; state: UserState; updatedAt: number; provider: CloudProvider; isAdmin: boolean }
   | { ok: false; error: string; status: number }
 > {
   const email = params.email.trim().toLowerCase();
+  if (email === SYSTEM_META_EMAIL || email.endsWith(".internal")) {
+    return { ok: false, error: "Email reservado pelo sistema.", status: 400 };
+  }
+  const admin = isAdminEmail(email);
   const name = params.name.trim();
   const existing = await findByEmail(email);
 
@@ -393,9 +426,12 @@ export async function registerOrSyncAccount(params: {
     const { token, tokenHash } = issueSessionToken();
     const now = Date.now();
     const merged = mergeUserStates(existing.state, params.initialState, existing.updated_at, now, existing.name);
-    if (isAdminEmail(email)) {
+    if (admin) {
       merged.plan = "lifetime";
       merged.planExpires = undefined;
+    } else {
+      merged.plan = existing.state?.plan ?? "free";
+      merged.planExpires = existing.state?.planExpires;
     }
     const updated: CloudAccountRow = {
       ...existing,
@@ -411,6 +447,7 @@ export async function registerOrSyncAccount(params: {
       state: merged,
       updatedAt: now,
       provider: cloudProvider(),
+      isAdmin: admin,
     };
   }
 
@@ -420,8 +457,11 @@ export async function registerOrSyncAccount(params: {
   const { token, tokenHash } = issueSessionToken();
   const now = Date.now();
   const state = mergeUserStates(defaultState(name), params.initialState, 0, now, name);
-  if (isAdminEmail(email)) {
+  if (admin) {
     state.plan = "lifetime";
+    state.planExpires = undefined;
+  } else {
+    state.plan = "free";
     state.planExpires = undefined;
   }
 
@@ -445,6 +485,7 @@ export async function registerOrSyncAccount(params: {
     state,
     updatedAt: now,
     provider: cloudProvider(),
+    isAdmin: admin,
   };
 }
 
@@ -454,10 +495,13 @@ export async function loginCloudAccount(params: {
   localState?: UserState;
   localUpdatedAt?: number;
 }): Promise<
-  | { ok: true; user: { id: string; name: string; email: string }; token: string; state: UserState; updatedAt: number; provider: CloudProvider }
+  | { ok: true; user: { id: string; name: string; email: string }; token: string; state: UserState; updatedAt: number; provider: CloudProvider; isAdmin: boolean }
   | { ok: false; error: string; status: number }
 > {
   const email = params.email.trim().toLowerCase();
+  if (email === SYSTEM_META_EMAIL || email.endsWith(".internal")) {
+    return { ok: false, error: "Não encontrámos uma conta com este email.", status: 404 };
+  }
   const row = await findByEmail(email);
   if (!row) {
     return { ok: false, error: "Não encontrámos uma conta com este email.", status: 404 };
@@ -467,14 +511,18 @@ export async function loginCloudAccount(params: {
     return { ok: false, error: "Palavra-passe incorrecta.", status: 401 };
   }
 
+  const admin = isAdminEmail(email);
   const { token, tokenHash } = issueSessionToken();
   const now = Date.now();
   const merged = params.localState
     ? mergeUserStates(row.state, params.localState, row.updated_at, params.localUpdatedAt ?? now, row.name)
-    : row.state;
-  if (isAdminEmail(email)) {
+    : reconcileUserXp({ ...defaultState(row.name), ...row.state });
+  if (admin) {
     merged.plan = "lifetime";
     merged.planExpires = undefined;
+  } else {
+    merged.plan = row.state?.plan ?? "free";
+    merged.planExpires = row.state?.planExpires;
   }
 
   const updated: CloudAccountRow = {
@@ -492,6 +540,7 @@ export async function loginCloudAccount(params: {
     state: merged,
     updatedAt: now,
     provider: cloudProvider(),
+    isAdmin: admin,
   };
 }
 
@@ -517,20 +566,25 @@ export async function syncCloudState(params: {
   clientUpdatedAt: number;
   forceReplace?: boolean;
 }): Promise<
-  | { ok: true; state: UserState; updatedAt: number; provider: CloudProvider }
+  | { ok: true; state: UserState; updatedAt: number; provider: CloudProvider; isAdmin: boolean }
   | { ok: false; error: string; status: number }
 > {
   const row = await authenticateToken(params.userId, params.token, params.email);
-  if (!row) {
+  if (!row || row.id === SYSTEM_META_ID) {
     return { ok: false, error: "Sessão na nuvem inválida ou expirada.", status: 401 };
   }
   const now = Date.now();
   const nextState = params.forceReplace
-    ? { ...defaultState(row.name), ...params.clientState }
+    ? reconcileUserXp({ ...defaultState(row.name), ...params.clientState })
     : mergeUserStates(row.state, params.clientState, row.updated_at, params.clientUpdatedAt || now, row.name);
-  if (isAdminEmail(row.email)) {
+  const admin = isAdminEmail(row.email);
+  if (admin) {
     nextState.plan = "lifetime";
     nextState.planExpires = undefined;
+  } else {
+    // Impede adulteração local do plano: apenas códigos de passe ou o painel /admin alteram o plano no servidor
+    nextState.plan = row.state?.plan ?? "free";
+    nextState.planExpires = row.state?.planExpires;
   }
 
   const updated: CloudAccountRow = {
@@ -545,12 +599,471 @@ export async function syncCloudState(params: {
     state: nextState,
     updatedAt: now,
     provider: cloudProvider(),
+    isAdmin: admin,
   };
 }
 
 export async function deleteCloudAccount(userId: string, token: string): Promise<boolean> {
   const row = await authenticateToken(userId, token);
-  if (!row) return false;
+  if (!row || row.id === SYSTEM_META_ID) return false;
   await removeAccount(row);
   return true;
+}
+
+/* ---------------- Metadados do Sistema (Passes + Recuperação de Palavra-passe) ---------------- */
+
+async function readSystemMeta(): Promise<SystemMetaPayload> {
+  const row = await findById(SYSTEM_META_ID);
+  const raw = (row?.state ?? {}) as unknown as Partial<SystemMetaPayload>;
+  return {
+    passCodes: raw.passCodes && typeof raw.passCodes === "object" ? raw.passCodes : {},
+    resetRequests: raw.resetRequests && typeof raw.resetRequests === "object" ? raw.resetRequests : {},
+  };
+}
+
+async function writeSystemMeta(meta: SystemMetaPayload): Promise<void> {
+  const now = Date.now();
+  const row: CloudAccountRow = {
+    id: SYSTEM_META_ID,
+    email: SYSTEM_META_EMAIL,
+    name: "Sistema FiguraLinguística",
+    salt: "system",
+    password_hash: "locked",
+    token_hash: "",
+    state: meta as unknown as UserState,
+    updated_at: now,
+    created_at: new Date(now).toISOString(),
+  };
+  await upsertAccount(row);
+}
+
+/* ---------------- Recuperação e Alteração de Palavra-passe ---------------- */
+
+export async function changeAccountPassword(params: {
+  userId: string;
+  email?: string;
+  token: string;
+  currentPassword: string;
+  newPassword: string;
+}): Promise<{ ok: true; token: string } | { ok: false; error: string; status: number }> {
+  if (params.newPassword.length < 6) {
+    return { ok: false, error: "A nova palavra-passe deve ter pelo menos 6 caracteres.", status: 400 };
+  }
+  const row = await authenticateToken(params.userId, params.token, params.email);
+  if (!row || row.id === SYSTEM_META_ID) {
+    return { ok: false, error: "Sessão inválida. Entra novamente.", status: 401 };
+  }
+  const curHash = hashPasswordServer(params.currentPassword, row.salt);
+  if (!safeEqualHex(curHash, row.password_hash)) {
+    return { ok: false, error: "A palavra-passe actual está incorrecta.", status: 401 };
+  }
+  const salt = randomBytes(16).toString("hex");
+  const passwordHash = hashPasswordServer(params.newPassword, salt);
+  const { token, tokenHash } = issueSessionToken();
+  await upsertAccount({
+    ...row,
+    salt,
+    password_hash: passwordHash,
+    token_hash: tokenHash,
+    updated_at: Date.now(),
+  });
+  return { ok: true, token };
+}
+
+async function sendResetEmailIfConfigured(toEmail: string, name: string, code: string): Promise<boolean> {
+  const resendKey = process.env.RESEND_API_KEY?.trim();
+  if (!resendKey) return false;
+  const from = process.env.RESEND_FROM_EMAIL?.trim() || "FiguraLinguística <onboarding@resend.dev>";
+  const domain = (process.env.NEXT_PUBLIC_APP_DOMAIN || "figura-linguistica.vercel.app").replace(/^https?:\/\//, "").replace(/\/.*$/, "");
+  const textBody = `Olá ${name},\n\nO teu código de recuperação da FiguraLinguística é: ${code}\n(válido durante 15 minutos).\n\nSe não pediste este código, podes ignorar esta mensagem.\n\n@${domain} #${code}`;
+  try {
+    const r = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${resendKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from,
+        to: [toEmail],
+        subject: `${code} é o teu código de recuperação — FiguraLinguística`,
+        text: textBody,
+      }),
+    });
+    return r.ok;
+  } catch {
+    return false;
+  }
+}
+
+export async function requestPasswordReset(emailRaw: string): Promise<
+  | { ok: true; delivery: "email" | "support" }
+  | { ok: false; error: string; status: number }
+> {
+  const email = emailRaw.trim().toLowerCase();
+  if (!email || email === SYSTEM_META_EMAIL || email.endsWith(".internal")) {
+    return { ok: false, error: "Não encontrámos uma conta com este email.", status: 404 };
+  }
+  const row = await findByEmail(email);
+  if (!row) {
+    return { ok: false, error: "Não encontrámos uma conta com este email.", status: 404 };
+  }
+  const code = String(randomInt(0, 1_000_000)).padStart(6, "0");
+  const now = Date.now();
+  const meta = await readSystemMeta();
+  // Limpa códigos expirados
+  for (const [k, v] of Object.entries(meta.resetRequests)) {
+    if (v.expiresAt < now) delete meta.resetRequests[k];
+  }
+  meta.resetRequests[email] = {
+    email,
+    codeHash: sha256Hex(code),
+    adminCode: code,
+    expiresAt: now + 15 * 60_000,
+    attempts: 0,
+    requestedAt: now,
+  };
+  await writeSystemMeta(meta);
+  const sent = await sendResetEmailIfConfigured(email, row.name, code);
+  return { ok: true, delivery: sent ? "email" : "support" };
+}
+
+export async function confirmPasswordReset(params: {
+  email: string;
+  code: string;
+  newPassword: string;
+}): Promise<
+  | { ok: true; user: { id: string; name: string; email: string }; token: string; state: UserState; updatedAt: number; provider: CloudProvider; isAdmin: boolean }
+  | { ok: false; error: string; status: number }
+> {
+  const email = params.email.trim().toLowerCase();
+  const code = params.code.trim();
+  if (!/^\d{6}$/.test(code)) {
+    return { ok: false, error: "O código deve ter exactamente 6 dígitos.", status: 400 };
+  }
+  if (params.newPassword.length < 6) {
+    return { ok: false, error: "A nova palavra-passe deve ter pelo menos 6 caracteres.", status: 400 };
+  }
+  const row = await findByEmail(email);
+  if (!row || row.id === SYSTEM_META_ID) {
+    return { ok: false, error: "Conta não encontrada.", status: 404 };
+  }
+  const meta = await readSystemMeta();
+  const reqRec = meta.resetRequests[email];
+  const now = Date.now();
+  if (!reqRec || reqRec.expiresAt < now) {
+    delete meta.resetRequests[email];
+    await writeSystemMeta(meta);
+    return { ok: false, error: "Código expirado ou inexistente. Pede um novo código.", status: 400 };
+  }
+  if (reqRec.attempts >= 5) {
+    delete meta.resetRequests[email];
+    await writeSystemMeta(meta);
+    return { ok: false, error: "Demasiadas tentativas incorrectas. Pede um novo código.", status: 429 };
+  }
+  const candidate = sha256Hex(code);
+  if (!safeEqualHex(candidate, reqRec.codeHash)) {
+    reqRec.attempts += 1;
+    meta.resetRequests[email] = reqRec;
+    await writeSystemMeta(meta);
+    return { ok: false, error: "Código de 6 dígitos incorrecto.", status: 401 };
+  }
+
+  delete meta.resetRequests[email];
+  await writeSystemMeta(meta);
+
+  const admin = isAdminEmail(email);
+  const salt = randomBytes(16).toString("hex");
+  const passwordHash = hashPasswordServer(params.newPassword, salt);
+  const { token, tokenHash } = issueSessionToken();
+  const state = reconcileUserXp({ ...defaultState(row.name), ...row.state });
+  if (admin) {
+    state.plan = "lifetime";
+    state.planExpires = undefined;
+  }
+  const updated: CloudAccountRow = {
+    ...row,
+    salt,
+    password_hash: passwordHash,
+    token_hash: tokenHash,
+    state,
+    updated_at: now,
+  };
+  await upsertAccount(updated);
+  return {
+    ok: true,
+    user: { id: updated.id, name: updated.name, email: updated.email },
+    token,
+    state,
+    updatedAt: now,
+    provider: cloudProvider(),
+    isAdmin: admin,
+  };
+}
+
+/* ---------------- Códigos de Passe / Subscrição ---------------- */
+
+export async function redeemPassCode(params: {
+  userId: string;
+  email?: string;
+  token: string;
+  code: string;
+}): Promise<
+  | { ok: true; plan: Plan; planExpires?: number; state: UserState; updatedAt: number }
+  | { ok: false; error: string; status: number }
+> {
+  const row = await authenticateToken(params.userId, params.token, params.email);
+  if (!row || row.id === SYSTEM_META_ID) {
+    return { ok: false, error: "Sessão inválida. Entra novamente na tua conta.", status: 401 };
+  }
+  const clean = params.code.trim().toUpperCase();
+  if (clean.length < 4) {
+    return { ok: false, error: "Indica um código de activação válido.", status: 400 };
+  }
+  const meta = await readSystemMeta();
+  const pass = meta.passCodes[clean];
+  if (!pass) {
+    return { ok: false, error: "Código não reconhecido. Verifica as letras e os números.", status: 404 };
+  }
+  if (pass.usedBy.some((u) => u.email === row.email)) {
+    return { ok: false, error: "Já activaste este código na tua conta.", status: 409 };
+  }
+  if (pass.usedBy.length >= pass.maxUses) {
+    return { ok: false, error: "Este código já atingiu o limite máximo de utilizações.", status: 410 };
+  }
+
+  const now = Date.now();
+  const baseStart = row.state?.planExpires && row.state.planExpires > now ? row.state.planExpires : now;
+  const planExpires = pass.days ? baseStart + pass.days * 86_400_000 : undefined;
+  const nextState: UserState = reconcileUserXp({
+    ...defaultState(row.name),
+    ...row.state,
+    plan: pass.plan,
+    planExpires,
+  });
+
+  pass.usedBy.push({ email: row.email, name: row.name, at: now });
+  meta.passCodes[clean] = pass;
+  await writeSystemMeta(meta);
+  await upsertAccount({
+    ...row,
+    state: nextState,
+    updated_at: now,
+  });
+
+  return {
+    ok: true,
+    plan: pass.plan,
+    planExpires,
+    state: nextState,
+    updatedAt: now,
+  };
+}
+
+/* ---------------- Painel do Fundador (/admin) ---------------- */
+
+export async function authenticateAdmin(userId: string, token: string, email?: string): Promise<CloudAccountRow | null> {
+  const row = await authenticateToken(userId, token, email);
+  if (!row || row.id === SYSTEM_META_ID) return null;
+  return isAdminEmail(row.email) ? row : null;
+}
+
+async function listAllAccounts(): Promise<CloudAccountRow[]> {
+  if (cloudProvider() === "supabase") {
+    const res = await sbFetch("fl_accounts?select=*&order=updated_at.desc&limit=500");
+    if (res.ok) {
+      const rows = (await res.json()) as CloudAccountRow[];
+      return rows
+        .map((r) => normalizeRow(r))
+        .filter((r): r is CloudAccountRow => Boolean(r && r.id !== SYSTEM_META_ID && r.email !== SYSTEM_META_EMAIL));
+    }
+  }
+  const db = await readLocalCloud();
+  return Object.values(db.accounts)
+    .map((r) => normalizeRow(r))
+    .filter((r): r is CloudAccountRow => Boolean(r && r.id !== SYSTEM_META_ID && r.email !== SYSTEM_META_EMAIL))
+    .sort((a, b) => b.updated_at - a.updated_at);
+}
+
+export interface AdminUserSummary {
+  id: string;
+  name: string;
+  email: string;
+  plan: Plan;
+  planExpires?: number;
+  premiumActive: boolean;
+  activeLang: LangCode;
+  level: number;
+  xpEn: number;
+  xpFr: number;
+  xpJa: number;
+  totalXp: number;
+  conversations: number;
+  streak: number;
+  updatedAt: number;
+  createdAt: string;
+}
+
+export async function getAdminOverview() {
+  const [rows, meta] = await Promise.all([listAllAccounts(), readSystemMeta()]);
+  const now = Date.now();
+  const dayAgo = now - 86_400_000;
+  const weekAgo = now - 7 * 86_400_000;
+
+  let active24h = 0;
+  let active7d = 0;
+  let premiumCount = 0;
+  let totalXpAll = 0;
+  let totalConvsAll = 0;
+  const reports: { userEmail: string; ref: string; text: string; reason: string; at: number }[] = [];
+
+  const users: AdminUserSummary[] = rows.map((r) => {
+    const st = reconcileUserXp({ ...defaultState(r.name), ...(r.state ?? {}) });
+    const xpEn = st.progress?.en?.xp ?? 0;
+    const xpFr = st.progress?.fr?.xp ?? 0;
+    const xpJa = st.progress?.ja?.xp ?? 0;
+    const totalXp = xpEn + xpFr + xpJa;
+    const convs = st.conversations?.length ?? 0;
+    const prem = isPremium(st, now);
+
+    if (r.updated_at >= dayAgo) active24h++;
+    if (r.updated_at >= weekAgo) active7d++;
+    if (prem) premiumCount++;
+    totalXpAll += totalXp;
+    totalConvsAll += convs;
+
+    for (const rep of st.reports ?? []) {
+      reports.push({
+        userEmail: r.email,
+        ref: rep.ref,
+        text: rep.text,
+        reason: rep.reason,
+        at: rep.at,
+      });
+    }
+
+    const activeLang = st.activeLang ?? "en";
+    return {
+      id: r.id,
+      name: r.name,
+      email: r.email,
+      plan: st.plan ?? "free",
+      planExpires: st.planExpires,
+      premiumActive: prem,
+      activeLang,
+      level: currentLevel(st, activeLang),
+      xpEn,
+      xpFr,
+      xpJa,
+      totalXp,
+      conversations: convs,
+      streak: st.streak?.count ?? 0,
+      updatedAt: r.updated_at,
+      createdAt: r.created_at,
+    };
+  });
+
+  const activeResets = Object.values(meta.resetRequests)
+    .filter((x) => x.expiresAt > now)
+    .sort((a, b) => b.requestedAt - a.requestedAt);
+
+  const passCodes = Object.values(meta.passCodes).sort((a, b) => b.createdAt - a.createdAt);
+
+  return {
+    provider: cloudProvider(),
+    stats: {
+      totalUsers: users.length,
+      active24h,
+      active7d,
+      premiumCount,
+      totalXpAll,
+      totalConvsAll,
+    },
+    users,
+    passCodes,
+    resetRequests: activeResets,
+    reports: reports.sort((a, b) => b.at - a.at).slice(0, 40),
+  };
+}
+
+export async function adminCreatePassCode(params: {
+  plan: Plan;
+  days: number | null;
+  maxUses: number;
+  note?: string;
+  customCode?: string;
+}): Promise<PassCodeRecord> {
+  const meta = await readSystemMeta();
+  const prefix =
+    params.plan === "pass-week"
+      ? "SEMANA"
+      : params.plan === "pass-month"
+        ? "MES"
+        : params.plan === "lifetime"
+          ? "VITAL"
+          : params.plan === "school"
+            ? "ESCOLA"
+            : "PREMIUM";
+  const rand = randomBytes(3).toString("hex").toUpperCase();
+  const code = (params.customCode?.trim().toUpperCase().replace(/[^A-Z0-9-]/g, "") || `FL-${prefix}-${rand}`).slice(0, 28);
+  const rec: PassCodeRecord = {
+    code,
+    plan: params.plan,
+    days: params.days,
+    maxUses: Math.max(1, Math.min(500, Math.round(params.maxUses || 1))),
+    usedBy: [],
+    note: params.note?.trim().slice(0, 80) || undefined,
+    createdAt: Date.now(),
+  };
+  meta.passCodes[code] = rec;
+  await writeSystemMeta(meta);
+  return rec;
+}
+
+export async function adminDeletePassCode(code: string): Promise<void> {
+  const meta = await readSystemMeta();
+  delete meta.passCodes[code.trim().toUpperCase()];
+  await writeSystemMeta(meta);
+}
+
+export async function adminSetUserPlan(params: {
+  targetEmail: string;
+  plan: Plan;
+  days: number | null;
+}): Promise<boolean> {
+  const row = await findByEmail(params.targetEmail);
+  if (!row || row.id === SYSTEM_META_ID) return false;
+  const now = Date.now();
+  const planExpires = params.days ? now + params.days * 86_400_000 : undefined;
+  const nextState: UserState = reconcileUserXp({
+    ...defaultState(row.name),
+    ...row.state,
+    plan: params.plan,
+    planExpires,
+  });
+  await upsertAccount({
+    ...row,
+    state: nextState,
+    updated_at: now,
+  });
+  return true;
+}
+
+export async function adminGenerateResetForUser(targetEmail: string): Promise<string | null> {
+  const e = targetEmail.trim().toLowerCase();
+  const row = await findByEmail(e);
+  if (!row || row.id === SYSTEM_META_ID) return null;
+  const code = String(randomInt(0, 1_000_000)).padStart(6, "0");
+  const now = Date.now();
+  const meta = await readSystemMeta();
+  meta.resetRequests[e] = {
+    email: e,
+    codeHash: sha256Hex(code),
+    adminCode: code,
+    expiresAt: now + 30 * 60_000,
+    attempts: 0,
+    requestedAt: now,
+  };
+  await writeSystemMeta(meta);
+  return code;
 }

@@ -8,7 +8,9 @@ import { CelebrationBurst, TopBar, useSpeaker } from "@/components/ui";
 import { CONTENT } from "@/content";
 import { STAGE_MILESTONES, buildStageExam, type StageMilestoneInfo } from "@/lib/fluencia";
 import { LANGS } from "@/lib/langs";
-import { passStageExam, unitDone } from "@/lib/state";
+import { sfxError, sfxSuccess } from "@/lib/sfx";
+import { shareAchievementCard } from "@/lib/share-card";
+import { currentStreak, passStageExam, unitDone } from "@/lib/state";
 import { useApp } from "@/lib/store";
 
 function StageExamModal({
@@ -34,7 +36,13 @@ function StageExamModal({
     if (picked) return;
     setPicked(opt);
     const isCorrect = opt === q.correct;
-    if (isCorrect) setScore((s) => s + 1);
+    const sfxOn = state.settings.soundEffects !== false;
+    if (isCorrect) {
+      setScore((s) => s + 1);
+      sfxSuccess(sfxOn);
+    } else {
+      sfxError(sfxOn);
+    }
     if (state.settings.tutorVoice) say(q.correct, lang);
   };
 
@@ -141,18 +149,19 @@ function MarcosContent() {
 
   const shareCertificate = async (st: StageMilestoneInfo) => {
     const code = `FL-${lang.toUpperCase()}-E${st.stageIdx}-${st.cefr.replace(".", "")}`;
-    const text = `🎓 Certificado FiguraLinguística — ${state.name} concluiu a Etapa ${st.stageIdx} «${st.name}» (${st.cefr}) de ${meta.name} (${meta.flag})! Código: ${code}`;
-    try {
-      if (navigator.share) {
-        await navigator.share({ title: "Certificado FiguraLinguística", text });
-      } else if (navigator.clipboard) {
-        await navigator.clipboard.writeText(text);
-      }
-    } catch {
-      // ignore
-    }
+    await shareAchievementCard({
+      studentName: state.name,
+      langName: meta.name,
+      langFlag: meta.flag,
+      badge: `Certificado ${st.cefr}`,
+      title: `Etapa ${st.stageIdx} · ${st.name}`,
+      subtitle: st.canDo[0] ?? `Competência comunicativa certificada nos níveis ${st.from}–${st.to}.`,
+      xp: lp.xp,
+      streak: Math.max(1, currentStreak(state)),
+      code,
+    });
     setCopiedId(st.stageIdx);
-    setTimeout(() => setCopiedId(null), 2500);
+    setTimeout(() => setCopiedId(null), 2800);
   };
 
   return (
@@ -252,7 +261,7 @@ function MarcosContent() {
                       onClick={() => shareCertificate(st)}
                     >
                       <Icon name="sparkles" size={14} />{" "}
-                      {copiedId === st.stageIdx ? "Copiado para partilhar ✓" : "Partilhar certificado"}
+                      {copiedId === st.stageIdx ? "Imagem pronta / partilhada ✓" : "📲 Partilhar no WhatsApp"}
                     </button>
                     <button
                       type="button"

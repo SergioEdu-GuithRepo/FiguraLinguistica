@@ -18,6 +18,7 @@ import {
   type ConversationMode,
 } from "@/lib/state";
 import { useApp } from "@/lib/store";
+import { sfxError, sfxSuccess } from "@/lib/sfx";
 import { diagnose } from "@/lib/tutor";
 
 type TabMode = ConversationMode | "rapido" | "sentido";
@@ -85,7 +86,13 @@ function QuickResponseDrill({ onDone }: { onDone: () => void }) {
     timesRef.current.push(elapsed);
     const d = diagnose(val, item.step, lang, dict);
     const ok = d.avaliacao !== "incompreensivel";
-    if (ok) setScore((s) => s + 1);
+    const sfxOn = state.settings.soundEffects !== false;
+    if (ok) {
+      setScore((s) => s + 1);
+      sfxSuccess(sfxOn);
+    } else {
+      sfxError(sfxOn);
+    }
     setFeedback({
       ok,
       best: d.best,
@@ -218,7 +225,13 @@ function TranslateSenseDrill({ onDone }: { onDone: () => void }) {
     if (picked) return;
     setPicked(opt);
     const ok = opt === item.step.model;
-    if (ok) setScore((s) => s + 1);
+    const sfxOn = state.settings.soundEffects !== false;
+    if (ok) {
+      setScore((s) => s + 1);
+      sfxSuccess(sfxOn);
+    } else {
+      sfxError(sfxOn);
+    }
     if (state.settings.tutorVoice) say(item.step.model, lang);
   };
 

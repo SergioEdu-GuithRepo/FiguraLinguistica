@@ -37,6 +37,10 @@ export interface Settings {
   theme?: "light" | "dark" | "system";
   /** Modo leve (poupar dados móveis: evita pré-carregamentos pesados) */
   dataSaver?: boolean;
+  /** Sons curtos de feedback ao acertar/errar e concluir etapas (por defeito true) */
+  soundEffects?: boolean;
+  /** Hora preferida para o lembrete diário de estudo (ex.: "19:30") */
+  reminderHour?: string;
   /** Modo desenvolvedor: desbloquear todas as 45 unidades sem exigir conclusão sequencial */
   unlockAllLevels?: boolean;
 }
@@ -166,6 +170,8 @@ export function defaultState(name: string): UserState {
       interests: [],
       theme: "light",
       dataSaver: false,
+      soundEffects: true,
+      reminderHour: "19:30",
     },
     progress: { en: emptyLang(), fr: emptyLang(), ja: emptyLang() },
     srs: { en: {}, fr: {}, ja: {} },

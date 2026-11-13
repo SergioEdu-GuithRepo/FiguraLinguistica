@@ -2,10 +2,12 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import React from "react";
+import React, { useState } from "react";
 import { Icon, type IconName } from "@/components/Icon";
 import { CelebrationBurst } from "@/components/ui";
-import { STEPS, type StepId } from "@/lib/state";
+import { LANGS } from "@/lib/langs";
+import { shareAchievementCard } from "@/lib/share-card";
+import { STEPS, currentStreak, type StepId } from "@/lib/state";
 import type { Unit } from "@/lib/types";
 import { useApp } from "@/lib/store";
 
@@ -47,10 +49,33 @@ export function StepHeader({ unit, step }: { unit: Unit; step: StepId }) {
 
 export function StepDone({ unit, step, xp, extra }: { unit: Unit; step: StepId; xp: number; extra?: React.ReactNode }) {
   const { state } = useApp();
+  const [shareMsg, setShareMsg] = useState<string | null>(null);
   const idx = STEPS.findIndex((s) => s.id === step);
   const next = STEPS[idx + 1];
   const unitCompleted = !!state.progress[unit.lang].units[unit.id]?.completedAt;
   const allDone = STEPS.every((s) => state.progress[unit.lang].units[unit.id]?.steps[s.id]);
+  const meta = LANGS[unit.lang];
+
+  const handleShare = async () => {
+    const res = await shareAchievementCard({
+      studentName: state.name,
+      langName: meta.name,
+      langFlag: meta.flag,
+      badge: allDone ? `Nível ${unit.level} Concluído` : `Passo ${idx + 1}/${STEPS.length}`,
+      title: `${unit.emoji} ${unit.title}`,
+      subtitle: unit.objective,
+      xp: state.progress[unit.lang].xp,
+      streak: Math.max(1, currentStreak(state)),
+      code: `FL-${unit.id.toUpperCase()}`,
+    });
+    setShareMsg(
+      res === "downloaded"
+        ? "Imagem guardada! Podes publicar no WhatsApp ✓"
+        : "Pronto para partilhar ✓",
+    );
+    setTimeout(() => setShareMsg(null), 3500);
+  };
+
   return (
     <div className="fade-in flex flex-col items-center py-8 text-center">
       <div className="trophy-pop grid h-24 w-24 place-items-center rounded-full bg-[var(--color-good-soft)] text-5xl shadow-[var(--shadow-card)]">
@@ -71,6 +96,11 @@ export function StepDone({ unit, step, xp, extra }: { unit: Unit; step: StepId; 
           <Link href="/cursos" className="btn btn-primary">
             Ver próximas unidades
           </Link>
+        )}
+        {allDone && (
+          <button type="button" onClick={handleShare} className="btn btn-dark">
+            📲 {shareMsg ?? "Partilhar imagem no WhatsApp"}
+          </button>
         )}
         <Link href={`/unidade/${unit.id}`} className="btn btn-soft">
           Voltar à unidade

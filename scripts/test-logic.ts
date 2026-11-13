@@ -386,6 +386,20 @@ check("Base de dados na nuvem: mergeUserStates preserva progresso de dois dispos
   assert.equal(merged.settings.theme, "dark");
 });
 
+check("Reconciliação de XP entre dispositivos (CRDT xpEvents + definições v1.2)", () => {
+  let pc = defaultState("Sérgio");
+  pc = completeStep(pc, "en-1", "ouvir", 10);
+  pc = completeStep(pc, "en-1", "moldes", 15);
+
+  let phone = defaultState("Sérgio");
+  phone = completeStep(phone, "en-1", "vocabulario", 15);
+
+  const merged = mergeUserStates(pc, phone, 1000, 2000, "Sérgio");
+  assert.equal(merged.progress.en.xp, 40);
+  assert.equal(merged.settings.soundEffects, true);
+  assert.equal(merged.settings.reminderHour, "19:30");
+});
+
 console.log(`\n${passed} testes passaram, ${failures.length} falharam.`);
 if (failures.length) {
   console.log(failures.slice(0, 60).join("\n"));

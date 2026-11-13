@@ -10,6 +10,7 @@ const config: CapacitorConfig = {
     url: serverUrl,
     cleartext: serverUrl.startsWith("http://"),
     allowNavigation: ["*"],
+    errorPath: "index.html",
   },
   ios: {
     contentInset: "automatic",
@@ -21,7 +22,7 @@ const config: CapacitorConfig = {
     backgroundColor: "#F2F6FA",
     allowMixedContent: true,
     captureInput: true,
-    webContentsDebuggingEnabled: process.env.NODE_ENV !== "production",
+    webContentsDebuggingEnabled: false,
   },
 };
 

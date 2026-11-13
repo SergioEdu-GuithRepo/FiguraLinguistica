@@ -6,8 +6,9 @@ import React, { useEffect, useState } from "react";
 import { AppFrame, ScreenHeader } from "@/components/Shell";
 import { Icon } from "@/components/Icon";
 import { Sheet } from "@/components/Sheet";
-import { Toggle, useSpeaker } from "@/components/ui";
+import { Toast, Toggle, useSpeaker } from "@/components/ui";
 import { LANGS, LANG_LIST } from "@/lib/langs";
+import { sfxSuccess } from "@/lib/sfx";
 import { getVoices, neuralStatus, onNeuralStatus, resetNeuralFallback, speak, sttSupported, voicesFor, type NeuralStatus } from "@/lib/speech";
 import { DEFAULT_NEURAL, NEURAL_VOICES, neuralVoiceFor } from "@/lib/voices";
 import { currentStreak, isPremium, pushNotif, studentModelSummary, type Settings } from "@/lib/state";
@@ -24,6 +25,7 @@ const PLAN_LABEL: Record<string, string> = {
 };
 
 const INTERESTS = ["viagens", "comida", "negócios", "música", "futebol", "estudos"];
+const REMINDER_HOURS = ["08:00", "13:00", "19:30", "21:30"] as const;
 
 function Row({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
@@ -47,12 +49,19 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 }
 
 function Perfil() {
-  const { state, update, user } = useApp();
-  const { logout, deleteAccount, resetProgress, syncStatus, lastSyncedAt, cloudProvider, syncNow } = useStore();
+  const { state, update, user, isAdmin } = useApp();
+  const { logout, deleteAccount, resetProgress, changePassword, syncStatus, lastSyncedAt, cloudProvider, syncNow } = useStore();
   const router = useRouter();
   const { say } = useSpeaker();
   const [voices, setVoices] = useState<SpeechSynthesisVoice[]>([]);
   const [confirm, setConfirm] = useState<null | "delete" | "reset">(null);
+  const [pwdOpen, setPwdOpen] = useState(false);
+  const [curPwd, setCurPwd] = useState("");
+  const [newPwd, setNewPwd] = useState("");
+  const [pwdBusy, setPwdBusy] = useState(false);
+  const [pwdErr, setPwdErr] = useState<string | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
+
   const lang = state.activeLang;
   const s = state.settings;
   const set = <K extends keyof Settings>(k: K, v: Settings[K]) => update((st) => ({ ...st, settings: { ...st.settings, [k]: v } }));
@@ -68,12 +77,31 @@ function Perfil() {
 
   const engine = s.voiceEngine ?? "neural";
   const theme = s.theme ?? "light";
+  const soundEffects = s.soundEffects !== false;
+  const reminderHour = s.reminderHour || "19:30";
   const currentNeural = neuralVoiceFor(lang, s.neuralVoices?.[lang]);
   const langVoices = voicesFor(lang, voices);
   const totalXp = LANG_LIST.reduce((a, l) => a + state.progress[l].xp, 0);
   const errs = Object.entries(state.errors[lang]).sort((a, b) => b[1].count - a[1].count);
   const premium = isPremium(state);
   const model = studentModelSummary(state, lang);
+
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPwdBusy(true);
+    setPwdErr(null);
+    const err = await changePassword(curPwd, newPwd);
+    setPwdBusy(false);
+    if (err) {
+      setPwdErr(err);
+      return;
+    }
+    setCurPwd("");
+    setNewPwd("");
+    setPwdOpen(false);
+    sfxSuccess(soundEffects);
+    setToast("Palavra-passe alterada com sucesso ✓");
+  };
 
   return (
     <>
@@ -84,11 +112,12 @@ function Perfil() {
           <div className="truncate text-lg font-extrabold">{user.name}</div>
           <div className="truncate text-sm text-[var(--color-muted)]">{user.email}</div>
           <span className={`mt-1 inline-block rounded-full px-2.5 py-0.5 text-xs font-bold ${premium ? "bg-[var(--color-lilac)] text-white" : "bg-[var(--color-bg)]"}`}>
-            {PLAN_LABEL[state.plan]}
+            {PLAN_LABEL[state.plan] ?? state.plan}
             {state.planExpires && premium ? ` · até ${new Date(state.planExpires).toLocaleDateString("pt-PT")}` : ""}
           </span>
         </div>
       </div>
+
       <div className="mt-3 grid grid-cols-3 gap-3 text-center">
         <div className="card p-3">
           <div className="text-xl font-extrabold">🔥 {currentStreak(state)}</div>
@@ -103,6 +132,21 @@ function Perfil() {
           <div className="text-xs text-[var(--color-muted)]">conversas</div>
         </div>
       </div>
+
+      {isAdmin && (
+        <Link
+          href="/admin"
+          className="card mt-4 flex items-center justify-between gap-3 border-2 border-[var(--color-coral)]/35 bg-[var(--color-coral-soft)] p-4"
+        >
+          <div className="min-w-0">
+            <div className="font-extrabold">🛡️ Painel do Fundador (Admin)</div>
+            <div className="text-xs text-[var(--color-muted)]">
+              Utilizadores no Supabase, códigos de passe FL-... e suporte de contas
+            </div>
+          </div>
+          <Icon name="chevron-right" />
+        </Link>
+      )}
 
       <section className="mt-5" data-testid="student-model-card">
         <h2 className="mb-2 px-1 text-xs font-bold uppercase tracking-wider text-[var(--color-muted)]">
@@ -296,6 +340,16 @@ function Perfil() {
         <Row label="Tutor fala em voz alta" hint="Ler as respostas do tutor automaticamente">
           <Toggle checked={s.tutorVoice} onChange={(v) => set("tutorVoice", v)} label="Tutor fala em voz alta" />
         </Row>
+        <Row label="Sons de acerto e conquista" hint="Efeitos sonoros subtis e vibração nos exercícios">
+          <Toggle
+            checked={soundEffects}
+            onChange={(v) => {
+              set("soundEffects", v);
+              if (v) sfxSuccess(true);
+            }}
+            label="Sons de acerto e conquista"
+          />
+        </Row>
         <Row label="Usar o microfone" hint={sttSupported() ? "Para «Dizer em voz alta» e conversas. Não guardamos áudio." : "Não suportado neste navegador"}>
           <Toggle checked={s.voiceConsent === true} onChange={(v) => set("voiceConsent", v)} label="Usar o microfone" />
         </Row>
@@ -330,7 +384,7 @@ function Perfil() {
                   ...st,
                   notifications: pushNotif(
                     st.notifications,
-                    `🔔 Lembretes activos: avisaremos quando tiveres itens FSRS para rever (${model.dueCount} prontos agora).`,
+                    `🔔 Lembretes activos (${reminderHour}): avisaremos quando tiveres itens FSRS para rever (${model.dueCount} prontos agora).`,
                     "/revisao",
                   ),
                 }));
@@ -338,6 +392,25 @@ function Perfil() {
             }}
           />
         </Row>
+        {s.notifications && (
+          <div className="py-3">
+            <div className="font-semibold">Hora preferida do lembrete</div>
+            <div className="mt-0.5 text-xs text-[var(--color-muted)]">Se ainda não tiveres praticado nesse dia, enviamos um aviso discreto.</div>
+            <div className="mt-2.5 flex flex-wrap gap-2">
+              {REMINDER_HOURS.map((h) => (
+                <button
+                  key={h}
+                  type="button"
+                  aria-pressed={reminderHour === h}
+                  onClick={() => set("reminderHour", h)}
+                  className={`chip !px-3 text-xs font-bold ${reminderHour === h ? "!bg-[var(--color-ink)] !text-white" : ""}`}
+                >
+                  ⏰ {h}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </Section>
 
       <Section title="O teu progresso">
@@ -427,13 +500,25 @@ function Perfil() {
         </div>
         <Link href="/planos" className="flex items-center justify-between py-3 font-semibold">
           <span>
-            Subscrição <span className="text-sm font-normal text-[var(--color-muted)]">· {PLAN_LABEL[state.plan] ?? state.plan}</span>
+            Subscrição e passes <span className="text-sm font-normal text-[var(--color-muted)]">· {PLAN_LABEL[state.plan] ?? state.plan}</span>
           </span>
           <Icon name="chevron-right" className="text-[var(--color-muted)]" />
         </Link>
-        <Row label="Desbloquear todos os 45 níveis" hint="Modo fundador: explorar qualquer unidade sem bloquear">
-          <Toggle checked={!!s.unlockAllLevels} onChange={(v) => set("unlockAllLevels", v)} label="Desbloquear todos os 45 níveis" />
-        </Row>
+        <button
+          type="button"
+          className="flex w-full items-center justify-between py-3 text-left font-semibold"
+          onClick={() => {
+            setPwdErr(null);
+            setPwdOpen(true);
+          }}
+        >
+          Alterar palavra-passe <Icon name="lock" size={20} className="text-[var(--color-muted)]" />
+        </button>
+        {isAdmin && (
+          <Row label="Desbloquear todos os 45 níveis" hint="Modo fundador: explorar qualquer unidade sem bloquear">
+            <Toggle checked={!!s.unlockAllLevels} onChange={(v) => set("unlockAllLevels", v)} label="Desbloquear todos os 45 níveis" />
+          </Row>
+        )}
         <button className="flex w-full items-center justify-between py-3 text-left font-semibold" onClick={() => setConfirm("reset")}>
           Repor progresso <Icon name="refresh" size={20} className="text-[var(--color-muted)]" />
         </button>
@@ -450,12 +535,52 @@ function Perfil() {
           Eliminar conta e dados <Icon name="trash" size={20} />
         </button>
       </Section>
-      <p className="mt-6 text-center text-xs text-[var(--color-muted)]">FiguraLinguística · MVP v1.1</p>
+      <p className="mt-6 text-center text-xs text-[var(--color-muted)]">FiguraLinguística · v1.2</p>
+
+      <Sheet open={pwdOpen} onClose={() => setPwdOpen(false)} title="Alterar palavra-passe">
+        <form onSubmit={handlePasswordChange} className="flex flex-col gap-3">
+          <div className="flex flex-col gap-1 text-sm font-semibold">
+            <label htmlFor="profile-cur-pwd">Palavra-passe actual</label>
+            <input
+              id="profile-cur-pwd"
+              type="password"
+              className="input"
+              value={curPwd}
+              onChange={(e) => setCurPwd(e.target.value)}
+              autoComplete="current-password"
+              required
+            />
+          </div>
+          <div className="flex flex-col gap-1 text-sm font-semibold">
+            <label htmlFor="profile-new-pwd">Nova palavra-passe</label>
+            <input
+              id="profile-new-pwd"
+              type="password"
+              className="input"
+              value={newPwd}
+              onChange={(e) => setNewPwd(e.target.value)}
+              autoComplete="new-password"
+              minLength={6}
+              placeholder="Mínimo 6 caracteres"
+              required
+            />
+          </div>
+          {pwdErr && <p className="text-xs font-bold text-[var(--color-bad)]">{pwdErr}</p>}
+          <div className="mt-2 flex flex-col gap-2">
+            <button type="submit" className="btn btn-primary" disabled={pwdBusy}>
+              {pwdBusy ? "A guardar…" : "Guardar nova palavra-passe"}
+            </button>
+            <button type="button" className="btn btn-soft" onClick={() => setPwdOpen(false)}>
+              Cancelar
+            </button>
+          </div>
+        </form>
+      </Sheet>
 
       <Sheet open={!!confirm} onClose={() => setConfirm(null)} title={confirm === "delete" ? "Eliminar conta?" : "Repor progresso?"}>
         <p className="text-[var(--color-muted)]">
           {confirm === "delete"
-            ? "A tua conta, progresso, palavras e conversas serão apagados deste dispositivo. Esta acção não pode ser desfeita."
+            ? "A tua conta, progresso, palavras e conversas serão apagados deste dispositivo e da nuvem. Esta acção não pode ser desfeita."
             : "O XP, unidades, palavras e conversas dos 3 idiomas voltam a zero. As definições mantêm-se."}
         </p>
         <div className="mt-5 flex flex-col gap-2">
@@ -478,6 +603,7 @@ function Perfil() {
           </button>
         </div>
       </Sheet>
+      <Toast text={toast} onDone={() => setToast(null)} />
     </>
   );
 }

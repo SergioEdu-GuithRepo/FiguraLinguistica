@@ -40,6 +40,11 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# relatórios de erros (local)
+# relatórios de erros (local) e pacotes/chaves Android
 /data
 *.apk
+*.aab
+*.jks
+*.keystore
+android/keystore/
+android/keystore.properties

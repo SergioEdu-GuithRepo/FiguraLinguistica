@@ -10,6 +10,7 @@ import { KANJI } from "@/content/ja/kanji";
 import { completeStep, rateItem, recordError, type StepId } from "@/lib/state";
 import { listen, recorderSupported, startRecording, sttSupported, ttsSupported, type RecorderHandle } from "@/lib/speech";
 import { assessPronunciation, type Alternative, type PronunciationResult } from "@/lib/pronunciation";
+import { sfxError, sfxSuccess, sfxTap } from "@/lib/sfx";
 import { useApp } from "@/lib/store";
 import { fillTemplate, plainText, type RToken } from "@/lib/tokenize";
 import type { LangCode, Unit } from "@/lib/types";
@@ -294,7 +295,10 @@ export function BuildStep({ unit }: { unit: Unit }) {
 
   const check = () => {
     const ok = picked.length === ex.chunks.length && picked.every((p, k) => p.text === ex.chunks[k]);
+    const sfxOn = state.settings.soundEffects !== false;
     setResult(ok ? "ok" : "bad");
+    if (ok) sfxSuccess(sfxOn);
+    else sfxError(sfxOn);
     say(ex.chunks.join(lang === "ja" ? "" : " "), lang);
     if (!ok) {
       setErrors((n) => n + 1);
@@ -340,7 +344,15 @@ export function BuildStep({ unit }: { unit: Unit }) {
       </div>
       <div className="mt-4 flex flex-wrap gap-2">
         {available.map((p) => (
-          <button key={p.id} className="chip target !bg-[var(--color-lilac-soft)] !text-base" disabled={!!result} onClick={() => setPicked((xs) => [...xs, p])}>
+          <button
+            key={p.id}
+            className="chip target !bg-[var(--color-lilac-soft)] !text-base"
+            disabled={!!result}
+            onClick={() => {
+              sfxTap(state.settings.soundEffects !== false);
+              setPicked((xs) => [...xs, p]);
+            }}
+          >
             {plainText(p.text, lang)}
           </button>
         ))}

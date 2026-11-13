@@ -104,23 +104,55 @@ export function NotificationsButton() {
   const lang = state.activeLang;
   const due = dueItems(state, lang).length;
 
-  // lembretes inteligentes gerados uma vez por dia
+  // lembretes inteligentes gerados uma vez por dia + hora programada de estudo
   useEffect(() => {
     const today = new Date().toDateString();
     const key = `fl:reminded:${today}:${lang}`;
-    if (typeof localStorage === "undefined" || localStorage.getItem(key)) return;
-    localStorage.setItem(key, "1");
-    if (due > 0) {
-      update((s) => ({ ...s, notifications: pushNotif(s.notifications, `🔁 Tens ${due} itens para rever em ${LANGS[lang].name}.`, "/revisao") }));
-      if (state.settings.notifications && "Notification" in window && Notification.permission === "granted") {
-        try {
-          new Notification("FiguraLinguística", { body: `Tens ${due} itens para rever hoje.`, icon: "/icon-192.png" });
-        } catch {
-          /* alguns navegadores só permitem via service worker */
+    if (typeof localStorage !== "undefined" && !localStorage.getItem(key)) {
+      localStorage.setItem(key, "1");
+      if (due > 0) {
+        update((s) => ({ ...s, notifications: pushNotif(s.notifications, `🔁 Tens ${due} itens para rever em ${LANGS[lang].name}.`, "/revisao") }));
+        if (state.settings.notifications && "Notification" in window && Notification.permission === "granted") {
+          try {
+            new Notification("FiguraLinguística", { body: `Tens ${due} itens para rever hoje.`, icon: "/icon-192.png" });
+          } catch {
+            /* alguns navegadores só permitem via service worker */
+          }
         }
       }
     }
-  }, [due, lang, update, state.settings.notifications]);
+
+    const checkHourlyReminder = () => {
+      if (!state.settings.notifications || typeof localStorage === "undefined") return;
+      const now = new Date();
+      const isoDay = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+      const hourKey = `fl:daily-hour:${isoDay}`;
+      if (localStorage.getItem(hourKey)) return;
+      // Só lembra se o aluno ainda não estudou hoje
+      if ((state.days?.[isoDay]?.activities ?? 0) > 0) return;
+
+      const target = state.settings.reminderHour || "19:30";
+      const [th, tm] = target.split(":").map((x) => Number(x) || 0);
+      const nowMin = now.getHours() * 60 + now.getMinutes();
+      const targetMin = th * 60 + tm;
+      if (nowMin >= targetMin) {
+        localStorage.setItem(hourKey, "1");
+        const msg = `⏰ Hora da tua prática (${target})! Bastam ${state.settings.dailyGoalMin} minutos em ${LANGS[lang].name} para manter a sequência.`;
+        update((s) => ({ ...s, notifications: pushNotif(s.notifications, msg, "/inicio") }));
+        if ("Notification" in window && Notification.permission === "granted") {
+          try {
+            new Notification("FiguraLinguística · Hora de praticar", { body: msg, icon: "/icon-192.png" });
+          } catch {
+            /* alguns navegadores só permitem via service worker */
+          }
+        }
+      }
+    };
+
+    checkHourlyReminder();
+    const timer = setInterval(checkHourlyReminder, 60_000);
+    return () => clearInterval(timer);
+  }, [due, lang, update, state.days, state.settings.dailyGoalMin, state.settings.notifications, state.settings.reminderHour]);
 
   const unread = state.notifications.some((n) => !n.read);
   return (
@@ -324,12 +356,12 @@ function ThemeAndNetworkBar() {
   );
 }
 
-export function AppFrame({ children, nav = true }: { children: React.ReactNode; nav?: boolean }) {
+export function AppFrame({ children, nav = true, wide = false }: { children: React.ReactNode; nav?: boolean; wide?: boolean }) {
   const path = usePathname();
   void nav;
   return (
     <AuthGate>
-      <div className="mx-auto min-h-dvh max-w-[480px] px-5 pb-32 pt-[max(env(safe-area-inset-top),44px)]">
+      <div className={`mx-auto min-h-dvh ${wide ? "max-w-[960px]" : "max-w-[480px]"} px-5 pb-32 pt-[max(env(safe-area-inset-top),44px)]`}>
         <ThemeAndNetworkBar />
         <div key={path} className="page-enter stagger-in">
           {children}
