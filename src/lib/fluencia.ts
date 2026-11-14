@@ -27,7 +27,7 @@ export interface TranslateSensePrompt {
 }
 
 export interface StageMilestoneInfo {
-  stageIdx: number; // 1..5
+  stageIdx: number; // 1..6
   name: string;
   from: number;
   to: number;
@@ -105,6 +105,20 @@ export const STAGE_MILESTONES: StageMilestoneInfo[] = [
       "Contar histórias engraçadas e usar expressões idiomáticas naturais",
       "Debater vantagens e desvantagens e negociar no trabalho",
       "Conversar com ritmo natural, humor e adequação de registo",
+    ],
+  },
+  {
+    stageIdx: 6,
+    name: "Domínio",
+    from: 46,
+    to: 54,
+    cefr: "B2",
+    icon: "🌍",
+    canDo: [
+      "Lidar com controlo de fronteira, bancos, contratos e serviços públicos",
+      "Participar em reuniões remotas, apresentações académicas e suporte técnico",
+      "Resolver reclamações, trocas e reembolsos com cortesia e firmeza",
+      "Fazer networking profissional e explicar referências culturais lusófonas",
     ],
   },
 ];

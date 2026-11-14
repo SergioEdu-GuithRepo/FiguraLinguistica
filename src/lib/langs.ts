@@ -54,7 +54,7 @@ export const LANGS: Record<LangCode, LangMeta> = {
 
 export const LANG_LIST: LangCode[] = ["en", "fr", "ja"];
 
-export const TOTAL_LEVELS = 45;
+export const TOTAL_LEVELS = 54;
 
 export const STAGES = [
   { name: "Sobrevivência", from: 1, to: 9, goal: "Cumprimentos, apresentações, números, pedir coisas" },
@@ -62,6 +62,19 @@ export const STAGES = [
   { name: "Interacção", from: 19, to: 27, goal: "Perguntar, negociar, expressar gosto e opinião simples" },
   { name: "Autonomia", from: 28, to: 36, goal: "Contar o que aconteceu, planear, explicar problemas" },
   { name: "Fluência quotidiana", from: 37, to: 45, goal: "Conversar com ritmo natural, humor, conversa informal" },
+  { name: "Domínio", from: 46, to: 54, goal: "Trabalho remoto, finanças, tecnologia, serviços e intercâmbio" },
+];
+
+export const INTEREST_OPTIONS: { id: string; label: string }[] = [
+  { id: "viagens", label: "✈️ Viagens" },
+  { id: "comida", label: "🍜 Comida" },
+  { id: "negócios", label: "💼 Negócios" },
+  { id: "tecnologia", label: "💻 Tecnologia" },
+  { id: "finanças", label: "💳 Finanças" },
+  { id: "saúde", label: "🏃 Saúde" },
+  { id: "estudos", label: "🎓 Estudos" },
+  { id: "música", label: "🎵 Música" },
+  { id: "futebol", label: "⚽ Futebol" },
 ];
 
 export const POS_PT: Record<string, string> = {

@@ -8,6 +8,7 @@ import { TutorChat } from "@/components/steps/TutorChat";
 import { CelebrationBurst, TopBar, useSpeaker } from "@/components/ui";
 import { CONTENT, getUnit } from "@/content";
 import { buildQuickResponsePrompts, buildTranslateSensePrompts } from "@/lib/fluencia";
+import { useImeSafeEnter } from "@/lib/ime";
 import { LANGS } from "@/lib/langs";
 import {
   addActivity,
@@ -54,6 +55,7 @@ function QuickResponseDrill({ onDone }: { onDone: () => void }) {
   const startRef = useRef<number>(Date.now());
   const timesRef = useRef<number[]>([]);
   const spokenIdxRef = useRef<number>(-1);
+  const imeQuick = useImeSafeEnter();
 
   const item = prompts[idx];
 
@@ -173,10 +175,18 @@ function QuickResponseDrill({ onDone }: { onDone: () => void }) {
           >
             <input
               className="input target flex-1"
+              name="quick-reply"
               value={input}
               onChange={(e) => setInput(e.target.value)}
+              onCompositionEnd={imeQuick.onCompositionEnd}
+              onKeyDown={imeQuick.onKeyDown}
               placeholder="Responde sem hesitar…"
               aria-label="Resposta rápida"
+              autoComplete="off"
+              autoCapitalize="off"
+              spellCheck={false}
+              enterKeyHint="send"
+              lang={LANGS[lang].speechLang}
             />
             <button type="submit" className="btn btn-primary" disabled={!input.trim()}>
               Enviar

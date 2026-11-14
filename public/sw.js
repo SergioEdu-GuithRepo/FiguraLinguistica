@@ -1,9 +1,9 @@
 /* FiguraLinguística — service worker (PWA, modo leve e lições descarregadas) */
-const VERSION = "fl-v3";
+const VERSION = "fl-v4";
 const STATIC = `${VERSION}-static`;
 const PAGES = `${VERSION}-pages`;
 const TTS = "fl-tts"; // áudio neural: sobrevive a actualizações da app
-const OFFLINE_URLS = ["/", "/inicio", "/cursos", "/licoes", "/perfil", "/manifest.webmanifest", "/icon.svg"];
+const OFFLINE_URLS = ["/", "/inicio", "/cursos", "/contextos", "/licoes", "/perfil", "/manifest.webmanifest", "/icon.svg"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(

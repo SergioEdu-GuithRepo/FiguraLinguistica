@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { LANGS } from "./langs";
+import { LANGS, TOTAL_LEVELS } from "./langs";
 import { normalizeAnswer, similarity, plainText } from "./tokenize";
 import type { ConversationStep, Dictionary, LangCode, Unit } from "./types";
 
@@ -56,7 +56,7 @@ export const TutorRequestSchema = z.object({
     .array(z.object({ author: z.enum(["tutor", "user"]), text: z.string().max(800) }))
     .max(30)
     .default([]),
-  level: z.number().int().min(1).max(45),
+  level: z.number().int().min(1).max(TOTAL_LEVELS),
   furigana: z.boolean().default(true),
 });
 export type TutorRequest = z.infer<typeof TutorRequestSchema>;
@@ -323,7 +323,7 @@ export function buildSystemPrompt(
   if (mode === "livre") {
     return [
       `És ${meta.tutor.name}, tutor(a) de ${meta.name.toLowerCase()} de ${meta.tutor.city}, simpático(a) e informal, na app FiguraLinguística.`,
-      `MODO CONVERSA LIVRE sobre o tema "${unit.title}" (${unit.category}). Nível do aluno: ${level} de 45.`,
+      `MODO CONVERSA LIVRE sobre o tema "${unit.title}" (${unit.category}). Nível do aluno: ${level} de ${TOTAL_LEVELS}.`,
       `Vocabulário sugerido da cena: ${vocab}. Adapta-te ao que o aluno disser com liberdade, mantendo frases curtas e naturais para o nível ${level}.`,
       isLast
         ? `Este é o último turno (${stepIndex + 1}/${steps.length}): responde naturalmente ao aluno, elogia e encerra a conversa (proximo_passo="concluir").`
@@ -340,7 +340,7 @@ export function buildSystemPrompt(
 
   return [
     `És ${meta.tutor.name}, tutor(a) de ${meta.name.toLowerCase()} de ${meta.tutor.city}, simpático(a) e informal, na app FiguraLinguística.`,
-    `O aluno fala português (Angola/Portugal/Brasil). Nível do aluno: ${level} de 45.`,
+    `O aluno fala português (Angola/Portugal/Brasil). Nível do aluno: ${level} de ${TOTAL_LEVELS}.`,
     `Cena: "${unit.title}" (${unit.titleTarget}). Objectivo da cena: ${unit.objective}`,
     `Vocabulário permitido (prioritário): ${vocab}. Não uses vocabulário fora do nível sem glosa em português.`,
     `Passo actual da conversa ${mode === "desafio" ? "em MODO DESAFIO (sem dicas)" : "guiada"} (${stepIndex + 1}/${steps.length}): perguntaste "${plainText(step.tutor, unit.lang)}" e esperas algo como "${step.model}".`,

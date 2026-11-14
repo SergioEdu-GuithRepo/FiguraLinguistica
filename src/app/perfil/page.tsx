@@ -7,7 +7,7 @@ import { AppFrame, ScreenHeader } from "@/components/Shell";
 import { Icon } from "@/components/Icon";
 import { Sheet } from "@/components/Sheet";
 import { Toast, Toggle, useSpeaker } from "@/components/ui";
-import { LANGS, LANG_LIST } from "@/lib/langs";
+import { INTEREST_OPTIONS, LANGS, LANG_LIST, TOTAL_LEVELS } from "@/lib/langs";
 import { sfxSuccess } from "@/lib/sfx";
 import { getVoices, neuralStatus, onNeuralStatus, resetNeuralFallback, speak, sttSupported, voicesFor, type NeuralStatus } from "@/lib/speech";
 import { DEFAULT_NEURAL, NEURAL_VOICES, neuralVoiceFor } from "@/lib/voices";
@@ -24,7 +24,7 @@ const PLAN_LABEL: Record<string, string> = {
   school: "Licença escolar",
 };
 
-const INTERESTS = ["viagens", "comida", "negócios", "música", "futebol", "estudos"];
+const INTERESTS = INTEREST_OPTIONS.map((o) => o.id);
 const REMINDER_HOURS = ["08:00", "13:00", "19:30", "21:30"] as const;
 
 function Row({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
@@ -515,8 +515,8 @@ function Perfil() {
           Alterar palavra-passe <Icon name="lock" size={20} className="text-[var(--color-muted)]" />
         </button>
         {isAdmin && (
-          <Row label="Desbloquear todos os 45 níveis" hint="Modo fundador: explorar qualquer unidade sem bloquear">
-            <Toggle checked={!!s.unlockAllLevels} onChange={(v) => set("unlockAllLevels", v)} label="Desbloquear todos os 45 níveis" />
+          <Row label={`Desbloquear todos os ${TOTAL_LEVELS} níveis`} hint="Modo fundador: explorar qualquer unidade sem bloquear">
+            <Toggle checked={!!s.unlockAllLevels} onChange={(v) => set("unlockAllLevels", v)} label={`Desbloquear todos os ${TOTAL_LEVELS} níveis`} />
           </Row>
         )}
         <button className="flex w-full items-center justify-between py-3 text-left font-semibold" onClick={() => setConfirm("reset")}>

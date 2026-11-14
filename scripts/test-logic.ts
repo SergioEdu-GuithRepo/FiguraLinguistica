@@ -15,6 +15,7 @@ import { KANJI, KANJI_ORDER } from "@/content/ja/kanji";
 import { DEFAULT_NEURAL, isNeuralVoice, NEURAL_VOICES, neuralVoiceFor, normalizeTtsText, rateToProsody, ttsUrl, voiceForSpeaker } from "@/lib/voices";
 import { buildQuickResponsePrompts, buildTranslateSensePrompts, buildStageExam, STAGE_MILESTONES } from "@/lib/fluencia";
 import { COUNTERS, POLITENESS_ROWS, buildCortesiaQuiz } from "@/lib/cortesia";
+import { CONTEXT_PACKS, buildContextualVocabDrill, searchDictionary } from "@/lib/contexts";
 import { mergeUserStates } from "@/lib/server/cloud-db";
 import {
   defaultState,
@@ -27,6 +28,7 @@ import {
   todayProgress,
   currentStreak,
   rateItem,
+  saveWordsBatch,
   dueItems,
   conversationsLeft,
   addActivity,
@@ -293,8 +295,8 @@ check("Importar texto: frase desconhecida é «difícil»", () => {
   assert.equal(a.sentences[0].difficulty, "difícil");
   assert.ok(a.unknown.length >= 3);
 });
-check("Currículo completo (Etapas 1–5): 45 unidades por idioma", () => {
-  for (const lang of LANGS) assert.equal(CONTENT[lang].units.length, 45, `${lang}: ${CONTENT[lang].units.length}`);
+check("Currículo completo (Etapas 1–6): 54 unidades por idioma", () => {
+  for (const lang of LANGS) assert.equal(CONTENT[lang].units.length, 54, `${lang}: ${CONTENT[lang].units.length}`);
 });
 check("Moldes: {x} substituído em todas as ocorrências", () => {
   assert.equal(fillTemplate("Sou de {x}. (Vim de {x}.)", "Angola"), "Sou de Angola. (Vim de Angola.)");
@@ -324,15 +326,38 @@ for (const lang of LANGS) {
     assert.equal(ts.length, 5);
     assert.ok(ts.every((t) => t.options.includes(t.step.model) && t.options.length >= 2));
   });
-  check(`Marcos e Exames de Etapa (${lang}): 5 etapas geram 6 perguntas cada`, () => {
-    assert.equal(STAGE_MILESTONES.length, 5);
-    for (let st = 1; st <= 5; st++) {
+  check(`Marcos e Exames de Etapa (${lang}): 6 etapas geram 6 perguntas cada`, () => {
+    assert.equal(STAGE_MILESTONES.length, 6);
+    for (let st = 1; st <= 6; st++) {
       const exam = buildStageExam(lang, st);
       assert.equal(exam.length, 6, `${lang} stage ${st}`);
       for (const q of exam) {
         assert.ok(q.options.includes(q.correct), `${q.id} options include correct`);
       }
     }
+  });
+  check(`Contextos Reais, Pesquisa de Dicionário e Treino em Frase (${lang})`, () => {
+    assert.equal(CONTEXT_PACKS.length, 8);
+    for (const pack of CONTEXT_PACKS) {
+      const data = pack.byLang[lang];
+      assert.ok(data.vocabKeys.length >= 6, `${pack.id} ${lang} vocabKeys`);
+      assert.ok(data.phrases.length >= 4, `${pack.id} ${lang} phrases`);
+      assert.ok(data.situations.length >= 2, `${pack.id} ${lang} situations`);
+      for (const vk of data.vocabKeys) {
+        assert.ok(CONTENT[lang].dictionary[vk.toLowerCase()], `missing ${vk} in ${lang}`);
+      }
+      for (const sit of data.situations) {
+        assert.ok(sit.options.includes(sit.correct), `${sit.id} correct option`);
+      }
+      const drill = buildContextualVocabDrill(lang, {}, 9, { packId: pack.id, count: 4 });
+      assert.ok(drill.length >= 3, `${pack.id} ${lang} contextual drill (${drill.length})`);
+      for (const q of drill) {
+        assert.ok(q.options.includes(q.surfaceAnswer), `${q.id} includes surfaceAnswer`);
+        assert.ok(q.maskedSentence.includes("＿＿＿"), `${q.id} masked`);
+      }
+    }
+    const sr = searchDictionary(lang, "", { onlyNotes: true });
+    assert.ok(sr.total >= 5, `${lang} dictionary notes (${sr.total})`);
   });
 }
 
@@ -398,6 +423,17 @@ check("Reconciliação de XP entre dispositivos (CRDT xpEvents + definições v1
   assert.equal(merged.progress.en.xp, 40);
   assert.equal(merged.settings.soundEffects, true);
   assert.equal(merged.settings.reminderHour, "19:30");
+});
+
+check("saveWordsBatch: guarda pacote de palavras sem sobrescrever cartões existentes", () => {
+  let s = defaultState("Sérgio");
+  s = rateItem(s, "en", "w:passport", 4);
+  const prevStability = s.srs.en["w:passport"].s;
+  s = saveWordsBatch(s, "en", ["passport", "boarding pass", "layover", "__inexistente__"], 2);
+  assert.equal(s.srs.en["w:passport"].s, prevStability);
+  assert.ok(s.srs.en["w:boarding pass"]);
+  assert.ok(s.srs.en["w:layover"]);
+  assert.equal(s.srs.en["w:__inexistente__"], undefined);
 });
 
 console.log(`\n${passed} testes passaram, ${failures.length} falharam.`);

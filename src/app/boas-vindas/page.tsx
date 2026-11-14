@@ -6,19 +6,12 @@ import { AuthGate } from "@/components/Shell";
 import { Icon } from "@/components/Icon";
 import { SpeakButton } from "@/components/ui";
 import { CONTENT } from "@/content";
-import { LANGS, LANG_LIST } from "@/lib/langs";
+import { INTEREST_OPTIONS, LANGS, LANG_LIST } from "@/lib/langs";
 import { useApp } from "@/lib/store";
 import { plainText } from "@/lib/tokenize";
 import type { LangCode } from "@/lib/types";
 
-const INTERESTS = [
-  { id: "viagens", label: "✈️ Viagens" },
-  { id: "comida", label: "🍜 Comida" },
-  { id: "negócios", label: "💼 Negócios" },
-  { id: "música", label: "🎵 Música" },
-  { id: "futebol", label: "⚽ Futebol" },
-  { id: "estudos", label: "🎓 Estudos" },
-];
+const INTERESTS = INTEREST_OPTIONS;
 
 function shuffle<T>(a: T[]): T[] {
   const b = [...a];

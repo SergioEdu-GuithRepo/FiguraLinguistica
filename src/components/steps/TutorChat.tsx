@@ -6,6 +6,7 @@ import { Icon } from "@/components/Icon";
 import { ReportSheet, TokenLine, WordSheet } from "@/components/Reader";
 import { CelebrationBurst, useSpeaker } from "@/components/ui";
 import { CONTENT } from "@/content";
+import { useImeSafeEnter } from "@/lib/ime";
 import { LANGS } from "@/lib/langs";
 import {
   addActivity,
@@ -99,6 +100,7 @@ export function TutorChat({
   const spokenFirst = useRef(false);
   const turnStartRef = useRef<number>(Date.now());
   const turnTimesRef = useRef<number[]>([]);
+  const imeChat = useImeSafeEnter();
 
   useEffect(() => {
     checkAi().then(setAi);
@@ -450,14 +452,18 @@ export function TutorChat({
             >
               <input
                 className="input target flex-1"
+                name="reply"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
+                onCompositionEnd={imeChat.onCompositionEnd}
+                onKeyDown={imeChat.onKeyDown}
                 placeholder={lang === "ja" ? "Escreve em japonês ou romaji…" : `Responde em ${meta.name.toLowerCase()}…`}
                 aria-label="A tua resposta"
                 maxLength={400}
                 autoComplete="off"
                 autoCapitalize="off"
                 spellCheck={false}
+                enterKeyHint="send"
                 lang={meta.speechLang}
               />
               {sttSupported() && state.settings.voiceConsent !== false && (
@@ -470,7 +476,12 @@ export function TutorChat({
                   <Icon name={listening ? "stop" : "mic"} size={22} />
                 </button>
               )}
-              <button className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-[var(--color-coral)] text-white transition hover:-translate-y-0.5 active:scale-90 disabled:opacity-40" disabled={!input.trim() || busy} aria-label="Enviar">
+              <button
+                type="submit"
+                className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-[var(--color-coral)] text-white transition hover:-translate-y-0.5 active:scale-90 disabled:opacity-40"
+                disabled={!input.trim() || busy}
+                aria-label="Enviar"
+              >
                 <Icon name="send" size={20} />
               </button>
             </form>

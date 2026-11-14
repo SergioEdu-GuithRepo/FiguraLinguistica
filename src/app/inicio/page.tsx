@@ -181,12 +181,22 @@ function Home() {
           </div>
         </Link>
 
+        {/* Contextos Reais & Kit de Bolso */}
+        <Link href="/contextos" className="card flex items-center gap-4 p-5">
+          <div className="grid h-12 w-12 place-items-center rounded-2xl bg-[var(--color-teal-soft)] text-2xl">🧰</div>
+          <div className="flex-1">
+            <div className="font-extrabold">Contextos & Kit de Bolso</div>
+            <div className="text-sm text-[var(--color-muted)]">Aeroporto, finanças, remoto, tecnologia e falsos amigos</div>
+          </div>
+          <Icon name="chevron-right" className="text-[var(--color-muted)]" />
+        </Link>
+
         {/* Marcos de comunicação e Certificados */}
         <Link href="/marcos" className="card flex items-center gap-4 p-5">
           <div className="grid h-12 w-12 place-items-center rounded-2xl bg-[var(--color-lilac-soft)] text-2xl">🎓</div>
           <div className="flex-1">
             <div className="font-extrabold">Marcos e Certificados</div>
-            <div className="text-sm text-[var(--color-muted)]">Exames de etapa (A1–B1) e certificados partilháveis</div>
+            <div className="text-sm text-[var(--color-muted)]">Exames de etapa (A1–B2) e certificados partilháveis</div>
           </div>
           <Icon name="chevron-right" className="text-[var(--color-muted)]" />
         </Link>

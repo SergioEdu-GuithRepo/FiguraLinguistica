@@ -24,7 +24,7 @@ function Cursos() {
   const [status, setStatus] = useState<Status>("todas");
 
   const patternsCount = units.reduce((a, u) => a + u.patterns.length, 0);
-  const vocabCount = units.reduce((a, u) => a + u.vocab.length, 0);
+  const dictCount = Object.keys(CONTENT[lang].dictionary).length;
   const pack = recommendedPack(state, lang);
   const rec = pack ? getUnit(pack.unitId) : undefined;
   const categories = Array.from(new Set(units.map((u) => u.category)));
@@ -75,7 +75,7 @@ function Cursos() {
             >
               <Icon name="cards" size={26} className="relative z-10" />
               <div className="relative z-10 mt-1 font-extrabold">Vocabulário</div>
-              <div className="relative z-10 text-[11px] opacity-90">{vocabCount} palavras por cenas</div>
+              <div className="relative z-10 text-[11px] opacity-95">{dictCount} entradas · cenas e treino</div>
               <Books className="absolute -bottom-5 -left-6 w-14 opacity-80" />
             </Link>
             <Link
@@ -122,11 +122,20 @@ function Cursos() {
             </>
           )}
 
-          <Link href="/marcos" className="card mt-4 flex items-center gap-4 p-5">
+          <Link href="/contextos" className="card mt-4 flex items-center gap-4 p-5">
+            <div className="grid h-12 w-12 place-items-center rounded-2xl bg-[var(--color-teal-soft)] text-2xl">🧰</div>
+            <div className="flex-1">
+              <div className="font-extrabold">Contextos & Kit de Bolso</div>
+              <div className="text-sm text-[var(--color-muted)]">8 cenários reais desbloqueados, frases por registo e falsos amigos</div>
+            </div>
+            <Icon name="chevron-right" className="text-[var(--color-muted)]" />
+          </Link>
+
+          <Link href="/marcos" className="card mt-3 flex items-center gap-4 p-5">
             <div className="grid h-12 w-12 place-items-center rounded-2xl bg-[var(--color-lilac-soft)] text-2xl">🎓</div>
             <div className="flex-1">
               <div className="font-extrabold">Marcos e Certificados</div>
-              <div className="text-sm text-[var(--color-muted)]">Competências reais (A1–B1), exames de etapa e certificados</div>
+              <div className="text-sm text-[var(--color-muted)]">Competências reais (A1–B2), exames de etapa e certificados</div>
             </div>
             <Icon name="chevron-right" className="text-[var(--color-muted)]" />
           </Link>
@@ -260,11 +269,19 @@ function Cursos() {
             setSearchOpen(false);
           }}
         >
+          <label htmlFor="cursos-search" className="mb-1.5 block text-xs font-extrabold text-[var(--color-muted)]">
+            Procurar unidade, tema ou palavra-chave
+          </label>
           <input
-            className="input"
-            placeholder="Ex.: café, horas, comida, números…"
+            id="cursos-search"
+            name="q"
+            className="input text-base"
+            placeholder="Ex.: aeroporto, banco, remoto, comida, números…"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
+            autoCorrect="off"
+            autoCapitalize="off"
+            spellCheck={false}
             autoFocus
             type="search"
           />

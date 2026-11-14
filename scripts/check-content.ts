@@ -5,7 +5,9 @@
  *      npm run check:content -- en 19-27      (só um intervalo de níveis)
  */
 import { CONTENT, DICT_PARTS } from "../src/content";
+import { CONTEXT_EXTRA_DICT } from "../src/content/contexts-dict";
 import { KANJI, KANJI_ORDER } from "../src/content/ja/kanji";
+import { CONTEXT_PACKS } from "../src/lib/contexts";
 import { tokenize, plainText, fillTemplate, normalizeAnswer } from "../src/lib/tokenize";
 import type { Dictionary, LangCode, Unit } from "../src/lib/types";
 
@@ -27,9 +29,10 @@ const warn = (m: string) => {
 
 for (const lang of langs) {
   const parts = DICT_PARTS[lang];
-  const stageIdx = rangeFrom === 19 ? 2 : rangeFrom === 28 ? 3 : rangeFrom === 37 ? 4 : undefined;
+  const stageIdx =
+    rangeFrom === 19 ? 2 : rangeFrom === 28 ? 3 : rangeFrom === 37 ? 4 : rangeFrom === 46 ? 5 : undefined;
   const dictionary: Dictionary =
-    stageIdx !== undefined ? Object.assign({}, parts[0], parts[1], parts[stageIdx]) : CONTENT[lang].dictionary;
+    stageIdx !== undefined ? Object.assign({}, ...parts.slice(0, stageIdx + 1)) : CONTENT[lang].dictionary;
   const allLangUnits = CONTENT[lang].units;
   const units =
     rangeFrom !== undefined && rangeTo !== undefined
@@ -51,14 +54,33 @@ for (const lang of langs) {
   // chaves repetidas entre etapas (a etapa posterior não deve redefinir entradas)
   if (stageIdx !== undefined) {
     for (const k of Object.keys(parts[stageIdx])) {
-      if (k in parts[0] || k in parts[1]) {
-        err(`chave repetida no dicionário da etapa ${stageIdx + 1} (já existe nas etapas 1–2): "${k}"`);
+      if (parts.slice(0, stageIdx).some((p) => k in p)) {
+        err(`chave repetida no dicionário da etapa ${stageIdx + 1} (já existe nas etapas anteriores): "${k}"`);
       }
     }
   } else {
     for (let i = 1; i < parts.length; i++) {
       for (const k of Object.keys(parts[i])) {
         if (parts.slice(0, i).some((p) => k in p)) err(`chave repetida no dicionário da etapa ${i + 1} (já existe antes): "${k}"`);
+      }
+    }
+    for (const [k, e] of Object.entries(CONTEXT_EXTRA_DICT[lang])) {
+      if (k !== k.toLowerCase()) err(`CONTEXT_EXTRA_DICT[${lang}] chave não está em minúsculas: "${k}"`);
+      if (!e.pt) err(`CONTEXT_EXTRA_DICT[${lang}] entrada sem "pt": "${k}"`);
+      if (lang === "ja" && !e.romaji) err(`CONTEXT_EXTRA_DICT[ja] sem romaji: "${k}"`);
+      if (lang === "fr" && e.pos === "noun" && !e.gender) warn(`CONTEXT_EXTRA_DICT[fr] substantivo sem género: "${k}"`);
+    }
+    for (const pack of CONTEXT_PACKS) {
+      const pData = pack.byLang[lang];
+      for (const vk of pData.vocabKeys) {
+        if (!dictionary[vk.toLowerCase()]) {
+          err(`contexto "${pack.id}" (${lang}): vocabKey "${vk}" não existe no dicionário`);
+        }
+      }
+      for (const sit of pData.situations) {
+        if (!sit.options.includes(sit.correct)) {
+          err(`contexto "${pack.id}" (${lang}) situação ${sit.id}: resposta correcta não está em options`);
+        }
       }
     }
   }

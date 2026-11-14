@@ -39,7 +39,9 @@ export const KANJI_ORDER =
   // níveis 1–9
   "私日本語人名前一二三四五六七八九十百千円何時分半水駅右左東京田中山学生会社員電話番号歳茶食自己紹介渋谷" +
   // níveis 10–18 (frequentes, JLPT N5 e alguns N4 da etapa Rotina)
-  "今月火木金土年週毎朝昼晩夜午後間上下外大小高安新古長入出行来飲見聞読書言買休先校車道店父母子友家国男女天気元好手足口目耳川雨白西南北万屋病院薬痛映画音楽料理";
+  "今月火木金土年週毎朝昼晩夜午後間上下外大小高安新古長入出行来飲見聞読書言買休先校車道店父母子友家国男女天気元好手足口目耳川雨白西南北万屋病院薬痛映画音楽料理" +
+  // níveis 46–54 (Etapa 6: Domínio)
+  "空港銀仕事議発表保健康文化世界";
 
 const ex = (word: string, reading: string, romaji: string, pt: string): KanjiExample => ({ word, reading, romaji, pt });
 
@@ -355,4 +357,51 @@ export const KANJI: Kanji[] = [
     examples: [ex("料理", "りょうり", "ryouri", "cozinha; prato"), ex("料金", "りょうきん", "ryoukin", "tarifa; preço")] },
   { char: "理", meaning: "razão; lógica", on: ["リ"], kun: [], strokes: 11,
     examples: [ex("料理", "りょうり", "ryouri", "cozinha; prato"), ex("日本料理", "にほんりょうり", "nihonryouri", "cozinha japonesa")] },
+
+  // ——— níveis 46–54 (Etapa 6: Domínio) ———
+  { char: "空", meaning: "céu; vazio", on: ["クウ"], kun: ["そら", "あ.く", "から"], strokes: 8,
+    examples: [ex("空港", "くうこう", "kuukou", "aeroporto"), ex("空", "そら", "sora", "céu"), ex("空気", "くうき", "kuuki", "ar; ambiente")],
+    tip: "uma caverna (穴) aberta por trabalho (工): espaço aberto, o céu" },
+  { char: "港", meaning: "porto", on: ["コウ"], kun: ["みなと"], strokes: 12,
+    examples: [ex("空港", "くうこう", "kuukou", "aeroporto"), ex("港", "みなと", "minato", "porto")],
+    tip: "água (氵) num recanto onde os barcos atracam: o porto" },
+  { char: "銀", meaning: "prata", on: ["ギン"], kun: [], strokes: 14,
+    examples: [ex("銀行", "ぎんこう", "ginkou", "banco"), ex("銀行員", "ぎんこういん", "ginkouin", "bancário"), ex("銀", "ぎん", "gin", "prata")],
+    tip: "metal (金) brilhante e resistente: prata (daí 銀行, banco)" },
+  { char: "仕", meaning: "servir; fazer", on: ["シ", "ジ"], kun: ["つか.える"], strokes: 5,
+    examples: [ex("仕事", "しごと", "shigoto", "trabalho; emprego"), ex("仕事中", "しごとちゅう", "shigotochuu", "em horário de trabalho")],
+    tip: "uma pessoa (亻) ao serviço de um mestre (士): trabalhar" },
+  { char: "事", meaning: "coisa; assunto; tarefa", on: ["ジ", "ズ"], kun: ["こと"], strokes: 8,
+    examples: [ex("仕事", "しごと", "shigoto", "trabalho; emprego"), ex("大事", "だいじ", "daiji", "importante"), ex("食事", "しょくじ", "shokuji", "refeição")],
+    tip: "uma mão a segurar um pincel para registar um assunto" },
+  { char: "議", meaning: "deliberar; reunião", on: ["ギ"], kun: [], strokes: 20,
+    examples: [ex("会議", "かいぎ", "kaigi", "reunião; conferência"), ex("会議中", "かいぎちゅう", "kaigichuu", "em reunião")],
+    tip: "palavras (言) trocadas sobre o que é justo (義): debater numa reunião" },
+  { char: "発", meaning: "partir; emitir; lançar", on: ["ハツ", "ホツ"], kun: [], strokes: 9,
+    examples: [ex("発表", "はっぴょう", "happyou", "apresentação; anúncio"), ex("出発", "しゅっぱつ", "shuppatsu", "partida")],
+    tip: "pés firmes no topo prontos a saltar e partir" },
+  { char: "表", meaning: "superfície; exprimir; tabela", on: ["ヒョウ"], kun: ["おもて", "あらわ.す"], strokes: 8,
+    examples: [ex("発表", "はっぴょう", "happyou", "apresentação; anúncio"), ex("表", "おもて", "omote", "frente; exterior"), ex("表す", "あらわす", "arawasu", "exprimir; representar")],
+    tip: "a parte de fora do vestuário: o que fica visível à superfície" },
+  { char: "保", meaning: "manter; proteger; garantir", on: ["ホ", "ホウ"], kun: ["たも.つ"], strokes: 9,
+    examples: [ex("保つ", "たもつ", "tamotsu", "manter; conservar"), ex("保しょう", "ほしょう", "hoshou", "garantia"), ex("保けん", "ほけん", "hoken", "seguro")],
+    tip: "uma pessoa (亻) a amparar uma criança: proteger e manter" },
+  { char: "健", meaning: "saudável; vigoroso", on: ["ケン"], kun: ["すこ.やか"], strokes: 11,
+    examples: [ex("健康", "けんこう", "kenkou", "saúde"), ex("健やか", "すこやか", "sukoyaka", "saudável; robusto")],
+    tip: "uma pessoa (亻) bem erguida e construída (建): saudável" },
+  { char: "康", meaning: "bem-estar; paz; saúde", on: ["コウ"], kun: [], strokes: 11,
+    examples: [ex("健康", "けんこう", "kenkou", "saúde"), ex("健康な", "けんこうな", "kenkou na", "saudável")],
+    tip: "debaixo de um telhado amplo (广), mãos com arroz abundante: bem-estar" },
+  { char: "文", meaning: "frase; escrita; cultura", on: ["ブン", "モン"], kun: ["ふみ"], strokes: 4,
+    examples: [ex("文化", "ぶんか", "bunka", "cultura"), ex("文", "ぶん", "bun", "frase; texto"), ex("文学", "ぶんがく", "bungaku", "literatura")],
+    tip: "traços cruzados como um padrão desenhado: escrita e cultura" },
+  { char: "化", meaning: "transformar; mudar", on: ["カ", "ケ"], kun: ["ば.ける"], strokes: 4,
+    examples: [ex("文化", "ぶんか", "bunka", "cultura"), ex("化学", "かがく", "kagaku", "química")],
+    tip: "uma pessoa de pé (亻) ao lado de outra virada: transformação" },
+  { char: "世", meaning: "mundo; geração", on: ["セイ", "セ"], kun: ["よ"], strokes: 5,
+    examples: [ex("世界", "せかい", "sekai", "mundo"), ex("世の中", "よのなか", "yononaka", "sociedade; o mundo")],
+    tip: "trinta (卅) anos ligados numa linha: uma geração no mundo" },
+  { char: "界", meaning: "fronteira; mundo; domínio", on: ["カイ"], kun: [], strokes: 9,
+    examples: [ex("世界", "せかい", "sekai", "mundo"), ex("世界中", "せかいじゅう", "sekaijuu", "no mundo inteiro")],
+    tip: "campos (田) divididos por marcos (介): as fronteiras do mundo" },
 ];

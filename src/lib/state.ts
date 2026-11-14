@@ -340,6 +340,24 @@ export function rateItem(s: UserState, lang: LangCode, key: string, rating: Rati
   return { ...s, srs: { ...s.srs, [lang]: { ...s.srs[lang], [key]: card } } };
 }
 
+/** Guarda várias palavras de uma cena ou contexto na revisão espaçada sem sobrescrever cartões já estudados. */
+export function saveWordsBatch(s: UserState, lang: LangCode, keys: string[], rating: Rating = 2): UserState {
+  const dict = CONTENT[lang].dictionary;
+  const nextLangSrs = { ...s.srs[lang] };
+  let changed = false;
+  for (const rawKey of keys) {
+    const k = rawKey.toLowerCase();
+    if (!dict[k]) continue;
+    const srsKey = `w:${k}`;
+    if (!nextLangSrs[srsKey]) {
+      nextLangSrs[srsKey] = review(undefined, rating);
+      changed = true;
+    }
+  }
+  if (!changed) return s;
+  return { ...s, srs: { ...s.srs, [lang]: nextLangSrs } };
+}
+
 export function recordError(s: UserState, lang: LangCode, category: string, example: string): UserState {
   const cur = s.errors[lang][category];
   return {
@@ -513,12 +531,15 @@ export function studentModelSummary(s: UserState, lang: LangCode) {
 }
 
 const INTERESTS_MAP: Record<string, string[]> = {
-  viagens: ["Direcções", "Compras", "Horas", "Transportes", "Planos", "Viagens", "Experiências"],
+  viagens: ["Direcções", "Compras", "Horas", "Transportes", "Planos", "Viagens", "Experiências", "Serviços"],
   comida: ["Comida", "Restaurante", "Compras"],
-  negócios: ["Apresentações", "Números", "Horas", "Encontros", "Transportes", "Trabalho", "Pedidos", "Opinião"],
+  negócios: ["Apresentações", "Números", "Horas", "Encontros", "Transportes", "Trabalho", "Pedidos", "Opinião", "Finanças", "Serviços"],
+  tecnologia: ["Tecnologia", "Trabalho", "Actualidade", "Serviços"],
+  finanças: ["Números", "Compras", "Finanças", "Trabalho", "Serviços"],
+  saúde: ["Saúde", "Rotina", "Tempo livre"],
   música: ["Cumprimentos", "Rotina", "Tempo livre", "Cultura", "Expressões"],
-  futebol: ["Números", "Rotina", "Tempo livre", "Encontros", "Conversa"],
-  estudos: ["Rotina", "Apresentações", "Família", "Casa", "Opinião", "Actualidade"],
+  futebol: ["Números", "Rotina", "Tempo livre", "Encontros", "Conversa", "Saúde"],
+  estudos: ["Rotina", "Apresentações", "Família", "Casa", "Opinião", "Actualidade", "Estudos"],
 };
 
 /** Pacote recomendado personalizado com justificação do Modelo do Aluno (Secções 3.5 e 5.4). */

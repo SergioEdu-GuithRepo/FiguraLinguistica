@@ -1,7 +1,7 @@
 # FiguraLinguística
 
 Aplicação web (PWA) para aprender **inglês, francês e japonês** a partir do português — conversação do dia-a-dia em 10–15 minutos por dia.
-Esta versão implementa a **Fase 1 (MVP)**, a **Fase 2 (Voz e profundidade)** e a **Fase 3 (Fluência — níveis 1 a 45)** do documento de produto.
+Esta versão implementa a **Fase 1 (MVP)**, a **Fase 2 (Voz e profundidade)**, a **Fase 3 (Fluência — níveis 1 a 45)** e a **Fase 4 (Domínio B2, Contextos Reais & Explorador de Vocabulário — níveis 1 a 54)** do documento de produto.
 
 ## Arrancar
 
@@ -43,8 +43,8 @@ Todas as frases são lidas com **vozes neurais da Microsoft Azure** (pacote `mse
 ## Verificações
 
 ```bash
-npm run check:content   # valida o conteúdo curado (135 unidades, cobertura do dicionário, moldes, conversas, kanji)
-npm run test:logic      # ~4100 testes: tutor nas 3 línguas (Guiado/Livre/Desafio), fluência, FSRS, progressão, vozes, pronúncia, partículas, cortesia, importação
+npm run check:content   # valida o conteúdo curado (162 unidades, contextos, cobertura do dicionário, moldes, conversas, kanji)
+npm run test:logic      # ~5000 testes: tutor nas 3 línguas (Guiado/Livre/Desafio), contextos, fluência, FSRS, progressão, vozes, pronúncia, partículas, cortesia, importação
 npm run lint
 npx tsc --noEmit
 ```
@@ -52,8 +52,10 @@ npx tsc --noEmit
 ## O que está incluído
 
 - **Início / Cursos / Lições / Perfil** com o design do documento (tokens de cor, modo claro/escuro/automático, modo leve de poupança de dados, cartões de 24px, Plus Jakarta Sans + Noto Sans JP, japonês ≥ 18px).
-- **Conta local**, onboarding (idioma, objectivo diário, interesses) e **teste de colocação** (níveis 1–45).
-- **Níveis 1–45 nas 3 línguas (135 unidades curadas e ~3500 entradas de dicionário)** — **Sobrevivência** (1–9), **Rotina** (10–18), **Interacção** (19–27), **Autonomia** (28–36) e **Fluência quotidiana** (37–45): cada unidade com 6 passos — Ouvir e tocar · Molde vivo · Vocabulário-chave · Montar a frase · Dizer em voz alta · Conversa com o tutor.
+- **Conta local**, onboarding (idioma, objectivo diário, interesses) e **teste de colocação** (níveis 1–54).
+- **Níveis 1–54 nas 3 línguas (162 unidades curadas e ~4400+ entradas de dicionário)** — **Sobrevivência** (1–9), **Rotina** (10–18), **Interacção** (19–27), **Autonomia** (28–36), **Fluência quotidiana** (37–45) e **Domínio** (46–54, B2): cada unidade com 6 passos — Ouvir e tocar · Molde vivo · Vocabulário-chave · Montar a frase · Dizer em voz alta · Conversa com o tutor.
+- **Contextos Reais & Kit de Bolso (`/contextos`)**: 8 pacotes temáticos práticos desbloqueados desde o nível 1 (Aeroporto/Imigração, Banco/Pagamentos Digitais, Trabalho Remoto/Videoconferência, Tecnologia/Suporte, Bem-estar/Desporto, Universidade/Bolsas, Serviços/Reembolsos e Falsos Amigos), com frases prontas por registo social (formal, neutro, informal), áudio normal e lento (0.6×), dicas culturais para lusófonos, questionários de situações e guarda em lote na revisão espaçada.
+- **Explorador de Vocabulário & Treino em Contexto (`/cursos/vocabulario` e `/palavras`)**: pesquisa instantânea segura para IME em todo o dicionário vivo (idioma-alvo, português e romaji), filtros por classe gramatical e alertas de falsos amigos, guarda de cenas completas na revisão e exercícios de preenchimento de frases reais integrados com o motor FSRS-5.
 - **Leitor interactivo**: tocar numa palavra → significado, pronúncia, lema, exemplo, guardar para revisão; tocar numa frase → blocos e molde. Furigana/romaji no japonês, liaisons e género (cor) no francês, expressões fixas realçadas.
 - **Tutor conversacional em 3 modos**:
   - **🎯 Guiado**: conversa estruturada com escada de ajuda (Dica → Começo da frase → Frase modelo).
@@ -61,7 +63,7 @@ npx tsc --noEmit
   - **⚡ Desafio**: sem ajudas, temporizador de 25 s por turno e bónus de +15 XP.
 - **Treinos de Fluência**: **⏱ Responder rápido** (reacção em ≤ 8 s a situações reais) e **🧠 Traduzir o sentido** (equivalentes idiomáticos naturais sem tradução literal palavra a palavra).
 - **Modelo do Aluno e Pacotes Recomendados**: acompanha vocabulário dominado vs. frágil, estruturas praticadas, erros recorrentes por categoria, tempo médio de resposta e recomenda o próximo pacote de prática personalizada.
-- **Marcos de Comunicação, Exames de Etapa e Certificados (`/marcos`)**: lista de competências reais da vida quotidiana por etapa (A1.1 → B1), exame prático de 6 perguntas por etapa e certificado digital partilhável/imprimível.
+- **Marcos de Comunicação, Exames de Etapa e Certificados (`/marcos`)**: lista de competências reais da vida quotidiana por etapa (A1.1 → B2), exame prático de 6 perguntas por etapa e certificado digital partilhável/imprimível.
 - **Repetição espaçada FSRS-5** (palavras e moldes), revisão relâmpago de 2 minutos, lista de palavras.
 - **Avaliação de pronúncia** (passo "Dizer em voz alta"): o reconhecimento de voz do navegador transcreve (até 3 alternativas), a app alinha com a frase-alvo e dá uma pontuação 0–100, cada palavra a verde/amarelo/vermelho e até 2 dicas (números por extenso, kana no japonês). Sem reconhecimento de voz: **Gravar-me → Comparar** com a voz nativa (a gravação fica só em memória).
 - **Japonês completo**: módulo de **kana** (tabela, reconhecimento, traçado); módulo de **kanji** (129 kanji por frequência e ordem das unidades — ficha com leituras on/kun, exemplos e mnemónica; reconhecimento com FSRS; traçado); **furigana automática** (esconde a leitura dos kanji já dominados) e romaji ajustáveis; **prática de partículas** (`は が を に で と へ も…`); módulo de **Contadores e Níveis de Cortesia (`/cortesia`)** (`つ`, `人`, `本`, `枚`, `杯` com alterações fonéticas e quadro comparativo Informal 普通形 vs. Cortês です/ます vs. Keigo 尊敬語/謙譲語 + treino interactivo).
@@ -82,9 +84,9 @@ npx tsc --noEmit
 ```
 src/
   app/                páginas (App Router) e rotas /api (tutor, report, adapt, tts)
-                      kana/, kanji/, particulas/, cortesia/, marcos/, leitor/ …
-  components/         Shell, Reader (leitor interactivo), Trace (traçado), passos da unidade, UI
-  content/{en,fr,ja}/ unidades e dicionários curados das 5 etapas (níveis 1–45);
+                      contextos/, kana/, kanji/, particulas/, cortesia/, marcos/, leitor/ …
+  components/         Shell, Reader (leitor interactivo), ContextualVocabDrill, Trace, passos da unidade, UI
+  content/{en,fr,ja}/ unidades e dicionários curados das 6 etapas (níveis 1–54) + contexts-dict.ts;
                       ja/kana.ts, ja/kanji.ts
   lib/                tipos, tokenizador, FSRS, estado/progresso, store (localStorage),
                       voz, pronunciation.ts, particles.ts, cortesia.ts, fluencia.ts,
