@@ -4,8 +4,10 @@ import Link from "next/link";
 import React, { useMemo, useState } from "react";
 import { CONTENT } from "@/content";
 import { KANJI } from "@/content/ja/kanji";
+import { segmentJa } from "@/lib/adapt-offline";
+import { wordContextInfo } from "@/lib/contexts";
 import { isStrong } from "@/lib/fsrs";
-import { POS_PT } from "@/lib/langs";
+import { LANGS, POS_PT } from "@/lib/langs";
 import { rateItem } from "@/lib/state";
 import { useApp } from "@/lib/store";
 import { hasKanji, plainText, tokenize, type RToken } from "@/lib/tokenize";
@@ -72,7 +74,8 @@ export function TokenLine({
 }) {
   const { state } = useApp();
   const dict = CONTENT[lang].dictionary;
-  const toks = useMemo(() => tokenize(text, lang, dict), [text, lang, dict]);
+  const prepared = useMemo(() => (lang === "ja" && !text.includes("|") ? segmentJa(text, dict) : text), [text, lang, dict]);
+  const toks = useMemo(() => tokenize(prepared, lang, dict), [prepared, lang, dict]);
   const { furigana: furiOn, furiganaAuto } = state.settings;
   const kanaCards = state.kana;
   const furigana = useMemo(
@@ -124,49 +127,99 @@ export function WordSheet({ tok, lang, onClose }: { tok: RToken | null; lang: La
   const { state, update } = useApp();
   const [toast, setToast] = useState<string | null>(null);
   const [report, setReport] = useState(false);
-  const e = tok?.entry;
-  const key = tok?.key ?? "";
-  const saved = !!state.srs[lang][`w:${key}`];
+  const [subTok, setSubTok] = useState<{ parentKey: string; tok: RToken } | null>(null);
+
+  const rootKey = tok?.key ?? "";
+  const activeTok = subTok && subTok.parentKey === rootKey ? subTok.tok : tok;
+  const e = activeTok?.entry;
+  const key = activeTok?.key ?? "";
+  const card = state.srs[lang][`w:${key}`];
+  const saved = !!card;
+  const strong = saved && isStrong(card);
+  const speechLang = LANGS[lang].speechLang;
+  const dict = CONTENT[lang].dictionary;
+
+  const ctxInfo = useMemo(() => (key ? wordContextInfo(lang, key) : null), [lang, key]);
+  const primaryExample = e?.example ?? ctxInfo?.extraSentences[0];
+  const primarySourceLabel = e?.example ? null : ctxInfo?.extraSentences[0]?.sourceLabel;
+  const extraExamples = useMemo(() => {
+    if (!ctxInfo) return [];
+    return e?.example ? ctxInfo.extraSentences.slice(0, 2) : ctxInfo.extraSentences.slice(1, 3);
+  }, [ctxInfo, e?.example]);
+
+  const handleClose = () => {
+    setSubTok(null);
+    onClose();
+  };
+
   return (
     <>
-      <Sheet open={!!tok} onClose={onClose} title={<span className="text-[var(--color-muted)] text-sm font-semibold">Palavra</span>}>
-        {tok && e && (
+      <Sheet
+        open={!!tok}
+        onClose={handleClose}
+        title={
+          <span className="flex items-center gap-2 text-sm font-semibold text-[var(--color-muted)]">
+            <span>Palavra</span>
+            {subTok && subTok.parentKey === rootKey && tok && (
+              <button
+                type="button"
+                onClick={() => setSubTok(null)}
+                className="rounded-full bg-[var(--color-bg)] px-2.5 py-0.5 text-xs font-bold text-[var(--color-ink)] hover:bg-[var(--color-lilac-soft)]"
+              >
+                ← {tok.text}
+              </button>
+            )}
+          </span>
+        }
+      >
+        {activeTok && e && (
           <div className={`lang-${lang}`}>
             <div className="flex items-center gap-3">
               <div className="min-w-0 flex-1">
-                <div className="target text-3xl font-extrabold">{tok.text}</div>
+                <div lang={speechLang} className="target text-3xl font-extrabold">
+                  {activeTok.text}
+                </div>
                 <div className="mt-1 text-sm text-[var(--color-muted)]">
                   {[e.reading, e.romaji, e.pron && `[${e.pron}]`].filter(Boolean).join(" · ")}
                 </div>
               </div>
-              <SpeakButton text={tok.text} lang={lang} size={48} />
-              <SpeakButton text={tok.text} lang={lang} size={40} slow label="Ouvir devagar" className="opacity-70" />
+              <SpeakButton text={activeTok.text} lang={lang} size={48} />
+              <SpeakButton text={activeTok.text} lang={lang} size={40} slow label="Ouvir devagar" className="opacity-70" />
             </div>
             <div className="mt-4 text-xl font-bold">{e.pt}</div>
             <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold">
               <span className="rounded-full bg-[var(--color-lilac-soft)] px-3 py-1">{POS_PT[e.pos] ?? e.pos}</span>
-              {e.lemma && e.lemma.toLowerCase() !== tok.text.toLowerCase() && (
+              {e.lemma && e.lemma.toLowerCase() !== activeTok.text.toLowerCase() && (
                 <span className="rounded-full bg-[var(--color-teal-soft)] px-3 py-1">
-                  forma base: <span className="target">{e.lemma}</span>
+                  forma base: <span lang={speechLang} className="target">{e.lemma}</span>
                 </span>
               )}
               {e.gender && (
                 <span className="rounded-full bg-[var(--color-coral-soft)] px-3 py-1">{e.gender === "m" ? "masculino" : "feminino"}</span>
               )}
-              {tok.chunk && <span className="rounded-full bg-[var(--color-yellow-soft)] px-3 py-1">expressão fixa</span>}
+              {activeTok.chunk && <span className="rounded-full bg-[var(--color-yellow-soft)] px-3 py-1">expressão fixa</span>}
+              {saved && (
+                <span
+                  className={`rounded-full px-3 py-1 font-bold ${
+                    strong ? "bg-[var(--color-good-soft)] text-[var(--color-good)]" : "bg-[var(--color-bg)] text-[var(--color-muted)]"
+                  }`}
+                >
+                  {strong ? "✓ Memória forte" : "🔄 Em revisão"}
+                </span>
+              )}
             </div>
             {e.conj && (
               <div className="mt-3 rounded-2xl bg-[var(--color-bg)] p-3 text-sm">
                 <div className="mb-1 text-xs font-bold text-[var(--color-muted)]">CONJUGAÇÃO</div>
-                <span className="target">{e.conj}</span>
+                <span lang={speechLang} className="target">{e.conj}</span>
               </div>
             )}
             {e.note && <div className="mt-3 rounded-2xl bg-[var(--color-yellow-soft)] p-3 text-sm">💡 {e.note}</div>}
-            {lang === "ja" && hasKanji(tok.text) && (
+            {lang === "ja" && hasKanji(activeTok.text) && (
               <div className="mt-3 rounded-2xl bg-[var(--color-bg)] p-3 text-sm" data-testid="word-kanji">
                 <div className="mb-1 text-xs font-bold text-[var(--color-muted)]">KANJI</div>
                 <div className="flex flex-wrap gap-2">
-                  {[...new Set(tok.text.match(KANJI_CHAR_RE) ?? [])].map((ch) => {
+                  {[...new Set(activeTok.text.match(KANJI_CHAR_RE) ?? [])].map((ch) => {
                     const k = KANJI_BY_CHAR.get(ch);
                     return (
                       <Link key={ch} href={`/kanji?k=${encodeURIComponent(ch)}`} className="flex items-center gap-2 rounded-xl bg-white px-3 py-1.5 shadow-[var(--shadow-card)]">
@@ -178,17 +231,94 @@ export function WordSheet({ tok, lang, onClose }: { tok: RToken | null; lang: La
                 </div>
               </div>
             )}
-            {e.example && (
+            {primaryExample && (
               <div className="mt-3 flex items-start gap-3 rounded-2xl border border-[var(--color-line)] p-3">
-                <div className="flex-1">
-                  <div className="target font-semibold">{plainText(e.example.text, lang)}</div>
-                  <div className="text-sm text-[var(--color-muted)]">{e.example.pt}</div>
+                <div className="min-w-0 flex-1">
+                  {primarySourceLabel && (
+                    <div className="mb-1 text-[11px] font-bold text-[var(--color-muted)]">{primarySourceLabel}</div>
+                  )}
+                  <div lang={speechLang} className="target font-semibold">{plainText(primaryExample.text, lang)}</div>
+                  <div className="text-sm text-[var(--color-muted)]">{primaryExample.pt}</div>
                 </div>
-                <SpeakButton text={e.example.text} lang={lang} size={34} />
+                <SpeakButton text={primaryExample.text} lang={lang} size={34} />
+              </div>
+            )}
+            {extraExamples.length > 0 && (
+              <div className="mt-3 space-y-2">
+                <div className="text-[11px] font-extrabold uppercase tracking-wider text-[var(--color-muted)]">
+                  Mais frases em contexto real
+                </div>
+                {extraExamples.map((ex, i) => (
+                  <div key={i} className="flex items-start gap-3 rounded-2xl bg-[var(--color-bg)] p-3">
+                    <div className="min-w-0 flex-1">
+                      <div className="mb-0.5 text-[11px] font-bold text-[var(--color-muted)]">{ex.sourceLabel}</div>
+                      <div lang={speechLang} className="target text-sm font-semibold">{plainText(ex.text, lang)}</div>
+                      <div className="text-xs text-[var(--color-muted)]">{ex.pt}</div>
+                    </div>
+                    <SpeakButton text={ex.text} lang={lang} size={32} className="!bg-white" />
+                  </div>
+                ))}
+              </div>
+            )}
+            {ctxInfo && ctxInfo.packs.length > 0 && (
+              <div className="mt-3">
+                <div className="mb-1.5 text-[11px] font-extrabold uppercase tracking-wider text-[var(--color-muted)]">
+                  Cenários práticos onde usar
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {ctxInfo.packs.map((p) => (
+                    <Link
+                      key={p.id}
+                      href={`/contextos?pack=${encodeURIComponent(p.id)}`}
+                      onClick={handleClose}
+                      className="inline-flex min-h-[34px] items-center gap-1.5 rounded-full bg-[var(--color-teal-soft)] px-3 py-1 text-xs font-bold text-[var(--color-ink)] transition hover:opacity-90"
+                    >
+                      <span>{p.emoji}</span>
+                      <span>{p.title}</span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+            {ctxInfo && ctxInfo.relatedWords.length > 0 && (
+              <div className="mt-3">
+                <div className="mb-1.5 text-[11px] font-extrabold uppercase tracking-wider text-[var(--color-muted)]">
+                  Palavras do mesmo contexto
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {ctxInfo.relatedWords.map((rw) => {
+                    const rwEntry = dict[rw.key];
+                    if (!rwEntry) return null;
+                    return (
+                      <button
+                        key={rw.key}
+                        type="button"
+                        onClick={() =>
+                          setSubTok({
+                            parentKey: rootKey,
+                            tok: {
+                              text: rw.key,
+                              key: rw.key,
+                              entry: rwEntry,
+                              isPunct: false,
+                              spaceAfter: false,
+                              chunk: rw.key.includes(" "),
+                            },
+                          })
+                        }
+                        className="inline-flex min-h-[34px] items-center gap-1.5 rounded-full bg-[var(--color-bg)] px-3 py-1 text-xs font-semibold transition hover:bg-[var(--color-lilac-soft)]"
+                      >
+                        <span lang={speechLang} className="target font-bold">{rw.key}</span>
+                        <span className="text-[var(--color-muted)]">· {rw.pt}</span>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             )}
             <div className="mt-5 flex gap-2">
               <button
+                type="button"
                 className={`btn flex-1 ${saved ? "btn-soft" : "btn-primary"}`}
                 onClick={() => {
                   if (!saved) {
@@ -199,14 +329,14 @@ export function WordSheet({ tok, lang, onClose }: { tok: RToken | null; lang: La
               >
                 <Icon name={saved ? "check" : "bookmark"} size={20} /> {saved ? "Na revisão" : "Guardar"}
               </button>
-              <button className="btn btn-soft" onClick={() => setReport(true)} aria-label="Reportar erro">
+              <button type="button" className="btn btn-soft" onClick={() => setReport(true)} aria-label="Reportar erro">
                 <Icon name="flag" size={20} />
               </button>
             </div>
           </div>
         )}
       </Sheet>
-      <ReportSheet open={report} onClose={() => setReport(false)} refId={`${lang}:word:${key}`} text={tok?.text ?? ""} />
+      <ReportSheet open={report} onClose={() => setReport(false)} refId={`${lang}:word:${key}`} text={activeTok?.text ?? ""} />
       <Toast text={toast} onDone={() => setToast(null)} />
     </>
   );

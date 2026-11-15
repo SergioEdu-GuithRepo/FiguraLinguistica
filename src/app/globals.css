@@ -651,3 +651,25 @@ dialog.sheet::backdrop {
     animation-delay: 0s !important;
   }
 }
+
+/* Separadores acessíveis: estado visual ligado a aria-selected + sublinhado com border (mantém-se em forced-colors) */
+.fl-tab {
+  position: relative;
+  overflow: hidden;
+  background: var(--color-surface);
+  color: var(--color-muted);
+}
+.fl-tab:hover {
+  color: var(--color-ink);
+}
+.fl-tab[aria-selected="true"] {
+  background: var(--color-ink);
+  color: var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+.fl-tab[aria-selected="true"]::after {
+  content: "";
+  position: absolute;
+  inset: auto 10px 0;
+  border-block-end: 3px solid var(--color-coral);
+}

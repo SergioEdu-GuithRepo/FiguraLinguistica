@@ -126,7 +126,7 @@ function Cursos() {
             <div className="grid h-12 w-12 place-items-center rounded-2xl bg-[var(--color-teal-soft)] text-2xl">🧰</div>
             <div className="flex-1">
               <div className="font-extrabold">Contextos & Kit de Bolso</div>
-              <div className="text-sm text-[var(--color-muted)]">8 cenários reais desbloqueados, frases por registo e falsos amigos</div>
+              <div className="text-sm text-[var(--color-muted)]">14 cenários reais desbloqueados, mini-diálogos, frases por registo e falsos amigos</div>
             </div>
             <Icon name="chevron-right" className="text-[var(--color-muted)]" />
           </Link>
@@ -263,30 +263,35 @@ function Cursos() {
       {filtering && filtered.length === 0 && <p className="mt-6 text-center text-[var(--color-muted)]">Nenhuma unidade encontrada.</p>}
 
       <Sheet open={searchOpen} onClose={() => setSearchOpen(false)} title="Pesquisar">
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            setSearchOpen(false);
-          }}
-        >
-          <label htmlFor="cursos-search" className="mb-1.5 block text-xs font-extrabold text-[var(--color-muted)]">
-            Procurar unidade, tema ou palavra-chave
-          </label>
-          <input
-            id="cursos-search"
-            name="q"
-            className="input text-base"
-            placeholder="Ex.: aeroporto, banco, remoto, comida, números…"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            autoCorrect="off"
-            autoCapitalize="off"
-            spellCheck={false}
-            autoFocus
-            type="search"
-          />
-          <button className="btn btn-primary mt-3 w-full">Ver resultados ({filtered.length})</button>
-        </form>
+        <search>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              setSearchOpen(false);
+            }}
+          >
+            <label htmlFor="cursos-search" className="mb-1.5 block text-xs font-extrabold text-[var(--color-muted)]">
+              Procurar unidade, tema ou palavra-chave
+            </label>
+            <input
+              id="cursos-search"
+              name="q"
+              className="input text-base"
+              placeholder="Ex.: aeroporto, banco, remoto, comida, números…"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              autoCorrect="off"
+              autoCapitalize="none"
+              spellCheck={false}
+              enterKeyHint="search"
+              autoFocus
+              type="search"
+            />
+            <button type="submit" className="btn btn-primary mt-3 w-full">
+              Ver resultados ({filtered.length})
+            </button>
+          </form>
+        </search>
       </Sheet>
 
       <Sheet open={filterOpen} onClose={() => setFilterOpen(false)} title="Filtros">

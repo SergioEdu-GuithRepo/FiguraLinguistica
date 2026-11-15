@@ -7,19 +7,20 @@ import { ContextualVocabDrill } from "@/components/ContextualVocabDrill";
 import { Icon } from "@/components/Icon";
 import { WordSheet } from "@/components/Reader";
 import { AppFrame } from "@/components/Shell";
-import { Empty, ProgressRing, SpeakButton, TopBar } from "@/components/ui";
+import { Empty, ProgressRing, SpeakButton, Toast, TopBar } from "@/components/ui";
 import { CONTENT } from "@/content";
+import { CONTEXT_PACKS, contextPackProgress } from "@/lib/contexts";
 import { isStrong, retrievability } from "@/lib/fsrs";
 import { useImeSafeEnter } from "@/lib/ime";
 import { LANGS, POS_PT } from "@/lib/langs";
-import { VOCAB_TARGET, vocabStats } from "@/lib/state";
+import { saveWordsBatch, VOCAB_TARGET, vocabStats } from "@/lib/state";
 import { useApp } from "@/lib/store";
 import type { RToken } from "@/lib/tokenize";
 
-type WordFilter = "todas" | "fortes" | "fracas" | "expressoes";
+type WordFilter = "todas" | "fortes" | "fracas" | "expressoes" | "notas";
 
 function Palavras() {
-  const { state } = useApp();
+  const { state, update } = useApp();
   const router = useRouter();
   const lang = state.activeLang;
   const speechLang = LANGS[lang].speechLang;
@@ -29,6 +30,7 @@ function Palavras() {
   const [query, setQuery] = useState("");
   const [drillOpen, setDrillOpen] = useState(false);
   const [tok, setTok] = useState<RToken | null>(null);
+  const [toast, setToast] = useState<string | null>(null);
 
   const imeSearch = useImeSafeEnter(() => {
     if (typeof document !== "undefined" && document.activeElement instanceof HTMLElement) {
@@ -48,6 +50,17 @@ function Palavras() {
 
   const weakCount = useMemo(() => allSaved.filter((w) => !isStrong(w.card)).length, [allSaved]);
 
+  const unsavedPacks = useMemo(
+    () =>
+      CONTEXT_PACKS.map((pack) => ({
+        pack,
+        prog: contextPackProgress(pack, lang, state.srs[lang], state.xpEvents),
+      }))
+        .filter((x) => x.prog.savedCount < x.prog.totalCount)
+        .slice(0, 4),
+    [lang, state.srs, state.xpEvents],
+  );
+
   const words = useMemo(() => {
     const q = query
       .trim()
@@ -58,8 +71,9 @@ function Palavras() {
       if (filter === "fortes" && !isStrong(w.card)) return false;
       if (filter === "fracas" && isStrong(w.card)) return false;
       if (filter === "expressoes" && w.entry.pos !== "expr" && !w.key.includes(" ")) return false;
+      if (filter === "notas" && !w.entry.note) return false;
       if (!q) return true;
-      const hay = [w.key, w.entry.pt, w.entry.reading ?? "", w.entry.romaji ?? ""]
+      const hay = [w.key, w.entry.pt, w.entry.reading ?? "", w.entry.romaji ?? "", w.entry.note ?? ""]
         .join(" ")
         .toLowerCase()
         .normalize("NFD")
@@ -67,6 +81,20 @@ function Palavras() {
       return hay.includes(q);
     });
   }, [allSaved, filter, query]);
+
+  const handleQuickSavePack = (packId: string) => {
+    const pack = CONTEXT_PACKS.find((p) => p.id === packId);
+    if (!pack) return;
+    const keys = pack.byLang[lang].vocabKeys;
+    const already = keys.filter((k) => !!state.srs[lang][`w:${k.toLowerCase()}`]).length;
+    const added = keys.length - already;
+    update((s) => saveWordsBatch(s, lang, keys, 2));
+    setToast(
+      added > 0
+        ? `✓ +${added} ${added === 1 ? "palavra adicionada" : "palavras adicionadas"} de «${pack.title}»!`
+        : `O pacote «${pack.title}» já estava guardado.`,
+    );
+  };
 
   return (
     <>
@@ -115,63 +143,107 @@ function Palavras() {
         </div>
       )}
 
-      {allSaved.length > 0 && (
-        <div className="mt-4">
-          <label htmlFor="palavras-search" className="mb-1.5 block text-xs font-extrabold text-[var(--color-muted)]">
-            Filtrar o teu caderno de vocabulário
-          </label>
-          <div className="relative flex items-center">
-            <Icon name="search" size={18} className="pointer-events-none absolute left-3.5 text-[var(--color-muted)]" />
-            <input
-              id="palavras-search"
-              name="q"
-              type="search"
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              onCompositionStart={imeSearch.onCompositionStart}
-              onCompositionEnd={imeSearch.onCompositionEnd}
-              onKeyDown={imeSearch.onKeyDown}
-              autoCorrect="off"
-              autoCapitalize="off"
-              spellCheck={false}
-              enterKeyHint="search"
-              placeholder="Procurar palavra ou tradução…"
-              className="input min-h-[46px] pl-10 pr-10 text-base"
-            />
-            {query && (
-              <button
-                type="button"
-                aria-label="Limpar pesquisa"
-                onClick={() => setQuery("")}
-                className="absolute right-2 grid h-9 w-9 place-items-center rounded-full text-[var(--color-muted)] hover:bg-white"
-              >
-                <Icon name="close" size={16} />
-              </button>
-            )}
+      {/* Pacotes rápidos para ampliar o caderno */}
+      {unsavedPacks.length > 0 && (
+        <section className="mt-4" aria-labelledby="expand-vocab-heading">
+          <div className="mb-2 flex items-baseline justify-between">
+            <h2 id="expand-vocab-heading" className="text-xs font-extrabold uppercase tracking-wider text-[var(--color-muted)]">
+              Aumentar vocabulário por contexto
+            </h2>
+            <Link href="/contextos" className="text-xs font-bold text-[var(--color-coral)] hover:underline">
+              Ver os 14 temas →
+            </Link>
           </div>
-        </div>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            {unsavedPacks.map(({ pack, prog }) => (
+              <div key={pack.id} className="card flex items-center justify-between gap-2 p-3">
+                <Link href={`/contextos?pack=${pack.id}`} className="flex min-w-0 flex-1 items-center gap-2.5">
+                  <span
+                    className="grid h-9 w-9 shrink-0 place-items-center rounded-xl text-lg"
+                    style={{ background: pack.softColor }}
+                  >
+                    {pack.emoji}
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-xs font-extrabold">{pack.title}</span>
+                    <span className="text-[11px] text-[var(--color-muted)]">
+                      {prog.savedCount}/{prog.totalCount} guardadas
+                    </span>
+                  </span>
+                </Link>
+                <button
+                  type="button"
+                  onClick={() => handleQuickSavePack(pack.id)}
+                  className="shrink-0 rounded-full bg-[var(--color-coral-soft)] px-2.5 py-1.5 text-[11px] font-extrabold text-[var(--color-coral)] transition hover:bg-[var(--color-coral)] hover:text-white"
+                >
+                  + Guardar
+                </button>
+              </div>
+            ))}
+          </div>
+        </section>
       )}
 
-      <div className="my-4 flex flex-wrap gap-2" role="group" aria-label="Filtrar estado da memória">
-        {(
-          [
-            ["todas", "Todas"],
-            ["fortes", "Memória forte"],
-            ["fracas", "A reforçar"],
-            ["expressoes", "Expressões"],
-          ] as const
-        ).map(([v, l]) => (
-          <button
-            key={v}
-            type="button"
-            aria-pressed={filter === v}
-            className={`chip min-h-[38px] ${filter === v ? "!bg-[var(--color-ink)] text-white" : ""}`}
-            onClick={() => setFilter(v)}
-          >
-            {l}
-          </button>
-        ))}
-      </div>
+      <search className="my-4 space-y-3">
+        {allSaved.length > 0 && (
+          <div>
+            <label htmlFor="palavras-search" className="mb-1.5 block text-xs font-extrabold text-[var(--color-muted)]">
+              Filtrar o teu caderno de vocabulário
+            </label>
+            <div className="relative flex items-center">
+              <Icon name="search" size={18} className="pointer-events-none absolute left-3.5 text-[var(--color-muted)]" />
+              <input
+                id="palavras-search"
+                name="q"
+                type="search"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                onCompositionStart={imeSearch.onCompositionStart}
+                onCompositionEnd={imeSearch.onCompositionEnd}
+                onKeyDown={imeSearch.onKeyDown}
+                autoCorrect="off"
+                autoCapitalize="none"
+                spellCheck={false}
+                enterKeyHint="search"
+                placeholder="Procurar palavra, tradução ou nota…"
+                className="input min-h-[46px] pl-10 pr-10 text-base"
+              />
+              {query && (
+                <button
+                  type="button"
+                  aria-label="Limpar pesquisa"
+                  onClick={() => setQuery("")}
+                  className="absolute right-2 grid h-9 w-9 place-items-center rounded-full text-[var(--color-muted)] hover:bg-white"
+                >
+                  <Icon name="close" size={16} />
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+
+        <div className="flex flex-wrap gap-2" role="group" aria-label="Filtrar estado da memória">
+          {(
+            [
+              ["todas", "Todas"],
+              ["fortes", "Memória forte"],
+              ["fracas", "A reforçar"],
+              ["expressoes", "Expressões"],
+              ["notas", "💡 Falsos amigos & notas"],
+            ] as const
+          ).map(([v, l]) => (
+            <button
+              key={v}
+              type="button"
+              aria-pressed={filter === v}
+              className={`chip min-h-[38px] ${filter === v ? "!bg-[var(--color-ink)] text-white" : ""}`}
+              onClick={() => setFilter(v)}
+            >
+              {l}
+            </button>
+          ))}
+        </div>
+      </search>
 
       <p aria-live="polite" className="sr-only">
         {words.length} palavras visíveis
@@ -214,6 +286,11 @@ function Palavras() {
                       <span className="rounded-full bg-[var(--color-bg)] px-2 py-0.5 text-[10px] font-bold text-[var(--color-muted)]">
                         {POS_PT[w.entry.pos] ?? w.entry.pos}
                       </span>
+                      {w.entry.note && (
+                        <span className="rounded-full bg-[var(--color-yellow-soft)] px-1.5 py-0.5 text-[10px] font-bold text-[#7a5c0d]">
+                          💡
+                        </span>
+                      )}
                     </span>
                     <span className="block truncate text-sm text-[var(--color-muted)]">
                       {w.entry.reading && lang === "ja" ? `${w.entry.reading} · ` : ""}
@@ -235,6 +312,7 @@ function Palavras() {
         </ul>
       )}
       <WordSheet tok={tok} lang={lang} onClose={() => setTok(null)} />
+      <Toast text={toast} onDone={() => setToast(null)} />
     </>
   );
 }

@@ -1,5 +1,5 @@
 /* FiguraLinguística — service worker (PWA, modo leve e lições descarregadas) */
-const VERSION = "fl-v4";
+const VERSION = "fl-v5";
 const STATIC = `${VERSION}-static`;
 const PAGES = `${VERSION}-pages`;
 const TTS = "fl-tts"; // áudio neural: sobrevive a actualizações da app

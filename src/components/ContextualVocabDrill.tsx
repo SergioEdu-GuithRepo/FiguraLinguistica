@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { CONTENT } from "@/content";
-import { buildContextualVocabDrill, type ContextualVocabQuestion } from "@/lib/contexts";
+import { buildContextualVocabDrill, type ContextualVocabQuestion, type VocabDrillMode } from "@/lib/contexts";
 import { LANGS, POS_PT } from "@/lib/langs";
 import { sfxError, sfxSuccess } from "@/lib/sfx";
 import { addActivity, currentLevel, rateItem } from "@/lib/state";
@@ -33,6 +33,7 @@ export function ContextualVocabDrill({
   const dict = CONTENT[lang].dictionary;
 
   const [round, setRound] = useState(0);
+  const [drillMode, setDrillMode] = useState<VocabDrillMode>("mixed");
   const [questions, setQuestions] = useState<ContextualVocabQuestion[]>([]);
   const [idx, setIdx] = useState(0);
   const [picked, setPicked] = useState<string | null>(null);
@@ -41,7 +42,13 @@ export function ContextualVocabDrill({
 
   useEffect(() => {
     const lvl = currentLevel(state, lang);
-    const built = buildContextualVocabDrill(lang, state.srs[lang], lvl, { packId, onlyWeak, count });
+    const built = buildContextualVocabDrill(lang, state.srs[lang], lvl, {
+      packId,
+      onlyWeak,
+      count,
+      seed: round,
+      mode: drillMode,
+    });
     setQuestions(built);
     setIdx(0);
     setPicked(null);
@@ -49,7 +56,7 @@ export function ContextualVocabDrill({
     setDone(false);
     // Snapshot por ronda/idioma/filtro para que actualizar o FSRS a meio da ronda não baralhe a pergunta activa
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [lang, packId, onlyWeak, count, round]);
+  }, [lang, packId, onlyWeak, count, round, drillMode]);
 
   if (questions.length === 0) {
     return (
@@ -126,20 +133,68 @@ export function ContextualVocabDrill({
         </span>
       </div>
 
+      <div className="mt-2.5 flex flex-wrap gap-1.5" role="group" aria-label="Modo de treino">
+        {(
+          [
+            ["mixed", "🔀 Misto"],
+            ["cloze", "🧩 Completar frase"],
+            ["recall", "🎯 Activar do português"],
+          ] as const
+        ).map(([m, label]) => (
+          <button
+            key={m}
+            type="button"
+            aria-pressed={drillMode === m}
+            onClick={() => setDrillMode(m)}
+            className={`chip min-h-[34px] !px-2.5 !py-1 text-[11px] ${
+              drillMode === m ? "!bg-[var(--color-ink)] text-white" : ""
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+      </div>
+
       <div className="mt-3 rounded-2xl bg-[var(--color-bg)] p-4">
         <div className="flex flex-wrap items-center gap-2 text-xs font-semibold text-[var(--color-muted)]">
           <span className="rounded-full bg-white px-2.5 py-0.5 font-bold text-[var(--color-ink)]">
             {POS_PT[q.pos] ?? q.pos}
           </span>
-          <span>Pista: «{q.ptWord}»</span>
+          {q.questionType === "recall" ? (
+            <span className="font-bold text-[var(--color-coral)]">
+              🎯 Como dizes «{q.ptWord}» nesta frase?
+            </span>
+          ) : (
+            <span>Pista: «{q.ptWord}»</span>
+          )}
         </div>
-        <p className="mt-2 text-sm text-[var(--color-muted)]">{q.ptSentence}</p>
-        <p
-          lang={speechLang}
-          className={`target mt-2 text-lg font-extrabold leading-snug ${lang === "ja" ? "jp" : ""}`}
-        >
-          {answered ? q.fullSentence : q.maskedSentence}
-        </p>
+        {q.questionType === "recall" ? (
+          <>
+            <p className="mt-2 text-base font-extrabold leading-snug text-[var(--color-ink)]">{q.ptSentence}</p>
+            {answered ? (
+              <p
+                lang={speechLang}
+                className={`target mt-2 text-lg font-extrabold leading-snug text-[var(--color-teal)] ${lang === "ja" ? "jp" : ""}`}
+              >
+                {q.fullSentence}
+              </p>
+            ) : (
+              <p className="mt-1.5 text-xs text-[var(--color-muted)]">
+                Escolhe o termo natural em {LANGS[lang].name.toLowerCase()} para activar a memória:
+              </p>
+            )}
+          </>
+        ) : (
+          <>
+            <p className="mt-2 text-sm text-[var(--color-muted)]">{q.ptSentence}</p>
+            <p
+              lang={speechLang}
+              className={`target mt-2 text-lg font-extrabold leading-snug ${lang === "ja" ? "jp" : ""}`}
+            >
+              {answered ? q.fullSentence : q.maskedSentence}
+            </p>
+          </>
+        )}
       </div>
 
       <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-2">

@@ -186,7 +186,7 @@ function Home() {
           <div className="grid h-12 w-12 place-items-center rounded-2xl bg-[var(--color-teal-soft)] text-2xl">🧰</div>
           <div className="flex-1">
             <div className="font-extrabold">Contextos & Kit de Bolso</div>
-            <div className="text-sm text-[var(--color-muted)]">Aeroporto, finanças, remoto, tecnologia e falsos amigos</div>
+            <div className="text-sm text-[var(--color-muted)]">14 cenários reais: casa, restaurante, carreira, transportes, emergências e mais</div>
           </div>
           <Icon name="chevron-right" className="text-[var(--color-muted)]" />
         </Link>
