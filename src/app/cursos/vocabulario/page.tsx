@@ -10,7 +10,7 @@ import { WordSheet } from "@/components/Reader";
 import { AppFrame, LanguageSelector } from "@/components/Shell";
 import { Empty, SpeakButton, Toast, TopBar } from "@/components/ui";
 import { CONTENT } from "@/content";
-import { CONTEXT_PACKS, searchDictionary } from "@/lib/contexts";
+import { CONTEXT_PACKS, searchDictionary, VOCAB_NETWORKS } from "@/lib/contexts";
 import { useImeSafeEnter } from "@/lib/ime";
 import { LANGS, POS_PT } from "@/lib/langs";
 import { isUnitUnlocked, saveWordsBatch } from "@/lib/state";
@@ -40,6 +40,8 @@ function Vocabulario() {
   const [mode, setMode] = useState<ModeTab>("cenas");
   const [open, setOpen] = useState<string | null>(units[0]?.id ?? null);
   const [openPack, setOpenPack] = useState<string | null>(null);
+  const [openNet, setOpenNet] = useState<string | null>(null);
+  const [drillNetworkId, setDrillNetworkId] = useState<string | undefined>(undefined);
   const [tok, setTok] = useState<RToken | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const tabRefs = useRef<Partial<Record<ModeTab, HTMLButtonElement | null>>>({});
@@ -48,6 +50,7 @@ function Vocabulario() {
   const [query, setQuery] = useState("");
   const [posFilter, setPosFilter] = useState<PartOfSpeech | "all">("all");
   const [packFilter, setPackFilter] = useState<string>("all");
+  const [networkFilter, setNetworkFilter] = useState<string>("all");
   const [onlyNotes, setOnlyNotes] = useState(false);
   const [srsFilter, setSrsFilter] = useState<"all" | "unsaved" | "saved" | "weak">("all");
   const [limit, setLimit] = useState(60);
@@ -64,10 +67,10 @@ function Vocabulario() {
       searchDictionary(
         lang,
         query,
-        { pos: posFilter, packId: packFilter, onlyNotes, srsFilter, limit },
+        { pos: posFilter, packId: packFilter, networkId: networkFilter, onlyNotes, srsFilter, limit },
         state.srs[lang],
       ),
-    [lang, query, posFilter, packFilter, onlyNotes, srsFilter, limit, state.srs],
+    [lang, query, posFilter, packFilter, networkFilter, onlyNotes, srsFilter, limit, state.srs],
   );
 
   const handleSaveScene = (vocab: string[], title: string) => {
@@ -142,13 +145,128 @@ function Vocabulario() {
         href="/contextos"
         className="mb-4 flex items-center justify-between gap-3 rounded-2xl bg-[var(--color-lilac-soft)]/75 px-4 py-3 text-xs font-bold text-[var(--color-ink)] transition hover:bg-[var(--color-lilac-soft)]"
       >
-        <span>🧰 Queres frases prontas por registo, mini-diálogos e falsos amigos? Explora os 14 Contextos Reais</span>
+        <span>🧰 Queres frases prontas por registo, mini-diálogos e roleplay? Explora os {CONTEXT_PACKS.length} Contextos Reais</span>
         <Icon name="chevron-right" size={16} className="shrink-0" />
       </Link>
 
       <div role="tabpanel" aria-labelledby="vocab-tab-cenas" hidden={mode !== "cenas"}>
         {mode === "cenas" && (
           <div className="space-y-6">
+            {/* Redes transversais de vocabulário estratégico */}
+            <section aria-labelledby="vocab-networks-heading">
+              <div className="mb-2 flex items-baseline justify-between gap-2">
+                <h2 id="vocab-networks-heading" className="font-extrabold">
+                  Redes de Vocabulário Essencial ({VOCAB_NETWORKS.length})
+                </h2>
+                <span className="text-xs font-semibold text-[var(--color-lilac)]">Fluência transversal</span>
+              </div>
+              <p className="mb-3 text-xs text-[var(--color-muted)]">
+                Conectores, falsos amigos, pedidos corteses, prazos e reacções rápidas que usas em qualquer conversa.
+              </p>
+              <div className={`flex flex-col gap-2.5 lang-${lang}`}>
+                {VOCAB_NETWORKS.map((net) => {
+                  const netKeys = net.keys[lang];
+                  const isNetOpen = openNet === net.id;
+                  const savedCount = netKeys.filter((k) => !!state.srs[lang][`w:${k.toLowerCase()}`]).length;
+                  const allSaved = savedCount >= netKeys.length;
+                  return (
+                    <div key={net.id} className="card overflow-hidden">
+                      <button
+                        type="button"
+                        className="flex min-h-[58px] w-full items-center gap-3 p-3.5 text-left"
+                        onClick={() => setOpenNet(isNetOpen ? null : net.id)}
+                        aria-expanded={isNetOpen}
+                      >
+                        <span
+                          className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl text-xl"
+                          style={{ background: net.softColor }}
+                        >
+                          {net.emoji}
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate text-sm font-extrabold">{net.title}</span>
+                          <span className="block truncate text-xs text-[var(--color-muted)]">
+                            {savedCount}/{netKeys.length} guardadas · {net.subtitle}
+                          </span>
+                        </span>
+                        <Icon
+                          name={isNetOpen ? "chevron-down" : "chevron-right"}
+                          size={18}
+                          className="shrink-0 text-[var(--color-muted)]"
+                        />
+                      </button>
+                      {isNetOpen && (
+                        <div className="px-3.5 pb-3.5">
+                          <p className="mb-2.5 rounded-2xl bg-[var(--color-yellow-soft)]/75 px-3 py-2 text-xs text-[#6e530e]">
+                            💡 {net.tip}
+                          </p>
+                          <div className="mb-2.5 flex flex-wrap items-center justify-between gap-2">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setDrillNetworkId(net.id);
+                                setMode("treino");
+                              }}
+                              className="rounded-full bg-[var(--color-teal-soft)] px-3 py-1.5 text-xs font-extrabold text-[#2a6b64] transition hover:opacity-90"
+                            >
+                              🧩 Treinar esta rede em frase →
+                            </button>
+                            <button
+                              type="button"
+                              disabled={allSaved}
+                              onClick={() => handleSaveScene(netKeys, net.title)}
+                              className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-extrabold transition ${
+                                allSaved
+                                  ? "bg-[var(--color-good-soft)] text-[var(--color-good)]"
+                                  : "bg-[var(--color-coral-soft)] text-[var(--color-coral)] hover:bg-[var(--color-coral)] hover:text-white"
+                              }`}
+                            >
+                              {allSaved ? "✓ Guardada" : "+ Guardar rede"}
+                            </button>
+                          </div>
+                          <ul role="list" className="grid grid-cols-1 gap-2">
+                            {netKeys.map((rawKey) => {
+                              const k = rawKey.toLowerCase();
+                              const e = dictionary[k];
+                              if (!e) return null;
+                              const saved = !!state.srs[lang][`w:${k}`];
+                              return (
+                                <li key={k} className="flex items-center gap-2 rounded-2xl bg-[var(--color-bg)] p-2">
+                                  <SpeakButton text={k} lang={lang} size={36} className="!bg-white" label={`Ouvir ${k}`} />
+                                  <button
+                                    type="button"
+                                    className="flex min-h-[44px] min-w-0 flex-1 items-center justify-between gap-2 rounded-xl px-2 py-1 text-left transition hover:bg-white/70"
+                                    onClick={() => setTok({ text: k, key: k, entry: e, isPunct: false, spaceAfter: false })}
+                                  >
+                                    <span className="min-w-0 flex-1">
+                                      <span lang={speechLang} className={`target block truncate font-bold ${lang === "ja" ? "jp" : ""}`}>
+                                        {k}
+                                      </span>
+                                      <span className="block truncate text-sm text-[var(--color-muted)]">
+                                        {lang === "ja" && e.reading ? `${e.reading} · ` : ""}
+                                        {e.pt}
+                                      </span>
+                                    </span>
+                                    <span className="flex shrink-0 items-center gap-1.5">
+                                      {e.note && (
+                                        <span className="rounded-full bg-[var(--color-yellow-soft)] px-2 py-0.5 text-[10px] font-bold text-[#7a5c0d]">
+                                          💡
+                                        </span>
+                                      )}
+                                      {saved && <Icon name="bookmark" size={16} filled className="text-[var(--color-coral)]" />}
+                                    </span>
+                                  </button>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
             {/* Colecções temáticas de Contextos Reais (todas abertas desde o nível 1) */}
             <section aria-labelledby="context-collections-heading">
               <div className="mb-2 flex items-baseline justify-between gap-2">
@@ -444,6 +562,39 @@ function Vocabulario() {
                 ))}
               </div>
 
+              {/* Filtro por rede transversal */}
+              <div className="no-scrollbar mt-2.5 flex gap-1.5 overflow-x-auto pb-1" role="group" aria-label="Filtrar por rede de vocabulário">
+                <button
+                  type="button"
+                  aria-pressed={networkFilter === "all"}
+                  onClick={() => {
+                    setNetworkFilter("all");
+                    setLimit(60);
+                  }}
+                  className={`chip shrink-0 min-h-[34px] !px-3 !py-1 text-xs ${
+                    networkFilter === "all" ? "!bg-[var(--color-lilac)] text-white" : ""
+                  }`}
+                >
+                  Todas as redes
+                </button>
+                {VOCAB_NETWORKS.map((n) => (
+                  <button
+                    key={n.id}
+                    type="button"
+                    aria-pressed={networkFilter === n.id}
+                    onClick={() => {
+                      setNetworkFilter(networkFilter === n.id ? "all" : n.id);
+                      setLimit(60);
+                    }}
+                    className={`chip shrink-0 min-h-[34px] !px-3 !py-1 text-xs ${
+                      networkFilter === n.id ? "!bg-[var(--color-lilac)] text-white" : ""
+                    }`}
+                  >
+                    {n.emoji} {n.title.split("&")[0].trim()}
+                  </button>
+                ))}
+              </div>
+
               {/* Classe gramatical */}
               <div className="mt-2.5 flex flex-wrap gap-1.5" role="group" aria-label="Filtrar por classe gramatical">
                 {POS_FILTERS.map((pf) => (
@@ -565,12 +716,44 @@ function Vocabulario() {
 
       <div role="tabpanel" aria-labelledby="vocab-tab-treino" hidden={mode !== "treino"}>
         {mode === "treino" && (
-          <ContextualVocabDrill
-            lang={lang}
-            count={8}
-            title="Completa a frase no contexto certo"
-            onDone={() => setMode("cenas")}
-          />
+          <div className="space-y-3">
+            <div className="no-scrollbar flex gap-1.5 overflow-x-auto pb-1" role="group" aria-label="Escolher conjunto de treino">
+              <button
+                type="button"
+                aria-pressed={!drillNetworkId}
+                onClick={() => setDrillNetworkId(undefined)}
+                className={`chip shrink-0 min-h-[34px] !px-3 !py-1 text-xs ${
+                  !drillNetworkId ? "!bg-[var(--color-ink)] text-white" : ""
+                }`}
+              >
+                🌍 Geral (todos os temas)
+              </button>
+              {VOCAB_NETWORKS.map((n) => (
+                <button
+                  key={n.id}
+                  type="button"
+                  aria-pressed={drillNetworkId === n.id}
+                  onClick={() => setDrillNetworkId(drillNetworkId === n.id ? undefined : n.id)}
+                  className={`chip shrink-0 min-h-[34px] !px-3 !py-1 text-xs ${
+                    drillNetworkId === n.id ? "!bg-[var(--color-ink)] text-white" : ""
+                  }`}
+                >
+                  {n.emoji} {n.title.split("&")[0].trim()}
+                </button>
+              ))}
+            </div>
+            <ContextualVocabDrill
+              lang={lang}
+              networkId={drillNetworkId}
+              count={8}
+              title={
+                drillNetworkId
+                  ? `Rede: ${VOCAB_NETWORKS.find((n) => n.id === drillNetworkId)?.title ?? "Vocabulário"}`
+                  : "Completa, ouve ou escreve no contexto certo"
+              }
+              onDone={() => setMode("cenas")}
+            />
+          </div>
         )}
       </div>
 

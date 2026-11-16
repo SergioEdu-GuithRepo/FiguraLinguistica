@@ -151,7 +151,7 @@ function Palavras() {
               Aumentar vocabulário por contexto
             </h2>
             <Link href="/contextos" className="text-xs font-bold text-[var(--color-coral)] hover:underline">
-              Ver os 14 temas →
+              Ver os {CONTEXT_PACKS.length} temas →
             </Link>
           </div>
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">

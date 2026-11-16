@@ -260,6 +260,42 @@ export function WordSheet({ tok, lang, onClose }: { tok: RToken | null; lang: La
                 ))}
               </div>
             )}
+            {ctxInfo && ctxInfo.collocations.length > 0 && (
+              <div className="mt-3">
+                <div className="mb-1.5 text-[11px] font-extrabold uppercase tracking-wider text-[var(--color-muted)]">
+                  Expressões e combinações frequentes
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {ctxInfo.collocations.map((col) => {
+                    const colEntry = dict[col.key];
+                    if (!colEntry) return null;
+                    return (
+                      <button
+                        key={col.key}
+                        type="button"
+                        onClick={() =>
+                          setSubTok({
+                            parentKey: rootKey,
+                            tok: {
+                              text: col.key,
+                              key: col.key,
+                              entry: colEntry,
+                              isPunct: false,
+                              spaceAfter: false,
+                              chunk: col.key.includes(" "),
+                            },
+                          })
+                        }
+                        className="inline-flex min-h-[34px] items-center gap-1.5 rounded-full bg-[var(--color-yellow-soft)]/80 px-3 py-1 text-xs font-semibold transition hover:bg-[var(--color-yellow-soft)]"
+                      >
+                        <span lang={speechLang} className="target font-bold">{col.key}</span>
+                        <span className="text-[#6e530e]">· {col.pt}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
             {ctxInfo && ctxInfo.packs.length > 0 && (
               <div className="mt-3">
                 <div className="mb-1.5 text-[11px] font-extrabold uppercase tracking-wider text-[var(--color-muted)]">

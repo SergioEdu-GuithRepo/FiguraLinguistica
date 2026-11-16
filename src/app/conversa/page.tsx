@@ -1,12 +1,14 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
+import type React from "react";
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { Icon } from "@/components/Icon";
 import { AppFrame } from "@/components/Shell";
 import { TutorChat } from "@/components/steps/TutorChat";
 import { CelebrationBurst, TopBar, useSpeaker } from "@/components/ui";
 import { CONTENT, getUnit } from "@/content";
+import { CONTEXT_PACKS, contextPackToUnit } from "@/lib/contexts";
 import { buildQuickResponsePrompts, buildTranslateSensePrompts } from "@/lib/fluencia";
 import { useImeSafeEnter } from "@/lib/ime";
 import { LANGS } from "@/lib/langs";
@@ -174,16 +176,19 @@ function QuickResponseDrill({ onDone }: { onDone: () => void }) {
             }}
           >
             <input
+              id="quick-reply-input"
               className="input target flex-1"
               name="quick-reply"
               value={input}
               onChange={(e) => setInput(e.target.value)}
+              onCompositionStart={imeQuick.onCompositionStart}
               onCompositionEnd={imeQuick.onCompositionEnd}
               onKeyDown={imeQuick.onKeyDown}
               placeholder="Responde sem hesitar…"
               aria-label="Resposta rápida"
               autoComplete="off"
-              autoCapitalize="off"
+              autoCorrect="off"
+              autoCapitalize="none"
               spellCheck={false}
               enterKeyHint="send"
               lang={LANGS[lang].speechLang}
@@ -324,12 +329,29 @@ function QuickConversationInner() {
   const lang = state.activeLang;
   const unlocked = CONTENT[lang].units.filter((u) => isUnitUnlocked(state, u.id));
   const initialMode = (searchParams.get("mode") as TabMode) || "guiado";
+  const initialContextParam = searchParams.get("context");
+  const initialContextValid =
+    initialContextParam && CONTEXT_PACKS.some((p) => p.id === initialContextParam) ? initialContextParam : null;
   const initialUnit = searchParams.get("unit") || nextUnitId(state, lang) || unlocked[0].id;
 
   const [tab, setTab] = useState<TabMode>(initialMode);
+  const [source, setSource] = useState<"curriculo" | "contextos">(initialContextValid ? "contextos" : "curriculo");
   const [unitId, setUnitId] = useState<string>(initialUnit);
+  const [packId, setPackId] = useState<string>(initialContextValid ?? CONTEXT_PACKS[0].id);
   const [round, setRound] = useState(0);
-  const unit = getUnit(unitId) ?? unlocked[0];
+  const tabRefs = useRef<Partial<Record<TabMode, HTMLButtonElement | null>>>({});
+
+  const activeContextPack = useMemo(
+    () => CONTEXT_PACKS.find((p) => p.id === packId) ?? CONTEXT_PACKS[0],
+    [packId],
+  );
+  const unit = useMemo(
+    () =>
+      source === "contextos"
+        ? contextPackToUnit(activeContextPack, lang)
+        : (getUnit(unitId) ?? unlocked[0]),
+    [source, activeContextPack, lang, unitId, unlocked],
+  );
 
   const tabs: { id: TabMode; label: string }[] = [
     { id: "guiado", label: "🎯 Guiado" },
@@ -339,9 +361,28 @@ function QuickConversationInner() {
     { id: "sentido", label: "🧠 Sentido" },
   ];
 
+  const handleModeKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    const order = tabs.map((t) => t.id);
+    const cur = order.indexOf(tab);
+    let nextIdx = -1;
+    if (e.key === "ArrowRight") nextIdx = (cur + 1) % order.length;
+    else if (e.key === "ArrowLeft") nextIdx = (cur - 1 + order.length) % order.length;
+    else if (e.key === "Home") nextIdx = 0;
+    else if (e.key === "End") nextIdx = order.length - 1;
+    if (nextIdx >= 0) {
+      e.preventDefault();
+      const nextTab = order[nextIdx];
+      setTab(nextTab);
+      setRound((r) => r + 1);
+      tabRefs.current[nextTab]?.focus();
+    }
+  };
+
   const handleBack = () => {
     if (typeof window !== "undefined" && window.history.length > 2) {
       router.back();
+    } else if (initialContextValid) {
+      router.push(`/contextos?pack=${initialContextValid}`);
     } else if (searchParams.get("mode")) {
       router.push("/cursos/conversas");
     } else {
@@ -352,14 +393,25 @@ function QuickConversationInner() {
   return (
     <>
       <TopBar back={handleBack} title={`Conversa & Fluência · ${LANGS[lang].flag}`} right={<Timer key={`${tab}-${round}`} />} />
-      <div className="no-scrollbar -mx-5 mb-3 flex gap-1.5 overflow-x-auto px-5 pb-1" role="tablist" aria-label="Modos de conversa e fluência">
+      <div
+        className="no-scrollbar -mx-5 mb-3 flex gap-1.5 overflow-x-auto px-5 pb-1"
+        role="tablist"
+        aria-label="Modos de conversa e fluência"
+        onKeyDown={handleModeKeyDown}
+      >
         {tabs.map((t) => (
           <button
             key={t.id}
+            ref={(el) => {
+              tabRefs.current[t.id] = el;
+            }}
+            id={`conv-mode-${t.id}`}
+            type="button"
             role="tab"
             aria-selected={tab === t.id}
+            tabIndex={tab === t.id ? 0 : -1}
             data-testid={`mode-tab-${t.id}`}
-            className={`chip shrink-0 text-xs ${tab === t.id ? "!bg-[var(--color-coral)] !text-white" : ""}`}
+            className="fl-tab min-h-[38px] shrink-0 rounded-full px-3.5 py-1.5 text-xs font-extrabold transition"
             onClick={() => {
               setTab(t.id);
               setRound((r) => r + 1);
@@ -370,29 +422,82 @@ function QuickConversationInner() {
         ))}
       </div>
 
-      {tab === "rapido" ? (
-        <QuickResponseDrill key={round} onDone={() => setTab("guiado")} />
-      ) : tab === "sentido" ? (
-        <TranslateSenseDrill key={round} onDone={() => setTab("guiado")} />
-      ) : (
-        <>
-          <div className="no-scrollbar -mx-5 mb-4 flex gap-2 overflow-x-auto px-5 pb-1">
-            {unlocked.map((u) => (
+      <div role="tabpanel" aria-labelledby={`conv-mode-${tab}`}>
+        {tab === "rapido" ? (
+          <QuickResponseDrill key={round} onDone={() => setTab("guiado")} />
+        ) : tab === "sentido" ? (
+          <TranslateSenseDrill key={round} onDone={() => setTab("guiado")} />
+        ) : (
+          <>
+            <div className="mb-2.5 flex flex-wrap items-center gap-2" role="group" aria-label="Origem do cenário de conversa">
               <button
-                key={u.id}
-                className={`chip shrink-0 ${u.id === unit.id ? "!bg-[var(--color-ink)] text-white" : ""}`}
+                type="button"
+                aria-pressed={source === "curriculo"}
                 onClick={() => {
-                  setUnitId(u.id);
+                  setSource("curriculo");
                   setRound((r) => r + 1);
                 }}
+                className={`chip min-h-[36px] !px-3 !py-1 text-xs ${
+                  source === "curriculo" ? "!bg-[var(--color-ink)] text-white" : ""
+                }`}
               >
-                {u.emoji} {u.title}
+                📚 Currículo ({unlocked.length})
               </button>
-            ))}
-          </div>
-          <TutorChat key={`${unit.id}-${tab}-${round}`} unit={unit} asStep={false} mode={tab} />
-        </>
-      )}
+              <button
+                type="button"
+                aria-pressed={source === "contextos"}
+                onClick={() => {
+                  setSource("contextos");
+                  setRound((r) => r + 1);
+                }}
+                className={`chip min-h-[36px] !px-3 !py-1 text-xs ${
+                  source === "contextos" ? "!bg-[var(--color-teal)] text-white" : ""
+                }`}
+              >
+                🧰 Contextos Reais ({CONTEXT_PACKS.length})
+              </button>
+            </div>
+
+            {source === "curriculo" ? (
+              <div className="no-scrollbar -mx-5 mb-4 flex gap-2 overflow-x-auto px-5 pb-1">
+                {unlocked.map((u) => (
+                  <button
+                    key={u.id}
+                    type="button"
+                    aria-pressed={u.id === unit.id}
+                    className={`chip shrink-0 ${u.id === unit.id ? "!bg-[var(--color-ink)] text-white" : ""}`}
+                    onClick={() => {
+                      setUnitId(u.id);
+                      setRound((r) => r + 1);
+                    }}
+                  >
+                    {u.emoji} {u.title}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <div className="no-scrollbar -mx-5 mb-4 flex gap-2 overflow-x-auto px-5 pb-1">
+                {CONTEXT_PACKS.map((p) => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    aria-pressed={p.id === activeContextPack.id}
+                    className={`chip shrink-0 ${p.id === activeContextPack.id ? "!bg-[var(--color-ink)] text-white" : ""}`}
+                    onClick={() => {
+                      setPackId(p.id);
+                      setRound((r) => r + 1);
+                    }}
+                  >
+                    {p.emoji} {p.title}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            <TutorChat key={`${unit.id}-${tab}-${round}`} unit={unit} asStep={false} mode={tab} />
+          </>
+        )}
+      </div>
     </>
   );
 }

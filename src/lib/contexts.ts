@@ -5,8 +5,8 @@
 import { CONTENT } from "@/content";
 import type { Card } from "./fsrs";
 import { isStrong } from "./fsrs";
-import { plainText, tokenize } from "./tokenize";
-import type { DialogueLine, DictEntry, LangCode, PartOfSpeech } from "./types";
+import { normalizeAnswer, plainText, tokenize } from "./tokenize";
+import type { ConversationStep, DialogueLine, DictEntry, LangCode, PartOfSpeech, Unit } from "./types";
 
 export type RegisterLevel = "formal" | "neutro" | "informal";
 
@@ -70,7 +70,18 @@ export const CONTEXT_PACKS: ContextPack[] = [
     relatedLevels: [46, 28, 12],
     byLang: {
       en: {
-        vocabKeys: ["boarding pass", "customs", "layover", "carry-on", "passport", "flight", "luggage", "gate"],
+        vocabKeys: [
+          "boarding pass",
+          "customs",
+          "layover",
+          "carry-on",
+          "passport",
+          "flight",
+          "luggage",
+          "gate",
+          "aisle seat",
+          "overhead locker",
+        ],
         phrases: [
           {
             text: "Here is my passport and boarding pass.",
@@ -148,7 +159,18 @@ export const CONTEXT_PACKS: ContextPack[] = [
         ],
       },
       fr: {
-        vocabKeys: ["carte d'embarquement", "douane", "escale", "bagage cabine", "passeport", "vol", "valise", "billet"],
+        vocabKeys: [
+          "carte d'embarquement",
+          "douane",
+          "escale",
+          "bagage cabine",
+          "passeport",
+          "vol",
+          "valise",
+          "billet",
+          "porte d'embarquement",
+          "correspondance",
+        ],
         phrases: [
           {
             text: "Voici mon passeport et ma carte d'embarquement.",
@@ -226,7 +248,18 @@ export const CONTEXT_PACKS: ContextPack[] = [
         ],
       },
       ja: {
-        vocabKeys: ["パスポート", "にゅうこく", "とうじょうけん", "のりつぎ", "日本", "時間", "行く", "見る"],
+        vocabKeys: [
+          "パスポート",
+          "にゅうこく",
+          "とうじょうけん",
+          "のりつぎ",
+          "空港",
+          "にもつ",
+          "しんこく",
+          "ビザ",
+          "旅行",
+          "時間",
+        ],
         phrases: [
           {
             text: "パスポートと とうじょうけんです。おねがいします。",
@@ -321,7 +354,18 @@ export const CONTEXT_PACKS: ContextPack[] = [
     relatedLevels: [47, 5, 20],
     byLang: {
       en: {
-        vocabKeys: ["exchange rate", "bank transfer", "fee", "contactless", "card", "cash", "account", "price"],
+        vocabKeys: [
+          "exchange rate",
+          "bank transfer",
+          "fee",
+          "contactless",
+          "card",
+          "cash",
+          "account",
+          "price",
+          "receipt",
+          "declined",
+        ],
         phrases: [
           {
             text: "Can I pay contactless, or is it cash only?",
@@ -399,7 +443,18 @@ export const CONTEXT_PACKS: ContextPack[] = [
         ],
       },
       fr: {
-        vocabKeys: ["virement", "taux de change", "frais bancaires", "sans contact", "carte", "espèces", "compte", "prix"],
+        vocabKeys: [
+          "virement",
+          "taux de change",
+          "frais bancaires",
+          "sans contact",
+          "carte",
+          "espèces",
+          "compte",
+          "prix",
+          "facture",
+          "régler",
+        ],
         phrases: [
           {
             text: "Vous prenez le sans contact ?",
@@ -477,9 +532,18 @@ export const CONTEXT_PACKS: ContextPack[] = [
         ],
       },
       ja: {
-        vocabKeys: ["ふりこみ", "てすうりょう", "りょうがえ", "キャッシュレス", "キャッシュレス", "円", "買う", "高い"].filter(
-          (v, i, a) => a.indexOf(v) === i,
-        ),
+        vocabKeys: [
+          "ふりこみ",
+          "てすうりょう",
+          "りょうがえ",
+          "キャッシュレス",
+          "げんきん",
+          "カード",
+          "レシート",
+          "ねだん",
+          "円",
+          "高い",
+        ],
         phrases: [
           {
             text: "カードで はらえますか。",
@@ -574,7 +638,18 @@ export const CONTEXT_PACKS: ContextPack[] = [
     relatedLevels: [48, 33, 43],
     byLang: {
       en: {
-        vocabKeys: ["on mute", "share my screen", "deadline", "follow up", "attend", "meeting", "team", "project"],
+        vocabKeys: [
+          "on mute",
+          "share my screen",
+          "deadline",
+          "follow up",
+          "attend",
+          "meeting",
+          "team",
+          "project",
+          "slides",
+          "hybrid",
+        ],
         phrases: [
           {
             text: "Sorry, I think you're on mute!",
@@ -652,7 +727,18 @@ export const CONTEXT_PACKS: ContextPack[] = [
         ],
       },
       fr: {
-        vocabKeys: ["micro coupé", "partager mon écran", "échéance", "faire le point", "assister", "réunion", "équipe", "travail"],
+        vocabKeys: [
+          "micro coupé",
+          "partager mon écran",
+          "échéance",
+          "faire le point",
+          "assister",
+          "réunion",
+          "équipe",
+          "travail",
+          "télétravail",
+          "écran",
+        ],
         phrases: [
           {
             text: "Pardon, je crois que ton micro est coupé.",
@@ -730,7 +816,18 @@ export const CONTEXT_PACKS: ContextPack[] = [
         ],
       },
       ja: {
-        vocabKeys: ["がめん", "ミュート", "しめきり", "おつかれさまです", "会社", "時間", "話す", "見る"],
+        vocabKeys: [
+          "がめん",
+          "ミュート",
+          "しめきり",
+          "おつかれさまです",
+          "きょうゆう",
+          "問題",
+          "本日",
+          "会社",
+          "仕事",
+          "話す",
+        ],
         phrases: [
           {
             text: "すみません、ミュートに なっていますよ。",
@@ -825,7 +922,18 @@ export const CONTEXT_PACKS: ContextPack[] = [
     relatedLevels: [49, 19, 36],
     byLang: {
       en: {
-        vocabKeys: ["password", "log in", "charger", "wi-fi", "phone", "app", "update", "help"],
+        vocabKeys: [
+          "password",
+          "log in",
+          "charger",
+          "wi-fi",
+          "phone",
+          "app",
+          "update",
+          "socket",
+          "lowercase",
+          "help",
+        ],
         phrases: [
           {
             text: "Sorry to bother you, what's the wi-fi password?",
@@ -903,7 +1011,18 @@ export const CONTEXT_PACKS: ContextPack[] = [
         ],
       },
       fr: {
-        vocabKeys: ["mot de passe", "chargeur", "en panne", "téléphone", "internet", "article", "problème", "aide"],
+        vocabKeys: [
+          "mot de passe",
+          "chargeur",
+          "en panne",
+          "téléphone",
+          "internet",
+          "terminal",
+          "prise",
+          "écran",
+          "problème",
+          "aide",
+        ],
         phrases: [
           {
             text: "Excusez-moi, quel est le mot de passe du wi-fi ?",
@@ -981,7 +1100,18 @@ export const CONTEXT_PACKS: ContextPack[] = [
         ],
       },
       ja: {
-        vocabKeys: ["パスワード", "ログイン", "じゅうでんき", "ネット", "電話", "新しい", "見る", "聞く"],
+        vocabKeys: [
+          "パスワード",
+          "ログイン",
+          "じゅうでんき",
+          "ネット",
+          "スマホ",
+          "wi-fi",
+          "イヤホン",
+          "おそい",
+          "電話",
+          "新しい",
+        ],
         phrases: [
           {
             text: "すみません、Wi-Fiの パスワードを おしえてください。",
@@ -1076,7 +1206,18 @@ export const CONTEXT_PACKS: ContextPack[] = [
     relatedLevels: [52, 16, 32],
     byLang: {
       en: {
-        vocabKeys: ["prescription", "allergic", "workout", "pharmacy", "doctor", "pain", "medicine", "healthy"],
+        vocabKeys: [
+          "prescription",
+          "allergic",
+          "workout",
+          "pharmacy",
+          "doctor",
+          "pain",
+          "medicine",
+          "healthy",
+          "fever",
+          "lozenges",
+        ],
         phrases: [
           {
             text: "Do I need a prescription for this medicine?",
@@ -1154,7 +1295,18 @@ export const CONTEXT_PACKS: ContextPack[] = [
         ],
       },
       fr: {
-        vocabKeys: ["ordonnance", "allergique", "entraînement", "pharmacie", "médecin", "médicament", "mal", "sport"],
+        vocabKeys: [
+          "ordonnance",
+          "allergique",
+          "entraînement",
+          "pharmacie",
+          "médecin",
+          "médicament",
+          "comprimé",
+          "fièvre",
+          "mal",
+          "sport",
+        ],
         phrases: [
           {
             text: "Est-ce qu'il faut une ordonnance pour ce médicament ?",
@@ -1232,7 +1384,18 @@ export const CONTEXT_PACKS: ContextPack[] = [
         ],
       },
       ja: {
-        vocabKeys: ["しょほうせん", "アレルギー", "トレーニング", "病院", "薬", "痛い", "元気", "休む"],
+        vocabKeys: [
+          "しょほうせん",
+          "アレルギー",
+          "トレーニング",
+          "病院",
+          "薬",
+          "痛い",
+          "ねつ",
+          "健康",
+          "元気",
+          "休む",
+        ],
         phrases: [
           {
             text: "病院の しょほうせんが あります。",
@@ -1327,7 +1490,18 @@ export const CONTEXT_PACKS: ContextPack[] = [
     relatedLevels: [50, 22, 39],
     byLang: {
       en: {
-        vocabKeys: ["scholarship", "lecture", "assignment", "deadline", "attend", "study", "university", "question"],
+        vocabKeys: [
+          "scholarship",
+          "lecture",
+          "assignment",
+          "deadline",
+          "attend",
+          "study",
+          "university",
+          "question",
+          "draft",
+          "reference",
+        ],
         phrases: [
           {
             text: "I'm applying for a master's scholarship abroad.",
@@ -1405,7 +1579,18 @@ export const CONTEXT_PACKS: ContextPack[] = [
         ],
       },
       fr: {
-        vocabKeys: ["bourse", "exposé", "stage", "échéance", "assister", "article", "université", "question"],
+        vocabKeys: [
+          "bourse",
+          "exposé",
+          "stage",
+          "échéance",
+          "assister",
+          "dossier",
+          "lettre de motivation",
+          "université",
+          "article",
+          "question",
+        ],
         phrases: [
           {
             text: "Je prépare mon dossier pour une bourse d'études.",
@@ -1483,7 +1668,18 @@ export const CONTEXT_PACKS: ContextPack[] = [
         ],
       },
       ja: {
-        vocabKeys: ["しょうがくきん", "レポート", "しめきり", "学生", "先生", "本", "読む", "書く"],
+        vocabKeys: [
+          "しょうがくきん",
+          "レポート",
+          "しめきり",
+          "発表",
+          "もうしこむ",
+          "学ぶ",
+          "学生",
+          "先生",
+          "読む",
+          "書く",
+        ],
         phrases: [
           {
             text: "日本の しょうがくきんに もうしこみたいです。",
@@ -1578,7 +1774,18 @@ export const CONTEXT_PACKS: ContextPack[] = [
     relatedLevels: [51, 53, 34],
     byLang: {
       en: {
-        vocabKeys: ["refund", "receipt", "tracking number", "fee", "order", "delivery", "contract", "sign"],
+        vocabKeys: [
+          "refund",
+          "receipt",
+          "tracking number",
+          "fee",
+          "order",
+          "delivery",
+          "contract",
+          "sign",
+          "cancel",
+          "proof of address",
+        ],
         phrases: [
           {
             text: "My order arrived damaged — could I get a replacement or a refund?",
@@ -1656,7 +1863,18 @@ export const CONTEXT_PACKS: ContextPack[] = [
         ],
       },
       fr: {
-        vocabKeys: ["remboursement", "colis", "justificatif", "frais bancaires", "article", "contrat", "problème", "carte"],
+        vocabKeys: [
+          "remboursement",
+          "colis",
+          "justificatif",
+          "ticket de caisse",
+          "facture",
+          "contrat",
+          "abîmé",
+          "frais bancaires",
+          "problème",
+          "carte",
+        ],
         phrases: [
           {
             text: "Bonjour, mon colis est arrivé abîmé. Puis-je avoir un remboursement ?",
@@ -1734,7 +1952,18 @@ export const CONTEXT_PACKS: ContextPack[] = [
         ],
       },
       ja: {
-        vocabKeys: ["へんきん", "こうかん", "けいやく", "だいじょうぶ", "店", "買う", "新しい", "見る"],
+        vocabKeys: [
+          "へんきん",
+          "こうかん",
+          "けいやく",
+          "レシート",
+          "かくにん",
+          "ほしょう",
+          "もうしわけ",
+          "だいじょうぶ",
+          "店",
+          "買う",
+        ],
         phrases: [
           {
             text: "すみません、こわれて いたので、こうかんして もらえますか。",
@@ -2803,7 +3032,18 @@ export const CONTEXT_PACKS: ContextPack[] = [
     relatedLevels: [8, 17, 28],
     byLang: {
       en: {
-        vocabKeys: ["return ticket", "top up", "fare", "rush hour", "platform", "delay", "commute", "in advance"],
+        vocabKeys: [
+          "return ticket",
+          "top up",
+          "fare",
+          "rush hour",
+          "platform",
+          "delay",
+          "commute",
+          "in advance",
+          "signal",
+          "service",
+        ],
         phrases: [
           {
             text: "Excuse me, which platform does the train to Oxford leave from?",
@@ -2903,7 +3143,18 @@ export const CONTEXT_PACKS: ContextPack[] = [
         ],
       },
       fr: {
-        vocabKeys: ["quai", "aller-retour", "recharger", "correspondance", "retard", "grève", "heure de pointe", "en avance"],
+        vocabKeys: [
+          "quai",
+          "aller-retour",
+          "aller simple",
+          "recharger",
+          "correspondance",
+          "retard",
+          "grève",
+          "heure de pointe",
+          "en avance",
+          "départ",
+        ],
         phrases: [
           {
             text: "Bonjour, le train pour Lyon part de quel quai ?",
@@ -3254,6 +3505,7 @@ export const CONTEXT_PACKS: ContextPack[] = [
           "candidature",
           "télétravail",
           "lettre de motivation",
+          "cv",
           "stage",
           "boulot",
         ],
@@ -3364,6 +3616,7 @@ export const CONTEXT_PACKS: ContextPack[] = [
           "きゅうりょう",
           "おうぼ",
           "リモートワーク",
+          "働く",
           "おせわになります",
           "しめきり",
         ],
@@ -3487,7 +3740,18 @@ export const CONTEXT_PACKS: ContextPack[] = [
     relatedLevels: [9, 32, 46],
     byLang: {
       en: {
-        vocabKeys: ["emergency", "lost property", "police report", "embassy", "wallet", "stolen", "insurance", "passport"],
+        vocabKeys: [
+          "emergency",
+          "lost property",
+          "police report",
+          "embassy",
+          "wallet",
+          "stolen",
+          "insurance",
+          "passport",
+          "ambulance",
+          "medical",
+        ],
         phrases: [
           {
             text: "Excuse me, I left my bag on the train — where is the lost property office?",
@@ -3594,6 +3858,8 @@ export const CONTEXT_PACKS: ContextPack[] = [
           "ambassade",
           "portefeuille",
           "assurance",
+          "déclaration",
+          "volé",
           "pièce d'identité",
           "passeport",
         ],
@@ -3705,6 +3971,7 @@ export const CONTEXT_PACKS: ContextPack[] = [
           "ほけん",
           "たすけて",
           "きゅうきゅうしゃ",
+          "旅行",
           "パスポート",
         ],
         phrases: [
@@ -3827,7 +4094,18 @@ export const CONTEXT_PACKS: ContextPack[] = [
     relatedLevels: [1, 25, 37],
     byLang: {
       en: {
-        vocabKeys: ["catch up", "rain check", "no worries", "friendly", "sympathetic", "appointment", "in advance", "actually"],
+        vocabKeys: [
+          "catch up",
+          "rain check",
+          "no worries",
+          "sounds good",
+          "makes sense",
+          "friendly",
+          "sympathetic",
+          "appointment",
+          "in advance",
+          "actually",
+        ],
         phrases: [
           {
             text: "It's been ages! Let's grab a coffee and catch up this week.",
@@ -3930,6 +4208,8 @@ export const CONTEXT_PACKS: ContextPack[] = [
         vocabKeys: [
           "prendre un verre",
           "ça marche",
+          "pas de souci",
+          "du coup",
           "sympa",
           "se tenir au courant",
           "remettre ça",
@@ -4044,6 +4324,7 @@ export const CONTEXT_PACKS: ContextPack[] = [
           "ざんねん",
           "もちろん",
           "きをつけて",
+          "今週末",
           "やっぱり",
           "なるほど",
         ],
@@ -4151,6 +4432,2130 @@ export const CONTEXT_PACKS: ContextPack[] = [
             text: "いいね！じゃあ 金曜日にね。きをつけてね！",
             pt: "Óptimo! Até sexta, então. Vai com cuidado!",
             romaji: "Ii ne! Jaa kinyoubi ni ne. Ki o tsukete ne!",
+          },
+        ],
+      },
+    },
+  },
+  {
+    id: "hotel",
+    emoji: "🏨",
+    title: "Hotel, Alojamento & Check-in",
+    subtitle: "Recepção, pequeno-almoço, problemas no quarto e guardar malas",
+    tag: "Viagens",
+    color: "var(--color-teal)",
+    softColor: "var(--color-teal-soft)",
+    relatedLevels: [31, 28, 7],
+    byLang: {
+      en: {
+        vocabKeys: [
+          "reservation",
+          "check-in",
+          "check-out",
+          "front desk",
+          "key card",
+          "single room",
+          "double room",
+          "towel",
+          "air conditioning",
+          "luggage storage",
+        ],
+        phrases: [
+          {
+            text: "Hello, I have a reservation under Silva for three nights.",
+            pt: "Olá, tenho uma reserva em nome de Silva por três noites.",
+            register: "formal",
+            whenToUse: "Ao chegar à recepção do hotel para o check-in",
+          },
+          {
+            text: "What time is breakfast, and is it included?",
+            pt: "A que horas é o pequeno-almoço e está incluído?",
+            register: "neutro",
+            whenToUse: "Para confirmar horários e condições da estadia",
+          },
+          {
+            text: "Sorry, my key card isn't working and the air conditioning is noisy.",
+            pt: "Desculpe, o meu cartão-chave não funciona e o ar condicionado faz barulho.",
+            register: "formal",
+            whenToUse: "Se houver algum problema técnico no quarto",
+          },
+          {
+            text: "Could we get two fresh towels and an extra pillow, please?",
+            pt: "Podíamos pedir duas toalhas limpas e uma almofada extra, por favor?",
+            register: "formal",
+            whenToUse: "Ao ligar para a recepção ou falar com a equipa de limpeza",
+          },
+          {
+            text: "Can we leave our bags in luggage storage after check-out?",
+            pt: "Podemos deixar as malas no guarda-bagagens depois do check-out?",
+            register: "neutro",
+            whenToUse: "No último dia quando o voo ou comboio é mais tarde",
+          },
+        ],
+        culturalTip:
+          "Nos hotéis britânicos e americanos, «double room» tem UMA cama de casal; se viajas com um amigo ou colega e querem duas camas separadas, pede sempre «a twin room»!",
+        situations: [
+          {
+            id: "en-hot-1",
+            situationPt: "Já fizeste check-out às 11h, mas o teu voo é só à noite e queres passear sem as malas.",
+            register: "neutro",
+            correct: "Could we leave our bags in luggage storage until five?",
+            options: [
+              "Could we leave our bags in luggage storage until five?",
+              "Give me a single room for my customs.",
+              "My key card is included in breakfast.",
+              "Where is the self-checkout trolley?",
+            ],
+            explanationPt: "«Luggage storage» (ou «left luggage») é o serviço gratuito de guarda de malas na recepção.",
+          },
+          {
+            id: "en-hot-2",
+            situationPt: "Subiste ao quarto e o cartão magnético não abre a porta.",
+            register: "formal",
+            correct: "Excuse me, my key card isn't working on the door.",
+            options: [
+              "Excuse me, my key card isn't working on the door.",
+              "My boarding pass is on mute.",
+              "I'd like to cancel my towel.",
+              "Nothing to declare at the front desk.",
+            ],
+            explanationPt: "«My key card isn't working» explica o problema claramente na recepção («front desk»).",
+          },
+          {
+            id: "en-hot-3",
+            situationPt: "Queres reservar um quarto para duas pessoas, mas com duas camas individuais separadas.",
+            register: "formal",
+            correct: "Could we switch to a twin room, please?",
+            options: [
+              "Could we switch to a twin room, please?",
+              "We want two double rooms for one person.",
+              "Is the pillow pet-friendly?",
+              "Can I have a return ticket for the bed?",
+            ],
+            explanationPt: "«Twin room» = duas camas individuais; «double room» = uma cama de casal.",
+          },
+        ],
+        miniDialogue: [
+          {
+            speaker: "Reception",
+            text: "Welcome! Checking in? May I see your passport, please?",
+            pt: "Bem-vindo! Vem fazer o check-in? Posso ver o seu passaporte, por favor?",
+          },
+          {
+            speaker: "Tu",
+            text: "Yes, here you go. I booked a double room for two nights.",
+            pt: "Sim, aqui tem. Reservei um quarto duplo por duas noites.",
+          },
+          {
+            speaker: "Reception",
+            text: "Here is your key card for room four. Breakfast is from seven to ten.",
+            pt: "Aqui está o cartão-chave do quarto quatro. O pequeno-almoço é das sete às dez.",
+          },
+          {
+            speaker: "Tu",
+            text: "Thank you! Do you also have luggage storage after check-out?",
+            pt: "Obrigado! Também têm guarda-bagagens depois do check-out?",
+          },
+        ],
+      },
+      fr: {
+        vocabKeys: [
+          "réservation",
+          "réception",
+          "chambre double",
+          "petit-déjeuner",
+          "serviette",
+          "climatisation",
+          "clé",
+          "consigne",
+          "ascenseur",
+          "complet",
+        ],
+        phrases: [
+          {
+            text: "Bonjour, j'ai une réservation au nom de Costa pour deux nuits.",
+            pt: "Bom dia, tenho uma reserva em nome de Costa por duas noites.",
+            register: "formal",
+            whenToUse: "Ao chegar à recepção do hotel",
+          },
+          {
+            text: "Est-ce que le petit-déjeuner est inclus et servi jusqu'à dix heures ?",
+            pt: "O pequeno-almoço está incluído e é servido até às dez horas?",
+            register: "neutro",
+            whenToUse: "Para confirmar o horário do pequeno-almoço",
+          },
+          {
+            text: "Excusez-moi, la climatisation ne marche pas dans ma chambre.",
+            pt: "Com licença, o ar condicionado não funciona no meu quarto.",
+            register: "formal",
+            whenToUse: "Para reportar uma avaria no quarto",
+          },
+          {
+            text: "Pourrais-je avoir deux serviettes propres et un oreiller, s'il vous plaît ?",
+            pt: "Poderia ter duas toalhas limpas e uma almofada, por favor?",
+            register: "formal",
+            whenToUse: "Ao pedir roupa de banho ou cama adicional",
+          },
+          {
+            text: "Puis-je laisser mes bagages à la consigne de l'hôtel cet après-midi ?",
+            pt: "Posso deixar as minhas malas no guarda-bagagens do hotel esta tarde?",
+            register: "formal",
+            whenToUse: "Antes do check-in ou depois de entregar o quarto",
+          },
+        ],
+        culturalTip:
+          "Em França, lembra-te de que o «rez-de-chaussée» corresponde ao rés-do-chão e o «premier étage» já é o 1.º andar acima! E atenção: «serviette» significa toalha no hotel, mas guardanapo no restaurante.",
+        situations: [
+          {
+            id: "fr-hot-1",
+            situationPt: "Chegas ao hotel em Lyon e queres anunciar a tua reserva na recepção.",
+            register: "formal",
+            correct: "Bonjour, j'ai une réservation au nom de Costa pour trois nuits.",
+            options: [
+              "Bonjour, j'ai une réservation au nom de Costa pour trois nuits.",
+              "Salut, donne-moi une clé complète.",
+              "Où est la caisse automatique du petit-déjeuner ?",
+              "Je n'ai rien à déclarer dans l'ascenseur.",
+            ],
+            explanationPt: "«Bonjour, j'ai une réservation au nom de…» é a fórmula natural e educada.",
+          },
+          {
+            id: "fr-hot-2",
+            situationPt: "Entregaste o quarto de manhã, mas queres guardar a mala no hotel até à tarde.",
+            register: "formal",
+            correct: "Puis-je laisser ma valise à la consigne jusqu'à dix-sept heures ?",
+            options: [
+              "Puis-je laisser ma valise à la consigne jusqu'à dix-sept heures ?",
+              "Ma valise prend le petit-déjeuner à dix heures.",
+              "La climatisation est en promotion.",
+              "Voici mon titre de séjour pour la serviette.",
+            ],
+            explanationPt: "«La consigne (à bagages)» designa a sala onde o hotel guarda as malas dos hóspedes.",
+          },
+          {
+            id: "fr-hot-3",
+            situationPt: "Queres saber onde fica o elevador para subir com as malas.",
+            register: "neutro",
+            correct: "Pardon, où se trouve l'ascenseur, s'il vous plaît ?",
+            options: [
+              "Pardon, où se trouve l'ascenseur, s'il vous plaît ?",
+              "L'hôtel est complet dans le couloir ?",
+              "Je voudrais couper les pointes de la clé.",
+              "Quel est le montant de la douane ?",
+            ],
+            explanationPt: "«Où se trouve l'ascenseur ?» é simples e natural.",
+          },
+        ],
+        miniDialogue: [
+          {
+            speaker: "Réception",
+            text: "Bonjour et bienvenue ! Vous avez une réservation ?",
+            pt: "Bom dia e bem-vindo! Tem uma reserva?",
+          },
+          {
+            speaker: "Tu",
+            text: "Bonjour, oui, une chambre double au nom de Costa.",
+            pt: "Bom dia, sim, um quarto duplo em nome de Costa.",
+          },
+          {
+            speaker: "Réception",
+            text: "Voici votre clé. Le petit-déjeuner est servi à partir de sept heures, et l'ascenseur est à droite.",
+            pt: "Aqui está a sua chave. O pequeno-almoço é servido a partir das sete horas e o elevador fica à direita.",
+          },
+          {
+            speaker: "Tu",
+            text: "Parfait, merci ! Puis-je laisser ma valise à la consigne demain matin ?",
+            pt: "Perfeito, obrigado! Posso deixar a minha mala no guarda-bagagens amanhã de manhã?",
+          },
+        ],
+      },
+      ja: {
+        vocabKeys: [
+          "よやく",
+          "チェックイン",
+          "チェックアウト",
+          "フロント",
+          "へや",
+          "かぎ",
+          "タオル",
+          "エアコン",
+          "エレベーター",
+          "あさごはん",
+        ],
+        phrases: [
+          {
+            text: "すみません|、|チェックイン|を|おねがいします|。",
+            pt: "Com licença, gostaria de fazer o check-in, por favor.",
+            romaji: "Sumimasen, chekkuin o onegaishimasu.",
+            register: "formal",
+            whenToUse: "Ao chegar ao balcão (フロント) do hotel ou ryokan",
+          },
+          {
+            text: "あさごはん|は|ついていますか|。|何時|から|ですか|。",
+            pt: "O pequeno-almoço está incluído? A partir de que horas é?",
+            romaji: "Asagohan wa tsuite imasu ka. Nanji kara desu ka.",
+            register: "formal",
+            whenToUse: "Para confirmar se a tarifa inclui pequeno-almoço e o horário",
+          },
+          {
+            text: "すみません|、|へや|の|エアコン|が|うごきません|。",
+            pt: "Desculpe, o ar condicionado do quarto não funciona.",
+            romaji: "Sumimasen, heya no eakon ga ugokimasen.",
+            register: "formal",
+            whenToUse: "Se precisares de assistência técnica no quarto",
+          },
+          {
+            text: "新しい|タオル|を|二枚|もらえますか|。",
+            pt: "Poderia dar-me duas toalhas limpas?",
+            romaji: "Atarashii taoru o nimai moraemasu ka.",
+            register: "formal",
+            whenToUse: "Para pedir toalhas adicionais na recepção",
+          },
+          {
+            text: "チェックイン|の|前|に|にもつ|を|あずけて|も|いい|ですか|。",
+            pt: "Posso deixar a bagagem guardada antes do check-in?",
+            romaji: "Chekkuin no mae ni nimotsu o azukete mo ii desu ka.",
+            register: "formal",
+            whenToUse: "Quando chegas cedo à cidade e o quarto só abre às 15h",
+          },
+        ],
+        culturalTip:
+          "Nos hotéis japoneses, o check-in às 15h00 é cumprido ao minuto, mas quase todos guardam as malas gratuitamente («にもつをあずける»). Nos ryokan tradicionais, tira SEMPRE os sapatos à entrada!",
+        situations: [
+          {
+            id: "ja-hot-1",
+            situationPt: "Chegaste ao hotel às 11h da manhã e queres deixar a mala na recepção antes do check-in.",
+            register: "formal",
+            correct: "すみません、にもつを あずけても いいですか。",
+            options: [
+              "すみません、にもつを あずけても いいですか。",
+              "あさごはんは うりきれですか。",
+              "エレベーターを 二枚 ください。",
+              "へやの しょうみきげんは いつですか。",
+            ],
+            explanationPt: "«にもつをあずけてもいいですか» (Posso deixar a bagagem guardada?) usa-se em qualquer hotel no Japão.",
+          },
+          {
+            id: "ja-hot-2",
+            situationPt: "A chave ou cartão do teu quarto não está a abrir a porta.",
+            register: "formal",
+            correct: "すみません、へやの かぎが あきません。",
+            options: [
+              "すみません、へやの かぎが あきません。",
+              "フロントで 肉と 魚を 買いました。",
+              "タオルに サインを おねがいします。",
+              "チェックアウトは おつかれさまです。",
+            ],
+            explanationPt: "«かぎがあきません» significa literalmente «a chave/fechadura não abre».",
+          },
+          {
+            id: "ja-hot-3",
+            situationPt: "Queres saber a que horas tens de entregar o quarto amanhã.",
+            register: "formal",
+            correct: "明日の チェックアウトは 何時ですか。",
+            options: [
+              "明日の チェックアウトは 何時ですか。",
+              "きのうの レジは いくらですか。",
+              "ざいりゅうカードに のれますか。",
+              "びよういんで あさごはんを 食べます。",
+            ],
+            explanationPt: "«明日のチェックアウトは何時ですか» pergunta a hora limite de saída.",
+          },
+        ],
+        miniDialogue: [
+          {
+            speaker: "フロント",
+            text: "いらっしゃいませ|。|チェックイン|ですか|。|パスポート|を|おねがいします|。",
+            pt: "Bem-vindo! Vem fazer o check-in? O passaporte, por favor.",
+            romaji: "Irasshaimase. Chekkuin desu ka. Pasupooto o onegaishimasu.",
+          },
+          {
+            speaker: "Tu",
+            text: "はい|、|よやく|した|マテウス|です|。|あさごはん|は|ついていますか|。",
+            pt: "Sim, tenho reserva em nome de Mateus. O pequeno-almoço está incluído?",
+            romaji: "Hai, yoyaku shita Mateusu desu. Asagohan wa tsuite imasu ka.",
+          },
+          {
+            speaker: "フロント",
+            text: "はい|、|七時|から|です|。|こちら|が|へや|の|かぎ|です|。",
+            pt: "Sim, é a partir das sete horas. Aqui tem a chave do quarto.",
+            romaji: "Hai, shichiji kara desu. Kochira ga heya no kagi desu.",
+          },
+          {
+            speaker: "Tu",
+            text: "ありがとうございます|。|エレベーター|は|どちら|ですか|。",
+            pt: "Muito obrigado. Para que lado fica o elevador?",
+            romaji: "Arigatou gozaimasu. Erebeetaa wa dochira desu ka.",
+          },
+        ],
+      },
+    },
+  },
+  {
+    id: "supermercado",
+    emoji: "🛒",
+    title: "Supermercado, Feira & Compras",
+    subtitle: "Corredores, frescos ao peso, prazos de validade, sacos e caixa automática",
+    tag: "Dia-a-dia",
+    color: "var(--color-coral)",
+    softColor: "var(--color-coral-soft)",
+    relatedLevels: [13, 21, 5],
+    byLang: {
+      en: {
+        vocabKeys: [
+          "aisle",
+          "trolley",
+          "basket",
+          "expiry date",
+          "self-checkout",
+          "carrier bag",
+          "loyalty card",
+          "on sale",
+          "organic",
+          "bakery",
+        ],
+        phrases: [
+          {
+            text: "Excuse me, which aisle is the pasta and olive oil in?",
+            pt: "Com licença, em que corredor estão a massa e o azeite?",
+            register: "neutro",
+            whenToUse: "Para encontrar rapidamente um produto no supermercado",
+          },
+          {
+            text: "Could I have six slices of ham from the counter, please?",
+            pt: "Podia dar-me seis fatias de fiambre do balcão, por favor?",
+            register: "formal",
+            whenToUse: "Na charcutaria, talho ou queijaria",
+          },
+          {
+            text: "Let's check the expiry date on the dairy products.",
+            pt: "Vamos verificar a data de validade nos lacticínios.",
+            register: "informal",
+            whenToUse: "Ao fazer compras do dia-a-dia em família ou com colegas",
+          },
+          {
+            text: "No carrier bag needed, thanks — I brought my own.",
+            pt: "Não preciso de saco, obrigado — trouxe o meu.",
+            register: "neutro",
+            whenToUse: "Quando o caixa pergunta se queres saco de plástico/papel",
+          },
+          {
+            text: "Excuse me, the self-checkout screen says assistance needed.",
+            pt: "Com licença, o ecrã da caixa automática pede assistência.",
+            register: "formal",
+            whenToUse: "O clássico aviso «Unexpected item in bagging area»!",
+          },
+        ],
+        culturalTip:
+          "No Reino Unido e EUA, repara na diferença nos rótulos: «Use by» é um limite de segurança alimentar (carne, peixe, leite fresco), enquanto «Best before» indica apenas qualidade ideal!",
+        situations: [
+          {
+            id: "en-sup-1",
+            situationPt: "Não encontras o café no supermercado e queres perguntar em que corredor está.",
+            register: "neutro",
+            correct: "Excuse me, which aisle is the coffee in?",
+            options: [
+              "Excuse me, which aisle is the coffee in?",
+              "Where is the coffee layover?",
+              "Is the coffee on mute today?",
+              "Can I renew my basket here?",
+            ],
+            explanationPt: "«Which aisle is … in?» (pronuncia-se «áil») é a pergunta mais útil num supermercado.",
+          },
+          {
+            id: "en-sup-2",
+            situationPt: "Na caixa perguntam «Do you need a bag?» mas tu já trouxeste mochila.",
+            register: "neutro",
+            correct: "No thanks, I brought my own bag.",
+            options: [
+              "No thanks, I brought my own bag.",
+              "Nothing to declare in my trolley.",
+              "Yes, give me the loyalty card fee.",
+              "The expiry date is sold out.",
+            ],
+            explanationPt: "Nos supermercados os sacos («carrier bags») são pagos à parte; «I brought my own» é a resposta natural.",
+          },
+          {
+            id: "en-sup-3",
+            situationPt: "Queres saber se os morangos biológicos estão com desconto hoje.",
+            register: "neutro",
+            correct: "Are these organic strawberries on sale today?",
+            options: [
+              "Are these organic strawberries on sale today?",
+              "Are these strawberries for lease?",
+              "Do strawberries have a boarding pass?",
+              "Can I check out my room at the bakery?",
+            ],
+            explanationPt: "«On sale» significa em promoção / com desconto.",
+          },
+        ],
+        miniDialogue: [
+          {
+            speaker: "Tu",
+            text: "Excuse me, where can I find the organic milk and fresh bread?",
+            pt: "Com licença, onde posso encontrar o leite biológico e o pão fresco?",
+          },
+          {
+            speaker: "Staff",
+            text: "The bakery is at the back, and dairy is in aisle three!",
+            pt: "A padaria fica ao fundo e os lacticínios estão no corredor três!",
+          },
+          {
+            speaker: "Cashier",
+            text: "Hi there! Do you have a loyalty card, or need a carrier bag?",
+            pt: "Olá! Tem cartão de cliente ou precisa de saco de compras?",
+          },
+          {
+            speaker: "Tu",
+            text: "No carrier bag, thanks. Can I pay contactless here?",
+            pt: "Sem saco, obrigado. Posso pagar por aproximação aqui?",
+          },
+        ],
+      },
+      fr: {
+        vocabKeys: [
+          "rayon",
+          "panier",
+          "caddie",
+          "date de péremption",
+          "caisse automatique",
+          "sac réutilisable",
+          "carte de fidélité",
+          "promotion",
+          "en vrac",
+          "bio",
+        ],
+        phrases: [
+          {
+            text: "Excusez-moi, dans quel rayon se trouve l'huile d'olive ?",
+            pt: "Com licença, em que corredor fica o azeite?",
+            register: "formal",
+            whenToUse: "Para pedir ajuda a um funcionário da loja",
+          },
+          {
+            text: "Bonjour, je voudrais quatre tranches de jambon, s'il vous plaît.",
+            pt: "Bom dia, queria quatro fatias de fiambre, por favor.",
+            register: "formal",
+            whenToUse: "No balcão de charcutaria ou mercado",
+          },
+          {
+            text: "N'oublie pas de peser les fruits bio avant de passer en caisse !",
+            pt: "Não te esqueças de pesar a fruta biológica antes de ir para a caixa!",
+            register: "informal",
+            whenToUse: "Muitos supermercados em França exigem pesar e colar etiqueta na secção da fruta",
+          },
+          {
+            text: "Merci, j'ai déjà mon sac réutilisable.",
+            pt: "Obrigado, já tenho o meu saco reutilizável.",
+            register: "neutro",
+            whenToUse: "No momento de pagar na caixa",
+          },
+          {
+            text: "Avez-vous la carte de fidélité ? Ces articles sont en promotion.",
+            pt: "Tem o cartão de fidelidade? Estes artigos estão em promoção.",
+            register: "formal",
+            whenToUse: "Pergunta típica que vais ouvir do operador de caixa",
+          },
+        ],
+        culturalTip:
+          "Em muitos supermercados franceses, tens de pesar tu próprio a fruta e os legumes na balança do corredor («peser») para imprimir a etiqueta antes da caixa — caso contrário terás de voltar atrás!",
+        situations: [
+          {
+            id: "fr-sup-1",
+            situationPt: "Procuras a secção de produtos biológicos num supermercado em Paris.",
+            register: "formal",
+            correct: "Bonjour, où se trouve le rayon bio, s'il vous plaît ?",
+            options: [
+              "Bonjour, où se trouve le rayon bio, s'il vous plaît ?",
+              "Où est le quai de péremption ?",
+              "Je voudrais louer un caddie meublé.",
+              "Avez-vous une ordonnance en vrac ?",
+            ],
+            explanationPt: "«Le rayon…» designa o corredor ou secção específica do supermercado.",
+          },
+          {
+            id: "fr-sup-2",
+            situationPt: "Tens apenas três artigos e queres pagar depressa sem fila.",
+            register: "informal",
+            correct: "On passe à la caisse automatique, c'est plus rapide !",
+            options: [
+              "On passe à la caisse automatique, c'est plus rapide !",
+              "On va à la préfecture avec le panier !",
+              "Je laisse le jambon à la consigne !",
+              "La date de péremption est complète !",
+            ],
+            explanationPt: "«La caisse automatique» é a caixa de pagamento rápido self-service.",
+          },
+          {
+            id: "fr-sup-3",
+            situationPt: "Na caixa perguntam se precisas de saco, mas tu trouxeste o teu.",
+            register: "neutro",
+            correct: "Non merci, j'ai mon sac réutilisable.",
+            options: [
+              "Non merci, j'ai mon sac réutilisable.",
+              "Oui, donnez-moi une tranche de caddie.",
+              "Je n'ai pas de billet de train.",
+              "Voici mon état des lieux.",
+            ],
+            explanationPt: "Em França os sacos descartáveis foram abolidos; levar um «sac réutilisable» (ou «cabas») é hábito diário.",
+          },
+        ],
+        miniDialogue: [
+          {
+            speaker: "Tu",
+            text: "Bonjour, excusez-moi, où se trouve le rayon des légumes bio ?",
+            pt: "Bom dia, desculpe, onde fica o corredor dos legumes biológicos?",
+          },
+          {
+            speaker: "Employé",
+            text: "Tout au fond à gauche ! Pensez à les peser avant la caisse.",
+            pt: "Lá ao fundo à esquerda! Lembre-se de os pesar antes da caixa.",
+          },
+          {
+            speaker: "Caissière",
+            text: "Bonjour ! Vous avez la carte de fidélité du magasin ?",
+            pt: "Bom dia! Tem o cartão de cliente da loja?",
+          },
+          {
+            speaker: "Tu",
+            text: "Non, pas encore. J'ai mon sac réutilisable et je règle par carte.",
+            pt: "Não, ainda não. Tenho o meu saco reutilizável e pago com cartão.",
+          },
+        ],
+      },
+      ja: {
+        vocabKeys: [
+          "スーパー",
+          "うりば",
+          "かご",
+          "レジ",
+          "セルフレジ",
+          "ふくろ",
+          "しょうみきげん",
+          "わりびき",
+          "ポイントカード",
+          "しんせん",
+        ],
+        phrases: [
+          {
+            text: "すみません|、|水|と|お茶|の|うりば|は|どこ|ですか|。",
+            pt: "Com licença, onde fica a secção de água e chá?",
+            romaji: "Sumimasen, mizu to ocha no uriba wa doko desu ka.",
+            register: "formal",
+            whenToUse: "Para perguntar por qualquer produto num supermercado ou loja",
+          },
+          {
+            text: "レジ|ふくろ|を|一枚|おねがいします|。",
+            pt: "Queria um saco de compras, por favor.",
+            romaji: "Reji fukuro o ichimai onegaishimasu.",
+            register: "formal",
+            whenToUse: "Os sacos custam 3 a 5 ienes no Japão e tens de os pedir",
+          },
+          {
+            text: "ポイントカード|は|もっていません|。|カード|で|はらいます|。",
+            pt: "Não tenho cartão de pontos. Vou pagar com cartão.",
+            romaji: "Pointokaado wa motte imasen. Kaado de haraimasu.",
+            register: "formal",
+            whenToUse: "Resposta indispensável — perguntam SEMPRE pelo cartão de pontos na caixa!",
+          },
+          {
+            text: "夜|八時|から|おべんとう|が|わりびき|に|なります|ね|。",
+            pt: "A partir das oito da noite as marmitas ficam com desconto, não é?",
+            romaji: "Yoru hachiji kara obentou ga waribiki ni narimasu ne.",
+            register: "neutro",
+            whenToUse: "Para aproveitar os famosos autocolantes de desconto nocturno nos supermercados japoneses",
+          },
+          {
+            text: "この|魚|は|しんせん|です|ね|。|しょうみきげん|は|明日|まで|です|。",
+            pt: "Este peixe está fresco! O prazo de validade é até amanhã.",
+            romaji: "Kono sakana wa shinsen desu ne. Shoumikigen wa ashita made desu.",
+            register: "neutro",
+            whenToUse: "Ao verificar a frescura e a etiqueta de validade",
+          },
+        ],
+        culturalTip:
+          "Nos supermercados e コンビニ japoneses vais ouvir sempre duas perguntas rápidas na caixa: «ポイントカードはおもちですか» (Tem cartão de pontos?) e «ふくろはご利用ですか» (Precisa de saco?). Depois de pagar, embalaste tu mesmo as compras numa bancada à parte!",
+        situations: [
+          {
+            id: "ja-sup-1",
+            situationPt: "Na caixa do supermercado perguntam: «ポイントカードはおもちですか». Não tens cartão de pontos.",
+            register: "formal",
+            correct: "いいえ、もっていません。",
+            options: [
+              "いいえ、もっていません。",
+              "はい、うりきれです。",
+              "しょうみきげんを ください。",
+              "エレベーターで はらいます。",
+            ],
+            explanationPt: "«いいえ、もっていません» (Não, não tenho) ou um simples «大丈夫です» resolve a pergunta instantaneamente.",
+          },
+          {
+            id: "ja-sup-2",
+            situationPt: "Esqueceste-te da mochila e precisas de comprar um saco de plástico na caixa.",
+            register: "formal",
+            correct: "すみません、ふくろを 一枚 おねがいします。",
+            options: [
+              "すみません、ふくろを 一枚 おねがいします。",
+              "かごを 一枚 食べます。",
+              "セルフレジを あたためてください。",
+              "わりびきの へやは どこですか。",
+            ],
+            explanationPt: "Sacos contam-se com «枚» (まい — objectos planos): «ふくろを一枚おねがいします».",
+          },
+          {
+            id: "ja-sup-3",
+            situationPt: "Não encontras a secção da carne e do peixe no supermercado.",
+            register: "formal",
+            correct: "すみません、肉と 魚の うりばは どこですか。",
+            options: [
+              "すみません、肉と 魚の うりばは どこですか。",
+              "肉と 魚の しめきりは いつですか。",
+              "この レジは しんせんですか。",
+              "ポイントカードに のりかえます。",
+            ],
+            explanationPt: "«〜のうりばはどこですか» serve para encontrar qualquer corredor ou secção.",
+          },
+        ],
+        miniDialogue: [
+          {
+            speaker: "店員",
+            text: "いらっしゃいませ|！|ポイントカード|は|おもちですか|。",
+            pt: "Bem-vindo! Tem cartão de pontos?",
+            romaji: "Irasshaimase! Pointokaado wa omochi desu ka.",
+          },
+          {
+            speaker: "Tu",
+            text: "いいえ|、|もっていません|。|ふくろ|を|一枚|ください|。",
+            pt: "Não, não tenho. Dê-me um saco, por favor.",
+            romaji: "Iie, motte imasen. Fukuro o ichimai kudasai.",
+          },
+          {
+            speaker: "店員",
+            text: "かしこまりました|。|おべんとう|は|わりびき|で|五百円|です|。",
+            pt: "Com certeza. A marmita com desconto fica por quinhentos ienes.",
+            romaji: "Kashikomarimashita. Obentou wa waribiki de gohyaku-en desu.",
+          },
+          {
+            speaker: "Tu",
+            text: "ありがとうございます|。|Suica|は|つかえますか|。",
+            pt: "Muito obrigado. Posso pagar com o cartão Suica?",
+            romaji: "Arigatou gozaimasu. Suika wa tsukaemasu ka.",
+          },
+        ],
+      },
+    },
+  },
+  {
+    id: "burocracia",
+    emoji: "🏛️",
+    title: "Vistos, Registo & Serviços Públicos",
+    subtitle: "Autorização de residência, comprovativo de morada, formulários e atendimento",
+    tag: "Burocracia",
+    color: "var(--color-lilac)",
+    softColor: "var(--color-lilac-soft)",
+    relatedLevels: [53, 34, 3],
+    byLang: {
+      en: {
+        vocabKeys: [
+          "residence permit",
+          "proof of address",
+          "application form",
+          "appointment",
+          "signature",
+          "tax number",
+          "town hall",
+          "id card",
+          "renew",
+          "visa",
+        ],
+        phrases: [
+          {
+            text: "Good morning, I have an appointment at ten to renew my residence permit.",
+            pt: "Bom dia, tenho marcação às dez para renovar a minha autorização de residência.",
+            register: "formal",
+            whenToUse: "À chegada aos serviços de imigração ou câmara municipal",
+          },
+          {
+            text: "Does a bank statement or lease count as proof of address?",
+            pt: "Um extracto bancário ou contrato de arrendamento serve como comprovativo de morada?",
+            register: "formal",
+            whenToUse: "Ao reunir documentos para abrir conta, registar morada ou obter número fiscal",
+          },
+          {
+            text: "I've filled in the application form — where do you need my signature?",
+            pt: "Já preenchi o formulário — onde é necessária a minha assinatura?",
+            register: "formal",
+            whenToUse: "Ao entregar impressos num balcão público",
+          },
+          {
+            text: "How do I apply for a tax number so I can start working?",
+            pt: "Como peço um número fiscal para poder começar a trabalhar?",
+            register: "neutro",
+            whenToUse: "Para tratar do National Insurance Number (UK) ou SSN/TIN",
+          },
+          {
+            text: "Do you need the original documents, or is a copy enough?",
+            pt: "Precisa dos documentos originais ou basta uma cópia?",
+            register: "neutro",
+            whenToUse: "Antes de entregar passaporte, diplomas ou certidões",
+          },
+        ],
+        culturalTip:
+          "No Reino Unido não existe Bilhete de Identidade obrigatório para cidadãos locais — por isso pedem sempre DOIS documentos separados: identidade («passport / ID card») + comprovativo de morada («proof of address», como contrato ou conta da luz)!",
+        situations: [
+          {
+            id: "en-bur-1",
+            situationPt: "Estás na câmara municipal e queres saber se o teu contrato de arrendamento serve para comprovar onde moras.",
+            register: "formal",
+            correct: "Does my lease contract count as proof of address?",
+            options: [
+              "Does my lease contract count as proof of address?",
+              "Can I check in my visa at the cloakroom?",
+              "Is my tax number on sale today?",
+              "Give me a signature without luggage.",
+            ],
+            explanationPt: "«Count as proof of address» é a expressão exacta usada por bancos e serviços públicos.",
+          },
+          {
+            id: "en-bur-2",
+            situationPt: "O teu visto de trabalho termina em breve e precisas de marcar a renovação.",
+            register: "formal",
+            correct: "I'd like to book an appointment to renew my visa.",
+            options: [
+              "I'd like to book an appointment to renew my visa.",
+              "I pretend to cancel my passport.",
+              "Where is the town hall self-checkout?",
+              "My ID card has a twenty-minute layover.",
+            ],
+            explanationPt: "«Book an appointment to renew…» é claro, formal e directo.",
+          },
+          {
+            id: "en-bur-3",
+            situationPt: "Já preencheste o impresso todo e queres confirmar onde assinar e carimbar.",
+            register: "formal",
+            correct: "Where should I put my signature on the application form?",
+            options: [
+              "Where should I put my signature on the application form?",
+              "Where is the expiry date of the barber?",
+              "Can you stamp my carrier bag?",
+              "Is the embassy subtitled?",
+            ],
+            explanationPt: "«Application form» (impresso/requerimento) e «signature» (assinatura) são termos-chave.",
+          },
+        ],
+        miniDialogue: [
+          {
+            speaker: "Officer",
+            text: "Good morning. How can I help you at the town hall today?",
+            pt: "Bom dia. Como posso ajudá-lo hoje na câmara municipal?",
+          },
+          {
+            speaker: "Tu",
+            text: "Hello, I have an appointment to register my address and apply for a tax number.",
+            pt: "Olá, tenho marcação para registar a morada e pedir o número fiscal.",
+          },
+          {
+            speaker: "Officer",
+            text: "Great. May I see your passport, application form and proof of address?",
+            pt: "Óptimo. Posso ver o passaporte, o formulário e o comprovativo de morada?",
+          },
+          {
+            speaker: "Tu",
+            text: "Here are the documents and a copy. Where do you need my signature?",
+            pt: "Aqui estão os documentos e uma cópia. Onde precisa da minha assinatura?",
+          },
+        ],
+      },
+      fr: {
+        vocabKeys: [
+          "titre de séjour",
+          "justificatif de domicile",
+          "formulaire",
+          "mairie",
+          "préfecture",
+          "rendez-vous",
+          "signature",
+          "pièce d'identité",
+          "renouveler",
+          "dossier",
+        ],
+        phrases: [
+          {
+            text: "Bonjour, j'ai rendez-vous à la préfecture pour renouveler mon titre de séjour.",
+            pt: "Bom dia, tenho marcação na prefeitura para renovar o meu título de residência.",
+            register: "formal",
+            whenToUse: "Ao apresentar-se na segurança ou balcão da Préfecture",
+          },
+          {
+            text: "Quels documents acceptez-vous comme justificatif de domicile ?",
+            pt: "Que documentos aceitam como comprovativo de morada?",
+            register: "formal",
+            whenToUse: "Em França exige-se geralmente factura de luz/gás/internet com menos de 3 meses!",
+          },
+          {
+            text: "J'ai apporté les originaux ainsi qu'une copie de ma pièce d'identité.",
+            pt: "Trouxe os originais bem como uma cópia do meu documento de identificação.",
+            register: "formal",
+            whenToUse: "Regra de ouro da administração francesa: leva SEMPRE original + fotocópia!",
+          },
+          {
+            text: "Pourriez-vous m'aider à remplir et signer ce formulaire, s'il vous plaît ?",
+            pt: "Poderia ajudar-me a preencher e assinar este formulário, por favor?",
+            register: "formal",
+            whenToUse: "Se tiveres dúvida num campo administrativo (ex.: CAF, Ameli, Mairie)",
+          },
+          {
+            text: "Est-ce que mon dossier est complet maintenant ?",
+            pt: "O meu processo está completo agora?",
+            register: "formal",
+            whenToUse: "Antes de sair do balcão para evitar ter de voltar noutra semana",
+          },
+        ],
+        culturalTip:
+          "Na administração francesa («Mairie», «Préfecture», «CAF»), a palavra mágica é «dossier complet»: leva sempre os originais («les originaux»), fotocópias e um «justificatif de domicile» com menos de 3 meses!",
+        situations: [
+          {
+            id: "fr-bur-1",
+            situationPt: "Entregas todos os papéis na prefeitura e queres confirmar se não falta nenhum documento no processo.",
+            register: "formal",
+            correct: "Excusez-moi, est-ce que mon dossier est complet ?",
+            options: [
+              "Excusez-moi, est-ce que mon dossier est complet ?",
+              "Est-ce que la mairie est en vrac ?",
+              "Je voudrais couper mon titre de séjour.",
+              "Voici ma carte de fidélité pour la douane.",
+            ],
+            explanationPt: "«Un dossier complet» significa um processo com todos os comprovativos exigidos.",
+          },
+          {
+            id: "fr-bur-2",
+            situationPt: "Pedem-te um comprovativo de morada recente e queres saber se a factura da electricidade serve.",
+            register: "formal",
+            correct: "Une facture sert-elle de justificatif de domicile ?",
+            options: [
+              "Une facture sert-elle de justificatif de domicile ?",
+              "Où est le vestiaire de la préfecture ?",
+              "Mon passeport est en VOSTFR.",
+              "Puis-je peser ce formulaire ?",
+            ],
+            explanationPt: "«Justificatif de domicile» é um dos termos mais importantes para viver em França ou na Bélgica.",
+          },
+          {
+            id: "fr-bur-3",
+            situationPt: "O teu título de residência caduca em dois meses e precisas de o renovar.",
+            register: "formal",
+            correct: "Je souhaiterais prendre rendez-vous pour renouveler mon titre de séjour.",
+            options: [
+              "Je souhaiterais prendre rendez-vous pour renouveler mon titre de séjour.",
+              "Salut, change ma pièce d'identité tout de suite.",
+              "J'ai laissé ma signature à la consigne.",
+              "Le formulaire a vingt minutes de grève.",
+            ],
+            explanationPt: "«Je souhaiterais prendre rendez-vous pour renouveler…» tem o nível exacto de cortesia administrativa.",
+          },
+        ],
+        miniDialogue: [
+          {
+            speaker: "Guichet",
+            text: "Bonjour ! Avez-vous votre convocation ou un rendez-vous ?",
+            pt: "Bom dia! Tem a sua convocatória ou marcação?",
+          },
+          {
+            speaker: "Tu",
+            text: "Bonjour, oui, je viens renouveler mon titre de séjour. Voici mon dossier.",
+            pt: "Bom dia, sim, venho renovar o meu título de residência. Aqui está o meu processo.",
+          },
+          {
+            speaker: "Guichet",
+            text: "Merci. J'ai besoin d'une pièce d'identité et d'un justificatif de domicile.",
+            pt: "Obrigado. Preciso de um documento de identificação e de um comprovativo de morada.",
+          },
+          {
+            speaker: "Tu",
+            text: "Voici les originaux et une copie. Où dois-je mettre ma signature sur le formulaire ?",
+            pt: "Aqui estão os originais e uma cópia. Onde devo pôr a minha assinatura no formulário?",
+          },
+        ],
+      },
+      ja: {
+        vocabKeys: [
+          "しやくしょ",
+          "ざいりゅうカード",
+          "じゅうしょ",
+          "てつづき",
+          "しんせいしょ",
+          "サイン",
+          "まどぐち",
+          "みぶんしょう",
+          "こうしん",
+          "はんこ",
+        ],
+        phrases: [
+          {
+            text: "すみません|、|新しい|じゅうしょ|の|とうろく|に|きました|。",
+            pt: "Com licença, vim fazer o registo da minha nova morada.",
+            romaji: "Sumimasen, atarashii juusho no touroku ni kimashita.",
+            register: "formal",
+            whenToUse: "Obrigatório na câmara (市役所) nos primeiros 14 dias após mudar de casa no Japão!",
+          },
+          {
+            text: "ビザ|の|こうしん|の|てつづき|は|何番|の|まどぐち|ですか|。",
+            pt: "Em que número de balcão se trata da renovação do visto?",
+            romaji: "Biza no koushin no tetsuzuki wa nanban no madoguchi desu ka.",
+            register: "formal",
+            whenToUse: "Ao chegar à imigração ou câmara municipal cheia de balcões numerados",
+          },
+          {
+            text: "はんこ|を|もっていません|。|サイン|でも|大丈夫|ですか|。",
+            pt: "Não tenho carimbo pessoal. Posso assinar à mão?",
+            romaji: "Hanko o motte imasen. Sain demo daijoubu desu ka.",
+            register: "formal",
+            whenToUse: "Frase salvadora para estrangeiros em bancos, câmaras e contratos no Japão!",
+          },
+          {
+            text: "はい|、|パスポート|と|ざいりゅうカード|は|こちら|です|。",
+            pt: "Sim, aqui estão o passaporte e o cartão de residência.",
+            romaji: "Hai, pasupooto to zairyuu kaado wa kochira desu.",
+            register: "formal",
+            whenToUse: "Ao apresentar identificação oficial",
+          },
+          {
+            text: "この|しんせいしょ|の|書きかた|を|おしえて|いただけますか|。",
+            pt: "Poderia explicar-me como preencher este formulário, por favor?",
+            romaji: "Kono shinseisho no kakikata o oshiete itadakemasu ka.",
+            register: "formal",
+            whenToUse: "Quando o impresso está todo em kanji administrativos",
+          },
+        ],
+        culturalTip:
+          "Quem vai estudar ou trabalhar no Japão tem de ir à câmara municipal («しやくしょ») nos primeiros 14 dias registar a morada nas costas do «ざいりゅうカード» (cartão de residência) e inscrever-se no seguro nacional de saúde!",
+        situations: [
+          {
+            id: "ja-bur-1",
+            situationPt: "No balcão pedem-te carimbo japonês («はんこ»), mas és estrangeiro e só tens caneta para assinar.",
+            register: "formal",
+            correct: "すみません、はんこが ないので サインでも 大丈夫ですか。",
+            options: [
+              "すみません、はんこが ないので サインでも 大丈夫ですか。",
+              "ざいりゅうカードを あたためてください。",
+              "まどぐちは うりきれです。",
+              "しんせいしょを 二枚 食べます。",
+            ],
+            explanationPt: "«サインでも大丈夫ですか» (Posso assinar?) é aceite hoje na grande maioria das repartições japonesas.",
+          },
+          {
+            id: "ja-bur-2",
+            situationPt: "Mudaste de apartamento e vais à câmara municipal registar o novo endereço.",
+            register: "formal",
+            correct: "ひっこしの じゅうしょの てつづきを おねがいします。",
+            options: [
+              "ひっこしの じゅうしょの てつづきを おねがいします。",
+              "しやくしょの あさごはんは 何時ですか。",
+              "ポイントカードの こうしんは どこですか。",
+              "みぶんしょうで 映画を 見ます。",
+            ],
+            explanationPt: "«じゅうしょのてつづき» refere-se ao trâmite de registo/alteração de morada.",
+          },
+          {
+            id: "ja-bur-3",
+            situationPt: "Não sabes qual dos balcões atende o teu pedido.",
+            register: "formal",
+            correct: "すみません、何番の まどぐちへ 行けば いいですか。",
+            options: [
+              "すみません、何番の まどぐちへ 行けば いいですか。",
+              "何番の ロッカーに すんでいますか。",
+              "しんせいしょの わりびきは ありますか。",
+              "はんこは しんせんですか。",
+            ],
+            explanationPt: "Nos serviços públicos japoneses tudo funciona por números de balcão («何番のまどぐち»).",
+          },
+        ],
+        miniDialogue: [
+          {
+            speaker: "係員",
+            text: "こんにちは|。|今日|は|どのような|てつづき|ですか|。",
+            pt: "Bom dia. De que procedimento vem tratar hoje?",
+            romaji: "Konnichiwa. Kyou wa dono you na tetsuzuki desu ka.",
+          },
+          {
+            speaker: "Tu",
+            text: "新しい|じゅうしょ|の|とうろく|に|きました|。|ざいりゅうカード|は|こちら|です|。",
+            pt: "Vim registar a minha nova morada. Aqui está o cartão de residência.",
+            romaji: "Atarashii juusho no touroku ni kimashita. Zairyuu kaado wa kochira desu.",
+          },
+          {
+            speaker: "係員",
+            text: "ありがとうございます|。|この|しんせいしょ|に|名前|と|じゅうしょ|を|書いてください|。",
+            pt: "Obrigado. Escreva o nome e a morada neste formulário, por favor.",
+            romaji: "Arigatou gozaimasu. Kono shinseisho ni namae to juusho o kaite kudasai.",
+          },
+          {
+            speaker: "Tu",
+            text: "分かりました|。|はんこ|が|ない|ので|、|サイン|でも|大丈夫|ですか|。",
+            pt: "Compreendi. Como não tenho carimbo, posso assinar?",
+            romaji: "Wakarimashita. Hanko ga nai node, sain demo daijoubu desu ka.",
+          },
+        ],
+      },
+    },
+  },
+  {
+    id: "bem-estar",
+    emoji: "🏋️",
+    title: "Ginásio, Cabeleireiro & Bem-Estar",
+    subtitle: "Inscrição no ginásio, aulas experimentais, corte de cabelo, dentista e óptica",
+    tag: "Bem-estar",
+    color: "var(--color-yellow)",
+    softColor: "var(--color-yellow-soft)",
+    relatedLevels: [52, 16, 9],
+    byLang: {
+      en: {
+        vocabKeys: [
+          "gym",
+          "membership",
+          "trial class",
+          "locker",
+          "workout",
+          "haircut",
+          "trim",
+          "barber",
+          "dentist",
+          "glasses",
+        ],
+        phrases: [
+          {
+            text: "Hi, do you offer a free trial class before signing up for a membership?",
+            pt: "Olá, oferecem uma aula experimental gratuita antes de fazer a inscrição?",
+            register: "neutro",
+            whenToUse: "Ao visitar um ginásio, estúdio de ioga ou clube desportivo",
+          },
+          {
+            text: "Where is the changing room, and do I need a coin for the locker?",
+            pt: "Onde fica o balneário e preciso de moeda para o cacifo?",
+            register: "neutro",
+            whenToUse: "No primeiro treino num ginásio ou piscina",
+          },
+          {
+            text: "Just a trim on the ends, please — not too short on the sides.",
+            pt: "Só aparar as pontas, por favor — não demasiado curto dos lados.",
+            register: "neutro",
+            whenToUse: "Frase essencial no cabeleireiro ou barbeiro para evitar surpresas!",
+          },
+          {
+            text: "Hello, I'd like to book a check-up with the dentist next week.",
+            pt: "Olá, gostaria de marcar uma consulta de rotina no dentista na próxima semana.",
+            register: "formal",
+            whenToUse: "Ao ligar ou ir a uma clínica dentária",
+          },
+          {
+            text: "Excuse me, could you adjust my glasses? They feel a bit loose.",
+            pt: "Com licença, podia ajustar os meus óculos? Estão um pouco largos.",
+            register: "formal",
+            whenToUse: "Numa óptica (geralmente fazem este ajuste gratuitamente)",
+          },
+        ],
+        culturalTip:
+          "No cabeleireiro em países anglófonos, «haircut» pode significar mudar bastante o comprimento; se queres apenas manter o corte e tirar as pontas, diz sempre «just a trim, please»!",
+        situations: [
+          {
+            id: "en-wel-1",
+            situationPt: "Estás no cabeleireiro e queres apenas tirar as pontas estragadas sem encurtar muito.",
+            register: "neutro",
+            correct: "Just a trim on the ends, please.",
+            options: [
+              "Just a trim on the ends, please.",
+              "Cancel my membership on the sides.",
+              "Give me a double room haircut.",
+              "Put my glasses in the self-checkout.",
+            ],
+            explanationPt: "«Just a trim» deixa claro que queres apenas aparar ligeiramente.",
+          },
+          {
+            id: "en-wel-2",
+            situationPt: "Queres experimentar um ginásio do bairro antes de pagar a mensalidade.",
+            register: "neutro",
+            correct: "Can I book a trial class before getting a membership?",
+            options: [
+              "Can I book a trial class before getting a membership?",
+              "Do you have luggage storage for my dentist?",
+              "Is this locker subtitled?",
+              "Where is the barber's boarding pass?",
+            ],
+            explanationPt: "«Trial class» (aula experimental) e «membership» (mensalidade/inscrição) são o par perfeito aqui.",
+          },
+          {
+            id: "en-wel-3",
+            situationPt: "Chegaste ao ginásio com mochila e queres saber onde a guardar.",
+            register: "neutro",
+            correct: "Can I use any empty locker in the changing room?",
+            options: [
+              "Can I use any empty locker in the changing room?",
+              "Can I leave my workout at customs?",
+              "Is the dentist on sale in aisle four?",
+              "Where do I sign the towel?",
+            ],
+            explanationPt: "«Locker» (cacifo) e «changing room» (balneário — UK; «locker room» — US).",
+          },
+        ],
+        miniDialogue: [
+          {
+            speaker: "Tu",
+            text: "Hi! I'd like to ask about your monthly gym membership.",
+            pt: "Olá! Gostaria de perguntar sobre a mensalidade do ginásio.",
+          },
+          {
+            speaker: "Trainer",
+            text: "Sure! You can cancel anytime, and your first trial class is free.",
+            pt: "Claro! Pode cancelar quando quiser e a primeira aula experimental é gratuita.",
+          },
+          {
+            speaker: "Tu",
+            text: "Sounds good! Do I need to bring my own towel and lock for the locker?",
+            pt: "Parece-me bem! Preciso de trazer a minha própria toalha e cadeado para o cacifo?",
+          },
+          {
+            speaker: "Trainer",
+            text: "Towels are included — just bring clean shoes for your workout!",
+            pt: "As toalhas estão incluídas — traga apenas ténis limpos para o treino!",
+          },
+        ],
+      },
+      fr: {
+        vocabKeys: [
+          "salle de sport",
+          "abonnement",
+          "séance d'essai",
+          "casier",
+          "entraînement",
+          "coiffeur",
+          "couper les pointes",
+          "dentiste",
+          "lunettes",
+          "massage",
+        ],
+        phrases: [
+          {
+            text: "Bonjour, proposez-vous un abonnement mensuel sans engagement ?",
+            pt: "Bom dia, têm uma subscrição mensal sem fidelização?",
+            register: "formal",
+            whenToUse: "Muito importante em França — muitos ginásios têm fidelização anual («engagement 12 mois»)",
+          },
+          {
+            text: "Est-ce que je peux faire une séance d'essai aujourd'hui ?",
+            pt: "Posso fazer uma aula experimental hoje?",
+            register: "neutro",
+            whenToUse: "Ao visitar uma «salle de sport» ou estúdio",
+          },
+          {
+            text: "Bonjour, je voudrais juste couper les pointes, pas trop court.",
+            pt: "Bom dia, queria só cortar as pontas, não demasiado curto.",
+            register: "formal",
+            whenToUse: "Ao explicar o corte no cabeleireiro («chez le coiffeur»)",
+          },
+          {
+            text: "J'ai mal à une dent, auriez-vous un créneau chez le dentiste ?",
+            pt: "Dói-me um dente, teriam uma vaga no dentista?",
+            register: "formal",
+            whenToUse: "Ao marcar consulta urgente ou na plataforma Doctolib",
+          },
+          {
+            text: "Excusez-moi, pourriez-vous ajuster mes lunettes, s'il vous plaît ?",
+            pt: "Com licença, poderia ajustar os meus óculos, por favor?",
+            register: "formal",
+            whenToUse: "Numa óptica («chez l'opticien»)",
+          },
+        ],
+        culturalTip:
+          "Em França, verifica sempre se a mensalidade do ginásio é «sans engagement» (sem período de fidelização) — caso contrário ficarás vinculado por 12 meses! Para consultas médicas e dentista, toda a gente marca pela app «Doctolib».",
+        situations: [
+          {
+            id: "fr-wel-1",
+            situationPt: "Queres inscrever-te num ginásio em Bordéus, mas sem ficar preso a um contrato de um ano.",
+            register: "formal",
+            correct: "Avez-vous un abonnement mensuel sans engagement ?",
+            options: [
+              "Avez-vous un abonnement mensuel sans engagement ?",
+              "Avez-vous un casier en vrac ?",
+              "Je voudrais couper les pointes du dentiste.",
+              "Où est le titre de séjour des lunettes ?",
+            ],
+            explanationPt: "«Sans engagement» significa sem período obrigatório de fidelização.",
+          },
+          {
+            id: "fr-wel-2",
+            situationPt: "Chegas ao cabeleireiro e só queres aparar ligeiramente as pontas.",
+            register: "formal",
+            correct: "Bonjour, je voudrais juste couper les pointes, s'il vous plaît.",
+            options: [
+              "Bonjour, je voudrais juste couper les pointes, s'il vous plaît.",
+              "Je voudrais renouveler mon caddie, s'il vous plaît.",
+              "La salle de sport est complète sur le tapis.",
+              "Puis-je peser mon massage ?",
+            ],
+            explanationPt: "«Couper les pointes» é a expressão exacta para aparar as pontas do cabelo.",
+          },
+          {
+            id: "fr-wel-3",
+            situationPt: "Queres experimentar um treino antes de te inscreveres no ginásio.",
+            register: "neutro",
+            correct: "Est-ce possible de faire une séance d'essai ?",
+            options: [
+              "Est-ce possible de faire une séance d'essai ?",
+              "Est-ce possible de déclarer mes lunettes ?",
+              "Où se trouve la mairie du coiffeur ?",
+              "Mon entraînement a une date de péremption.",
+            ],
+            explanationPt: "«Une séance d'essai» designa uma aula ou treino experimental.",
+          },
+        ],
+        miniDialogue: [
+          {
+            speaker: "Tu",
+            text: "Bonjour ! Je cherche une salle de sport avec abonnement sans engagement.",
+            pt: "Bom dia! Procuro um ginásio com mensalidade sem fidelização.",
+          },
+          {
+            speaker: "Accueil",
+            text: "Bonjour ! Oui, notre formule mensuelle inclut tous les cours et un casier.",
+            pt: "Bom dia! Sim, a nossa modalidade mensal inclui todas as aulas e um cacifo.",
+          },
+          {
+            speaker: "Tu",
+            text: "Super ! Est-ce que je peux faire une séance d'essai ce soir ?",
+            pt: "Óptimo! Posso fazer uma sessão experimental hoje à noite?",
+          },
+          {
+            speaker: "Accueil",
+            text: "Bien sûr ! Apportez simplement une serviette propre pour votre entraînement.",
+            pt: "Claro! Traga apenas uma toalha limpa para o seu treino.",
+          },
+        ],
+      },
+      ja: {
+        vocabKeys: [
+          "ジム",
+          "ロッカー",
+          "たいけん",
+          "うんどう",
+          "びよういん",
+          "かみをきる",
+          "はいしゃ",
+          "めがね",
+          "ストレッチ",
+          "よやくする",
+        ],
+        phrases: [
+          {
+            text: "ジム|の|たいけん|レッスン|を|よやく|したい|です|。",
+            pt: "Gostaria de reservar uma aula experimental no ginásio.",
+            romaji: "Jimu no taiken ressun o yoyaku shitai desu.",
+            register: "formal",
+            whenToUse: "Ao experimentar um ginásio ou aula desportiva no Japão",
+          },
+          {
+            text: "すみません|、|ロッカー|と|シャワー|は|どこ|ですか|。",
+            pt: "Com licença, onde ficam os cacifos e os chuveiros?",
+            romaji: "Sumimasen, rokkaa to shawaa wa doko desu ka.",
+            register: "formal",
+            whenToUse: "Na recepção do ginásio ou piscina",
+          },
+          {
+            text: "この|しゃしん|の|ように|、|かみ|を|少し|だけ|きって|ください|。",
+            pt: "Corte o cabelo só um pouco, como nesta fotografia, por favor.",
+            romaji: "Kono shashin no you ni, kami o sukoshi dake kitte kudasai.",
+            register: "formal",
+            whenToUse: "Dica de ouro: mostrar uma foto no «びよういん» evita qualquer mal-entendido!",
+          },
+          {
+            text: "来週|、|はいしゃ|の|よやく|は|あいていますか|。",
+            pt: "Há vaga para consulta no dentista na próxima semana?",
+            romaji: "Raishuu, haisha no yoyaku wa aite imasu ka.",
+            register: "formal",
+            whenToUse: "Ao ligar ou ir a uma clínica dentária",
+          },
+          {
+            text: "うんどう|の|前|に|ストレッチ|を|しましょう|。",
+            pt: "Vamos fazer alongamentos antes do exercício.",
+            romaji: "Undou no mae ni sutorecchi o shimashou.",
+            register: "neutro",
+            whenToUse: "Ao treinar com amigos ou colegas",
+          },
+        ],
+        culturalTip:
+          "Nos ginásios japoneses é obrigatório levar ténis de sola limpa usados APENAS em recinto interior — entrar na sala de máquinas com os sapatos da rua não é permitido!",
+        situations: [
+          {
+            id: "ja-wel-1",
+            situationPt: "Estás num salão de cabeleireiro («びよういん») e queres cortar apenas um pouco, mostrando uma foto.",
+            register: "formal",
+            correct: "この しゃしんの ように、少しだけ きってください。",
+            options: [
+              "この しゃしんの ように、少しだけ きってください。",
+              "めがねを 二枚 あたためてください。",
+              "ロッカーの しょうみきげんは いつですか。",
+              "はいしゃは うりきれです。",
+            ],
+            explanationPt: "«少しだけきってください» (corte só um pouco, por favor) + mostrar uma foto funciona sempre.",
+          },
+          {
+            id: "ja-wel-2",
+            situationPt: "Queres saber se há vaga no dentista amanhã à tarde.",
+            register: "formal",
+            correct: "明日の 午後、はいしゃの よやくは あいていますか。",
+            options: [
+              "明日の 午後、はいしゃの よやくは あいていますか。",
+              "ストレッチに サインしても いいですか。",
+              "びよういんで 魚を 買います。",
+              "ジムの ざいりゅうカードを ください。",
+            ],
+            explanationPt: "«よやくはあいていますか» pergunta se há horário livre para marcação.",
+          },
+          {
+            id: "ja-wel-3",
+            situationPt: "Queres experimentar o ginásio pela primeira vez antes de te inscreveres.",
+            register: "formal",
+            correct: "たいけんレッスンを もうしこみたいです。",
+            options: [
+              "たいけんレッスンを もうしこみたいです。",
+              "かみをきる レシートを なくしました。",
+              "エレベーターで うんどうを します。",
+              "めがねを 一枚 ください。",
+            ],
+            explanationPt: "«たいけんレッスンをもうしこみたい» = quero inscrever-me numa aula experimental.",
+          },
+        ],
+        miniDialogue: [
+          {
+            speaker: "スタッフ",
+            text: "こんにちは|！|びよういん|の|よやく|は|あります|か|。",
+            pt: "Olá! Tem marcação aqui no cabeleireiro?",
+            romaji: "Konnichiwa! Biyouin no yoyaku wa arimasu ka.",
+          },
+          {
+            speaker: "Tu",
+            text: "はい|、|三時|に|よやく|した|マテウス|です|。",
+            pt: "Sim, sou o Mateus, marquei para as três horas.",
+            romaji: "Hai, sanji ni yoyaku shita Mateusu desu.",
+          },
+          {
+            speaker: "スタッフ",
+            text: "どうぞ|！|今日|は|どの|くらい|かみをきる|予定|ですか|。",
+            pt: "Por favor, sente-se! Quanto pensa cortar o cabelo hoje?",
+            romaji: "Douzo! Kyou wa dono kurai kami o kiru yotei desu ka.",
+          },
+          {
+            speaker: "Tu",
+            text: "この|しゃしん|の|ように|、|少し|だけ|きって|ください|。",
+            pt: "Corte só um pouco, como nesta fotografia, por favor.",
+            romaji: "Kono shashin no you ni, sukoshi dake kitte kudasai.",
+          },
+        ],
+      },
+    },
+  },
+  {
+    id: "familia",
+    emoji: "👨‍👩‍👧",
+    title: "Família, Crianças & Animais",
+    subtitle: "Creche, escola, restaurante com crianças, parques e veterinário",
+    tag: "Dia-a-dia",
+    color: "var(--color-coral)",
+    softColor: "var(--color-coral-soft)",
+    relatedLevels: [10, 16, 15],
+    byLang: {
+      en: {
+        vocabKeys: [
+          "nursery",
+          "playground",
+          "pushchair",
+          "babysitter",
+          "high chair",
+          "vet",
+          "leash",
+          "pet-friendly",
+          "vaccine",
+          "bedtime",
+        ],
+        phrases: [
+          {
+            text: "Could we get a high chair and a small glass of water for our child?",
+            pt: "Podiam trazer uma cadeira alta e um copo pequeno de água para a criança?",
+            register: "formal",
+            whenToUse: "Ao sentar-se em família num restaurante ou café",
+          },
+          {
+            text: "Is there step-free lift access for a pushchair at this station?",
+            pt: "Há acesso por elevador sem degraus para carrinho de bebé nesta estação?",
+            register: "neutro",
+            whenToUse: "Essencial no metro de Londres ou comboios quando andas com carrinho",
+          },
+          {
+            text: "My son has a mild fever today, so he won't attend nursery.",
+            pt: "O meu filho tem uma febre ligeira hoje, por isso não vai à creche.",
+            register: "formal",
+            whenToUse: "Ao avisar a creche ou escola de manhã",
+          },
+          {
+            text: "Excuse me, is your outdoor terrace pet-friendly?",
+            pt: "Com licença, a vossa esplanada aceita animais de estimação?",
+            register: "neutro",
+            whenToUse: "Ao chegar a um café, pub ou hotel com cão",
+          },
+          {
+            text: "Hello, my dog hurt his paws — could we see the vet today?",
+            pt: "Olá, o meu cão magoou as patas — podíamos ser vistos pelo veterinário hoje?",
+            register: "formal",
+            whenToUse: "Ao ligar para uma clínica veterinária",
+          },
+        ],
+        culturalTip:
+          "No Reino Unido, muitos pubs tradicionais e esplanadas são super «dog-friendly» (têm até taças de água à porta!), e nas estações de metro procura o símbolo azul de «step-free access» para carrinhos de bebé («pushchair»).",
+        situations: [
+          {
+            id: "en-fam-1",
+            situationPt: "Entras num restaurante com um bebé e precisas de uma cadeira própria para a mesa.",
+            register: "formal",
+            correct: "Could we have a high chair for the baby, please?",
+            options: [
+              "Could we have a high chair for the baby, please?",
+              "Could we have a leash for the locker, please?",
+              "Is the bedtime on sale today?",
+              "Do you offer a student discount for the vet?",
+            ],
+            explanationPt: "«High chair» é a cadeira alta de bebé nos restaurantes.",
+          },
+          {
+            id: "en-fam-2",
+            situationPt: "Estás a passear o teu cão e queres saber se podes sentar-te com ele na esplanada do café.",
+            register: "neutro",
+            correct: "Hi, is this café pet-friendly?",
+            options: [
+              "Hi, is this café pet-friendly?",
+              "Hi, is this pushchair subtitled?",
+              "Does my dog need a tax number?",
+              "Where is the nursery self-checkout?",
+            ],
+            explanationPt: "«Pet-friendly» (ou «dog-friendly») é a forma mais natural de perguntar.",
+          },
+          {
+            id: "en-fam-3",
+            situationPt: "Levas o teu animal à consulta anual e entregas o boletim de vacinas.",
+            register: "formal",
+            correct: "Here is his vaccine record for the check-up.",
+            options: [
+              "Here is his vaccine record for the check-up.",
+              "Here is his boarding pass for the playground.",
+              "He needs a trim at the box office.",
+              "Can I renew my babysitter at customs?",
+            ],
+            explanationPt: "«Vaccine record» designa o registo/boletim de vacinação no veterinário.",
+          },
+        ],
+        miniDialogue: [
+          {
+            speaker: "Tu",
+            text: "Hello, table for three, please — and could we get a high chair?",
+            pt: "Olá, mesa para três, por favor — e podiam trazer uma cadeira de bebé?",
+          },
+          {
+            speaker: "Host",
+            text: "Of course! There's plenty of space here for your pushchair too.",
+            pt: "Claro! Aqui também há bastante espaço para o vosso carrinho de bebé.",
+          },
+          {
+            speaker: "Tu",
+            text: "Thank you! By the way, is your garden terrace pet-friendly?",
+            pt: "Obrigado! Já agora, a vossa esplanada do jardim aceita animais?",
+          },
+          {
+            speaker: "Host",
+            text: "Yes, dogs on a leash are always welcome outside!",
+            pt: "Sim, cães de trela são sempre bem-vindos lá fora!",
+          },
+        ],
+      },
+      fr: {
+        vocabKeys: [
+          "crèche",
+          "parc",
+          "poussette",
+          "garde d'enfants",
+          "chaise haute",
+          "vétérinaire",
+          "laisse",
+          "vaccin",
+          "école primaire",
+          "animaux acceptés",
+        ],
+        phrases: [
+          {
+            text: "Bonjour, auriez-vous une chaise haute et de la place pour la poussette ?",
+            pt: "Bom dia, teriam uma cadeira de bebé e espaço para o carrinho?",
+            register: "formal",
+            whenToUse: "Ao chegar a um café ou restaurante em família",
+          },
+          {
+            text: "Notre fille a un peu de fièvre, elle ne viendra pas à la crèche aujourd'hui.",
+            pt: "A nossa filha tem um pouco de febre, hoje não irá à creche.",
+            register: "formal",
+            whenToUse: "Para avisar a creche ou escola primária",
+          },
+          {
+            text: "Excusez-moi, est-ce que les chiens en laisse sont acceptés en terrasse ?",
+            pt: "Com licença, os cães de trela são aceites na esplanada?",
+            register: "formal",
+            whenToUse: "Antes de se sentar numa esplanada ou hotel com animal",
+          },
+          {
+            text: "Bonjour, je voudrais prendre rendez-vous chez le vétérinaire pour un vaccin.",
+            pt: "Bom dia, gostaria de marcar consulta no veterinário para uma vacina.",
+            register: "formal",
+            whenToUse: "Ao ligar para uma clínica veterinária",
+          },
+          {
+            text: "On va au parc après l'école primaire vers seize heures trente ?",
+            pt: "Vamos ao parque depois da escola primária por volta das dezasseis e trinta?",
+            register: "informal",
+            whenToUse: "Em França as aulas da primária costumam terminar às 16h30 («la sortie d'école»)",
+          },
+        ],
+        culturalTip:
+          "Em França, muitos jardins públicos de Paris têm placas «Interdit aux chiens» nos relvados — procura sempre os parques assinalados com «Chiens tenus en laisse acceptés»!",
+        situations: [
+          {
+            id: "fr-fam-1",
+            situationPt: "Entras numa brasserie com um bebé e queres saber se têm cadeira alta.",
+            register: "formal",
+            correct: "Bonjour, auriez-vous une chaise haute pour le bébé ?",
+            options: [
+              "Bonjour, auriez-vous une chaise haute pour le bébé ?",
+              "Auriez-vous un casier pour le vétérinaire ?",
+              "La crèche est en VOSTFR aujourd'hui ?",
+              "Puis-je peser la poussette en caisse ?",
+            ],
+            explanationPt: "«Une chaise haute» é a cadeira alta para bebés e crianças pequenas.",
+          },
+          {
+            id: "fr-fam-2",
+            situationPt: "Levas o teu cão ao veterinário para a vacinação anual e entregas a caderneta.",
+            register: "formal",
+            correct: "Bonjour, voici le carnet de vaccin de mon chien.",
+            options: [
+              "Bonjour, voici le carnet de vaccin de mon chien.",
+              "Voici le titre de séjour de ma poussette.",
+              "Mon chien voudrait couper les pointes.",
+              "Où est la billetterie de l'école primaire ?",
+            ],
+            explanationPt: "«Le carnet de vaccin / carnet de santé» é o boletim de saúde e vacinas.",
+          },
+          {
+            id: "fr-fam-3",
+            situationPt: "Queres confirmar se o hotel onde vais ficar aceita animais de estimação.",
+            register: "formal",
+            correct: "Excusez-moi, les animaux sont-ils acceptés à l'hôtel ?",
+            options: [
+              "Excusez-moi, les animaux sont-ils acceptés à l'hôtel ?",
+              "Les laisses sont-elles en promotion au rayon ?",
+              "Y a-t-il une grève à la garde d'enfants ?",
+              "La fièvre est incluse au petit-déjeuner ?",
+            ],
+            explanationPt: "Nos sites e placas francesas verás frequentemente «Animaux acceptés».",
+          },
+        ],
+        miniDialogue: [
+          {
+            speaker: "Tu",
+            text: "Bonjour ! Une table pour trois, avec une chaise haute s'il vous plaît.",
+            pt: "Bom dia! Uma mesa para três, com uma cadeira de bebé por favor.",
+          },
+          {
+            speaker: "Serveur",
+            text: "Bien sûr ! Vous pouvez laisser la poussette juste ici près de l'entrée.",
+            pt: "Claro! Podem deixar o carrinho de bebé mesmo aqui perto da entrada.",
+          },
+          {
+            speaker: "Tu",
+            text: "Merci beaucoup ! Les petits chiens en laisse sont aussi acceptés en terrasse ?",
+            pt: "Muito obrigado! Cães pequenos de trela também são aceites na esplanada?",
+          },
+          {
+            speaker: "Serveur",
+            text: "Oui, sans souci, je lui apporte un bol d'eau tout de suite !",
+            pt: "Sim, sem problema, trago-lhe já uma taça de água!",
+          },
+        ],
+      },
+      ja: {
+        vocabKeys: [
+          "ほいくえん",
+          "こうえん",
+          "ベビーカー",
+          "こどもよう",
+          "どうぶつびょういん",
+          "ペット",
+          "さんぽ",
+          "ワクチン",
+          "おむつ",
+          "かぞく",
+        ],
+        phrases: [
+          {
+            text: "すみません|、|こどもよう|の|いす|と|水|を|おねがいします|。",
+            pt: "Com licença, uma cadeira de criança e água, por favor.",
+            romaji: "Sumimasen, kodomoyou no isu to mizu o onegaishimasu.",
+            register: "formal",
+            whenToUse: "Nos restaurantes familiares («ファミレス») do Japão",
+          },
+          {
+            text: "おむつ|を|かえる|へや|や|エレベーター|は|あります|か|。",
+            pt: "Há sala para mudar a fralda e elevador?",
+            romaji: "Omutsu o kaeru heya ya erebeetaa wa arimasu ka.",
+            register: "formal",
+            whenToUse: "Os centros comerciais e estações japonesas têm excelentes salas de bebé («ベビールーム»)",
+          },
+          {
+            text: "子ども|に|少し|ねつ|が|ある|ので|、|今日|は|ほいくえん|を|休みます|。",
+            pt: "Como a criança tem um pouco de febre, hoje vai faltar à creche.",
+            romaji: "Kodomo ni sukoshi netsu ga aru node, kyou wa hoikuen o yasumimasu.",
+            register: "formal",
+            whenToUse: "Ao ligar para a creche ou escola de manhã",
+          },
+          {
+            text: "すみません|、|テラス|は|ペット|も|大丈夫|ですか|。",
+            pt: "Com licença, na esplanada também aceitam animais de estimação?",
+            romaji: "Sumimasen, terasu wa petto mo daijoubu desu ka.",
+            register: "formal",
+            whenToUse: "Antes de entrar numa esplanada ou parque com animal",
+          },
+          {
+            text: "どうぶつびょういん|で|ワクチン|の|よやく|を|したい|です|。",
+            pt: "Queria marcar uma vacina na clínica veterinária.",
+            romaji: "Doubutsu byouin de wakuchin no yoyaku o shitai desu.",
+            register: "formal",
+            whenToUse: "Ao contactar o veterinário",
+          },
+        ],
+        culturalTip:
+          "O Japão é incrivelmente preparado para famílias com bebés: quase todas as grandes estações e centros comerciais têm salas limpas para mudar fraldas («おむつ») e água quente para biberões. Nos comboios, usa as carruagens com espaço assinalado para «ベビーカー»!",
+        situations: [
+          {
+            id: "ja-fam-1",
+            situationPt: "Entras num restaurante em família e queres pedir uma cadeira própria para criança.",
+            register: "formal",
+            correct: "すみません、こどもようの いすは ありますか。",
+            options: [
+              "すみません、こどもようの いすは ありますか。",
+              "ざいりゅうカードの さんぽは ありますか。",
+              "ベビーカーを 二枚 あたためてください。",
+              "どうぶつびょういんは うりきれです。",
+            ],
+            explanationPt: "«こどもようのいす» significa cadeira para criança (e «こどもようのフォーク» talheres de criança).",
+          },
+          {
+            id: "ja-fam-2",
+            situationPt: "Precisas de encontrar um fraldário num centro comercial em Tóquio.",
+            register: "formal",
+            correct: "すみません、おむつを かえる へやは どこですか。",
+            options: [
+              "すみません、おむつを かえる へやは どこですか。",
+              "ワクチンの うりばは いくらですか。",
+              "ほいくえんで かみをきりたいです。",
+              "かぞくの しょうみきげんは 明日です。",
+            ],
+            explanationPt: "«おむつをかえるへや» (sala para mudar fraldas) é imediatamente compreendido pelos funcionários.",
+          },
+          {
+            id: "ja-fam-3",
+            situationPt: "Estás a passear o teu animal no parque e queres saber se a esplanada do café o aceita.",
+            register: "formal",
+            correct: "すみません、ここは ペットも 大丈夫ですか。",
+            options: [
+              "すみません、ここは ペットも 大丈夫ですか。",
+              "ここは はんこも しんせんですか。",
+              "こうえんに チェックインします。",
+              "さんぽの しめきりは 金曜日です。",
+            ],
+            explanationPt: "«ペットも大丈夫ですか» é curto, educado e muito natural.",
+          },
+        ],
+        miniDialogue: [
+          {
+            speaker: "Tu",
+            text: "こんにちは|。|かぞく|三人|です|。|ベビーカー|でも|入れます|か|。",
+            pt: "Olá. Somos três de família. Podemos entrar com carrinho de bebé?",
+            romaji: "Konnichiwa. Kazoku sannin desu. Bebiikaa demo hairemasu ka.",
+          },
+          {
+            speaker: "店員",
+            text: "はい|、|どうぞ|！|こどもよう|の|いす|も|ごよういします|ね|。",
+            pt: "Sim, por favor entrem! Vou preparar também uma cadeira de criança.",
+            romaji: "Hai, douzo! Kodomoyou no isu mo goyoui shimasu ne.",
+          },
+          {
+            speaker: "Tu",
+            text: "ありがとうございます|。|近く|に|おむつ|を|かえる|へや|は|あります|か|。",
+            pt: "Muito obrigado. Há alguma sala para mudar fraldas aqui perto?",
+            romaji: "Arigatou gozaimasu. Chikaku ni omutsu o kaeru heya wa arimasu ka.",
+          },
+          {
+            speaker: "店員",
+            text: "はい|、|エレベーター|の|となり|に|あります|よ|。",
+            pt: "Sim, fica mesmo ao lado do elevador.",
+            romaji: "Hai, erebeetaa no tonari ni arimasu yo.",
+          },
+        ],
+      },
+    },
+  },
+  {
+    id: "cultura",
+    emoji: "🎭",
+    title: "Museus, Cinema, Concertos & Lazer",
+    subtitle: "Bilheteiras, descontos de estudante, sessões legendadas, visitas guiadas e bengaleiro",
+    tag: "Cultura",
+    color: "var(--color-lilac)",
+    softColor: "var(--color-lilac-soft)",
+    relatedLevels: [42, 17, 14],
+    byLang: {
+      en: {
+        vocabKeys: [
+          "exhibition",
+          "guided tour",
+          "audio guide",
+          "subtitled",
+          "box office",
+          "cloakroom",
+          "sold out",
+          "student discount",
+          "row",
+          "dubbed",
+        ],
+        phrases: [
+          {
+            text: "Two tickets for the temporary exhibition, please — do you offer a student discount?",
+            pt: "Dois bilhetes para a exposição temporária, por favor — têm desconto de estudante?",
+            register: "formal",
+            whenToUse: "Na bilheteira de museus, galerias e monumentos",
+          },
+          {
+            text: "What time does the next guided tour start, or is there an audio guide?",
+            pt: "A que horas começa a próxima visita guiada, ou há audioguia?",
+            register: "neutro",
+            whenToUse: "À entrada de um museu ou palácio histórico",
+          },
+          {
+            text: "Excuse me, is the eight o'clock screening subtitled or dubbed?",
+            pt: "Com licença, a sessão das oito horas é legendada ou dobrada?",
+            register: "neutro",
+            whenToUse: "Antes de comprar bilhetes de cinema para filmes estrangeiros",
+          },
+          {
+            text: "Can we take photos inside without flash, and where is the cloakroom?",
+            pt: "Podemos tirar fotografias lá dentro sem flash, e onde fica o bengaleiro?",
+            register: "neutro",
+            whenToUse: "Muitos museus exigem deixar mochilas grandes no «cloakroom»",
+          },
+          {
+            text: "Let's book in advance — Friday night concerts get sold out fast!",
+            pt: "Vamos reservar com antecedência — os concertos de sexta à noite esgotam depressa!",
+            register: "informal",
+            whenToUse: "Ao combinar um programa cultural com amigos",
+          },
+        ],
+        culturalTip:
+          "Boa notícia em Londres: a entrada permanente na maioria dos grandes museus nacionais (British Museum, National Gallery, Tate Modern) é gratuita — pagas apenas pelas «temporary exhibitions»!",
+        situations: [
+          {
+            id: "en-cul-1",
+            situationPt: "Estás na bilheteira de um museu com o teu cartão universitário e queres saber se há preço reduzido.",
+            register: "formal",
+            correct: "Do you offer a student discount for the exhibition?",
+            options: [
+              "Do you offer a student discount for the exhibition?",
+              "Is the box office pet-friendly on a leash?",
+              "Can I check out my row at customs?",
+              "Does this audio guide count as proof of address?",
+            ],
+            explanationPt: "«Student discount» (ou «concession ticket» no Reino Unido) dá acesso à tarifa reduzida.",
+          },
+          {
+            id: "en-cul-2",
+            situationPt: "Tens uma mochila grande num museu e pedem-te para a guardar antes de entrar nas salas.",
+            register: "neutro",
+            correct: "Sure, where is the cloakroom?",
+            options: [
+              "Sure, where is the cloakroom?",
+              "Sure, where is the bakery aisle?",
+              "Is my backpack dubbed or subtitled?",
+              "Can I trim my ticket at the front desk?",
+            ],
+            explanationPt: "«Cloakroom» é o bengaleiro de museus, teatros e salas de espectáculo.",
+          },
+          {
+            id: "en-cul-3",
+            situationPt: "Queres ver um filme no áudio original com legendas, e não dobrado.",
+            register: "neutro",
+            correct: "Is the evening screening subtitled?",
+            options: [
+              "Is the evening screening subtitled?",
+              "Is the concert on mute?",
+              "Are the seats organic?",
+              "Did the guided tour expire?",
+            ],
+            explanationPt: "«Subtitled» = legendado; «dubbed» = dobrado.",
+          },
+        ],
+        miniDialogue: [
+          {
+            speaker: "Tu",
+            text: "Hello! Two tickets for the modern art exhibition, please.",
+            pt: "Olá! Dois bilhetes para a exposição de arte moderna, por favor.",
+          },
+          {
+            speaker: "Box Office",
+            text: "Certainly. Tonight's guided tour is sold out, would you like an audio guide?",
+            pt: "Com certeza. A visita guiada de hoje está esgotada, gostaria de um audioguia?",
+          },
+          {
+            speaker: "Tu",
+            text: "Yes, please — and can we get a student discount with our ID card?",
+            pt: "Sim, por favor — e temos desconto de estudante com o nosso cartão?",
+          },
+          {
+            speaker: "Box Office",
+            text: "Of course! Please leave large bags in the cloakroom on your left, and no flash photos.",
+            pt: "Claro! Deixem por favor as malas grandes no bengaleiro à esquerda, e fotos só sem flash.",
+          },
+        ],
+      },
+      fr: {
+        vocabKeys: [
+          "exposition",
+          "visite guidée",
+          "audioguide",
+          "vostfr",
+          "billetterie",
+          "vestiaire",
+          "complet",
+          "tarif réduit",
+          "séance",
+          "scène",
+        ],
+        phrases: [
+          {
+            text: "Bonjour, deux places pour l'exposition temporaire au tarif réduit, s'il vous plaît.",
+            pt: "Bom dia, dois bilhetes para a exposição temporaire à tarifa reduzida, por favor.",
+            register: "formal",
+            whenToUse: "Em França os menores de 26 anos da UE entram grátis ou com «tarif réduit» nos museus nacionais!",
+          },
+          {
+            text: "Est-ce que la séance de vingt heures est bien en VOSTFR ?",
+            pt: "A sessão das vinte horas é mesmo em versão original legendada (VOSTFR)?",
+            register: "neutro",
+            whenToUse: "Fundamental nos cinemas franceses para não apanhares um filme dobrado («VF») por engano!",
+          },
+          {
+            text: "À quelle heure commence la prochaine visite guidée, ou avez-vous un audioguide ?",
+            pt: "A que horas começa a próxima visita guiada, ou têm audioguia?",
+            register: "formal",
+            whenToUse: "Na recepção ou bilheteira de museus e castelos",
+          },
+          {
+            text: "Peut-on prendre des photos sans flash, et où se trouve le vestiaire ?",
+            pt: "Pode tirar-se fotografias sem flash, e onde fica o bengaleiro?",
+            register: "neutro",
+            whenToUse: "À entrada das salas de exposição ou teatro",
+          },
+          {
+            text: "Dépêche-toi de réserver en ligne, sinon le concert sera complet !",
+            pt: "Despacha-te a reservar online, senão o concerto vai esgotar!",
+            register: "informal",
+            whenToUse: "Ao comprar bilhetes com amigos («complet» = esgotado)",
+          },
+        ],
+        culturalTip:
+          "Nos cinemas em França, presta muita atenção às siglas no cartaz: «VF» (Version Française) é dobrado em francês, enquanto «VOSTFR» (Version Originale Sous-Titrée) mantém as vozes originais com legendas!",
+        situations: [
+          {
+            id: "fr-cul-1",
+            situationPt: "Vais ao cinema em Paris e queres ter a certeza de que o filme tem o áudio original com legendas.",
+            register: "neutro",
+            correct: "Excusez-moi, cette séance est en VOSTFR ?",
+            options: [
+              "Excusez-moi, cette séance est en VOSTFR ?",
+              "Cette séance est en vrac au rayon ?",
+              "Avez-vous une ordonnance pour la scène ?",
+              "Le vestiaire a de la fièvre ?",
+            ],
+            explanationPt: "«En VOSTFR» garante áudio original com legendas em francês.",
+          },
+          {
+            id: "fr-cul-2",
+            situationPt: "És estudante e queres pedir desconto na bilheteira de um museu.",
+            register: "formal",
+            correct: "Bonjour, ai-je droit au tarif réduit avec ma carte d'étudiant ?",
+            options: [
+              "Bonjour, ai-je droit au tarif réduit avec ma carte d'étudiant ?",
+              "Puis-je renouveler mon audioguide à la préfecture ?",
+              "Je laisse la billetterie en laisse.",
+              "Où est la caisse automatique de la scène ?",
+            ],
+            explanationPt: "«Le tarif réduit» abrange estudantes, jovens (< 26 anos) e seniores.",
+          },
+          {
+            id: "fr-cul-3",
+            situationPt: "Queres avisar um amigo de que já não há bilhetes para o concerto de sábado.",
+            register: "informal",
+            correct: "Dommage, le concert de samedi est déjà complet !",
+            options: [
+              "Dommage, le concert de samedi est déjà complet !",
+              "Le concert est meublé avec chauffage !",
+              "La visite guidée coupe les pointes !",
+              "Prends un comprimé à la billetterie !",
+            ],
+            explanationPt: "Em francês usa-se «complet» tanto para hotéis lotados como para espectáculos esgotados.",
+          },
+        ],
+        miniDialogue: [
+          {
+            speaker: "Tu",
+            text: "Bonjour ! Deux places pour l'exposition, dont une au tarif réduit étudiant.",
+            pt: "Bom dia! Dois bilhetes para a exposição, sendo um com tarifa reduzida de estudante.",
+          },
+          {
+            speaker: "Billetterie",
+            text: "Voici vos billets ! Souhaitez-vous aussi un audioguide ? La visite guidée est complète.",
+            pt: "Aqui estão os bilhetes! Desejam também um audioguia? A visita guiada está esgotada.",
+          },
+          {
+            speaker: "Tu",
+            text: "Oui, volontiers ! Peut-on prendre des photos sans flash dans les salles ?",
+            pt: "Sim, com todo o gosto! Podemos tirar fotografias sem flash nas salas?",
+          },
+          {
+            speaker: "Billetterie",
+            text: "Oui, bien sûr. Merci simplement de déposer votre sac au vestiaire à droite.",
+            pt: "Sim, claro. Agradecemos apenas que deixe a mochila no bengaleiro à direita.",
+          },
+        ],
+      },
+      ja: {
+        vocabKeys: [
+          "びじゅつかん",
+          "てんらんかい",
+          "チケット",
+          "じまく",
+          "おんせいガイド",
+          "ざせき",
+          "うりきれ",
+          "がくせいわりびき",
+          "しゃしん",
+          "コンサート",
+        ],
+        phrases: [
+          {
+            text: "てんらんかい|の|チケット|を|二枚|ください|。|がくせいわりびき|は|あります|か|。",
+            pt: "Dois bilhetes para a exposição, por favor. Há desconto de estudante?",
+            romaji: "Tenrankai no chiketto o nimai kudasai. Gakusei waribiki wa arimasu ka.",
+            register: "formal",
+            whenToUse: "Na bilheteira de museus, templos ou exposições",
+          },
+          {
+            text: "英語|の|おんせいガイド|を|かりられますか|。",
+            pt: "Posso alugar um audioguia em inglês?",
+            romaji: "Eigo no onsei gaido o kariraremasu ka.",
+            register: "formal",
+            whenToUse: "Nos grandes museus («びじゅつかん» / «はくぶつかん»)",
+          },
+          {
+            text: "すみません|、|ここ|で|フラッシュ|なしで|しゃしん|を|とっても|いい|ですか|。",
+            pt: "Com licença, posso tirar fotografias aqui sem flash?",
+            romaji: "Sumimasen, koko de furasshu nashi de shashin o totte mo ii desu ka.",
+            register: "formal",
+            whenToUse: "Pergunta sempre em museus e templos japoneses — algumas salas proíbem fotos!",
+          },
+          {
+            text: "この|映画|は|じまく|ですか|。",
+            pt: "Este filme é legendado?",
+            romaji: "Kono eiga wa jimaku desu ka.",
+            register: "neutro",
+            whenToUse: "Nos cinemas japoneses escolhes entre «字幕» (じまく — legendado) e «吹替» (dobrado)",
+          },
+          {
+            text: "金曜日の|コンサート|の|チケット|は|もう|うりきれ|です|。",
+            pt: "Os bilhetes para o concerto de sexta-feira já estão esgotados.",
+            romaji: "Kinyoubi no konsaato no chiketto wa mou urikire desu.",
+            register: "neutro",
+            whenToUse: "Muito comum no Japão, onde muitos concertos funcionam por reserva antecipada ou sorteio!",
+          },
+        ],
+        culturalTip:
+          "No Japão, os bilhetes para concertos, museus famosos (como Ghibli ou teamLab) e eventos compram-se frequentemente nas máquinas das lojas «コンビニ» (Lawson, Seven-Eleven, FamilyMart) antes de esgotarem («うりきれ»)!",
+        situations: [
+          {
+            id: "ja-cul-1",
+            situationPt: "Estás num museu de arte em Tóquio e queres perguntar educadamente se é permitido fotografar.",
+            register: "formal",
+            correct: "すみません、ここで しゃしんを とっても いいですか。",
+            options: [
+              "すみません、ここで しゃしんを とっても いいですか。",
+              "ここで おむつを 食べても いいですか。",
+              "ざせきの しょうみきげんは いつですか。",
+              "びじゅつかんに はんこを ください。",
+            ],
+            explanationPt: "«しゃしんをとってもいいですか» é essencial em museus, galerias e santuários.",
+          },
+          {
+            id: "ja-cul-2",
+            situationPt: "Queres comprar dois bilhetes para a exposição e saber se tens desconto de estudante.",
+            register: "formal",
+            correct: "チケットを 二枚 ください。がくせいわりびきは つかえますか。",
+            options: [
+              "チケットを 二枚 ください。がくせいわりびきは つかえますか。",
+              "おんせいガイドは しんせんですか。",
+              "コンサートを セルフレジで あたためます。",
+              "じまくの まどぐちは 何番ですか。",
+            ],
+            explanationPt: "Bilhetes contam-se com «枚» (まい), e «がくせいわりびき» é o desconto de estudante.",
+          },
+          {
+            id: "ja-cul-3",
+            situationPt: "Chegas à bilheteira e infelizmente já não há lugares disponíveis para hoje.",
+            register: "formal",
+            correct: "すみません、今日の チケットは うりきれです。",
+            options: [
+              "すみません、今日の チケットは うりきれです。",
+              "今日の てんらんかいは ミュートです。",
+              "ざせきに ねつが あります。",
+              "びじゅつかんを 少し きってください。",
+            ],
+            explanationPt: "«うりきれ» (esgotado) aparece em máquinas de bilhetes, lojas e restaurantes.",
+          },
+        ],
+        miniDialogue: [
+          {
+            speaker: "Tu",
+            text: "こんにちは|。|てんらんかい|の|チケット|を|二枚|おねがいします|。",
+            pt: "Olá. Dois bilhetes para a exposição, por favor.",
+            romaji: "Konnichiwa. Tenrankai no chiketto o nimai onegaishimasu.",
+          },
+          {
+            speaker: "うけつけ",
+            text: "ありがとうございます|。|がくせいわりびき|を|つかいます|か|。",
+            pt: "Obrigado. Vai utilizar desconto de estudante?",
+            romaji: "Arigatou gozaimasu. Gakusei waribiki o tsukaimasu ka.",
+          },
+          {
+            speaker: "Tu",
+            text: "はい|、|学生|です|。|英語|の|おんせいガイド|も|かりられますか|。",
+            pt: "Sim, sou estudante. Também posso alugar um audioguia em inglês?",
+            romaji: "Hai, gakusei desu. Eigo no onsei gaido mo kariraremasu ka.",
+          },
+          {
+            speaker: "うけつけ",
+            text: "はい|、|こちら|です|。|中|では|フラッシュ|なしで|しゃしん|を|とって|ください|。",
+            pt: "Sim, aqui tem. Lá dentro tire fotografias sem flash, por favor.",
+            romaji: "Hai, kochira desu. Naka de wa furasshu nashi de shashin o totte kudasai.",
           },
         ],
       },
@@ -4831,15 +7236,96 @@ export function searchContexts(
   return { packs, matchingPhrases };
 }
 
+/* ---------------- Redes Temáticas de Vocabulário Transversal ---------------- */
+
+export interface VocabNetwork {
+  id: string;
+  emoji: string;
+  title: string;
+  subtitle: string;
+  tip: string;
+  softColor: string;
+  keys: Record<LangCode, string[]>;
+}
+
+export const VOCAB_NETWORKS: VocabNetwork[] = [
+  {
+    id: "conectores",
+    emoji: "🧭",
+    title: "Conectores & Fluência Natural",
+    subtitle: "Palavras-ponte para ligar ideias sem pausas nem hesitações",
+    tip: "Dominar 8 a 10 conectores faz qualquer resposta soar imediatamente mais madura e natural (nível B1–B2).",
+    softColor: "var(--color-lilac-soft)",
+    keys: {
+      en: ["actually", "by the way", "however", "eventually", "meanwhile", "as soon as", "currently", "especially", "otherwise", "therefore"],
+      fr: ["en fait", "du coup", "au fait", "pourtant", "dès que", "cependant", "actuellement", "surtout", "sinon", "donc"],
+      ja: ["ところで", "じつは", "これから", "さっき", "そろそろ", "でも", "だから", "それから", "もちろん", "たしかに"],
+    },
+  },
+  {
+    id: "armadilhas",
+    emoji: "⚠️",
+    title: "Falsos Amigos & Armadilhas Lusófonas",
+    subtitle: "Palavras enganadoras que parecem português mas dizem outra coisa",
+    tip: "Rever este grupo evita os mal-entendidos mais clássicos de quem fala português!",
+    softColor: "var(--color-yellow-soft)",
+    keys: {
+      en: ["actually", "currently", "pretend", "intend", "realize", "sensible", "sensitive", "library", "customs", "eventually"],
+      fr: ["attendre", "entendre", "pourtant", "assister", "actuellement", "librairie", "bibliothèque", "serviette", "complet", "dossier"],
+      ja: ["だいじょうぶ", "すみません", "おつかれさまです", "よろしく", "おせわになります", "ベビーカー", "フロント", "サイン", "コンビニ", "マンション"],
+    },
+  },
+  {
+    id: "cortesia-pedidos",
+    emoji: "🤝",
+    title: "Pedidos Corteses & Registo Formal",
+    subtitle: "Fórmulas educadas para atendimento, trabalho, e-mails e serviços",
+    tip: "Trocar o imperativo directo por estas fórmulas abre portas em qualquer serviço, hotel ou empresa.",
+    softColor: "var(--color-teal-soft)",
+    keys: {
+      en: ["would you mind", "could", "excuse me", "in advance", "request", "appointment", "follow up", "bother", "reference", "confirm"],
+      fr: ["je souhaiterais", "excusez-moi", "auriez-vous", "pourriez-vous", "pourrais-je", "s'il vous plaît", "volontiers", "en avance", "rendez-vous", "remboursement"],
+      ja: ["おねがいします", "すみません", "いただけますか", "もらえますか", "おもちですか", "かしこまりました", "もうしわけ", "おまちください", "ごせいちょう", "ありがとうございます"],
+    },
+  },
+  {
+    id: "tempo-prazos",
+    emoji: "⏱",
+    title: "Tempo, Prazos & Frequência",
+    subtitle: "Expressões essenciais para combinar horários, entregas e validades",
+    tip: "Indispensáveis em viagens, reuniões de trabalho, consultas médicas e compras.",
+    softColor: "var(--color-coral-soft)",
+    keys: {
+      en: ["deadline", "in advance", "as soon as", "meanwhile", "delay", "rush hour", "expiry date", "currently", "anytime", "ago"],
+      fr: ["échéance", "en avance", "dès que", "retard", "heure de pointe", "date de péremption", "actuellement", "mensuel", "jusqu'à", "prochaine"],
+      ja: ["しめきり", "予定", "今週末", "来月", "明日", "さっき", "これから", "そろそろ", "しょうみきげん", "時間"],
+    },
+  },
+  {
+    id: "reaccoes",
+    emoji: "💬",
+    title: "Reacções Rápidas do Dia-a-dia",
+    subtitle: "Respostas curtas e idiomáticas para manter qualquer conversa viva",
+    tip: "Os falantes nativos usam estas expressões dezenas de vezes por dia para mostrar escuta activa.",
+    softColor: "var(--color-good-soft)",
+    keys: {
+      en: ["makes sense", "sounds good", "no worries", "rain check", "catch up", "of course", "excited", "swamped", "safe", "calm"],
+      fr: ["ça marche", "pas de souci", "bien sûr", "volontiers", "prendre un verre", "on se tient au courant", "remettre ça", "dommage", "super", "parfait"],
+      ja: ["なるほど", "たしかに", "もちろん", "大丈夫", "ひさしぶり", "たのしみ", "問題", "分かりました", "いいですね", "きをつけて"],
+    },
+  },
+];
+
 export interface ContextPackProgress {
   savedCount: number;
   totalCount: number;
   situationsDone: boolean;
   vocabDone: boolean;
+  convDone: boolean;
   mastered: boolean;
 }
 
-/** Calcula o domínio de um pacote de contexto (palavras guardadas + situações + treino de vocabulário). */
+/** Calcula o domínio de um pacote de contexto (palavras guardadas + situações + treino de vocabulário + conversa). */
 export function contextPackProgress(
   pack: ContextPack,
   lang: LangCode,
@@ -4859,17 +7345,88 @@ export function contextPackProgress(
       (!ev.lang || ev.lang === lang) &&
       (ev.type === `context-vocab:${pack.id}` || ev.reason === `ctx-vocab:${lang}:${pack.id}`),
   );
+  const convDone = xpEvents.some(
+    (ev) => (!ev.lang || ev.lang === lang) && ev.type === `context-conv:${pack.id}`,
+  );
   const mastered = situationsDone && vocabDone && savedCount >= Math.ceil(totalCount * 0.75);
-  return { savedCount, totalCount, situationsDone, vocabDone, mastered };
+  return { savedCount, totalCount, situationsDone, vocabDone, convDone, mastered };
+}
+
+/** Estatísticas globais dos pacotes de contexto para o idioma activo. */
+export function globalContextStats(
+  lang: LangCode,
+  srs: Record<string, Card> = {},
+  xpEvents: { lang?: LangCode; type?: string; reason?: string }[] = [],
+): {
+  totalPacks: number;
+  masteredPacks: number;
+  exploredPacks: number;
+  savedContextWords: number;
+  totalContextWords: number;
+} {
+  let masteredPacks = 0;
+  let exploredPacks = 0;
+  const uniqueKeys = new Set<string>();
+  for (const pack of CONTEXT_PACKS) {
+    const prog = contextPackProgress(pack, lang, srs, xpEvents);
+    if (prog.mastered) masteredPacks++;
+    if (prog.savedCount > 0 || prog.situationsDone || prog.vocabDone || prog.convDone) exploredPacks++;
+    for (const k of pack.byLang[lang].vocabKeys) uniqueKeys.add(k.toLowerCase());
+  }
+  let savedContextWords = 0;
+  for (const k of uniqueKeys) {
+    if (srs[`w:${k}`]) savedContextWords++;
+  }
+  return {
+    totalPacks: CONTEXT_PACKS.length,
+    masteredPacks,
+    exploredPacks,
+    savedContextWords,
+    totalContextWords: uniqueKeys.size,
+  };
 }
 
 const INTEREST_TO_PACKS: { match: string[]; packIds: string[]; label: string }[] = [
-  { match: ["viagens", "travel", "turismo", "ferias"], packIds: ["aeroporto", "transportes", "emergencia", "restaurante"], label: "o teu interesse em viagens" },
-  { match: ["trabalho", "carreira", "work", "negocios"], packIds: ["carreira", "remoto", "financas"], label: "o teu foco profissional" },
-  { match: ["estudos", "universidade", "study", "exames"], packIds: ["estudos", "habitacao", "falsos-amigos"], label: "os teus objectivos académicos" },
-  { match: ["comida", "cultura", "gastronomia", "food", "culture"], packIds: ["restaurante", "social", "falsos-amigos"], label: "o teu gosto por cultura e gastronomia" },
-  { match: ["amigos", "social", "conversa", "dia-a-dia", "daily"], packIds: ["social", "habitacao", "servicos"], label: "conversas naturais do dia-a-dia" },
-  { match: ["tecnologia", "tech", "digital"], packIds: ["digital", "remoto"], label: "o teu interesse digital" },
+  {
+    match: ["viagens", "travel", "turismo", "ferias", "hotel"],
+    packIds: ["aeroporto", "hotel", "transportes", "emergencia", "restaurante"],
+    label: "o teu interesse em viagens",
+  },
+  {
+    match: ["trabalho", "carreira", "work", "negocios"],
+    packIds: ["carreira", "remoto", "financas", "burocracia"],
+    label: "o teu foco profissional",
+  },
+  {
+    match: ["estudos", "universidade", "study", "exames"],
+    packIds: ["estudos", "habitacao", "burocracia", "falsos-amigos"],
+    label: "os teus objectivos académicos",
+  },
+  {
+    match: ["comida", "cultura", "gastronomia", "food", "culture", "cinema", "musica"],
+    packIds: ["restaurante", "cultura", "supermercado", "social", "falsos-amigos"],
+    label: "o teu gosto por cultura e gastronomia",
+  },
+  {
+    match: ["desporto", "saude", "bem-estar", "fitness", "ginasio"],
+    packIds: ["bem-estar", "saude", "supermercado"],
+    label: "o teu foco em saúde e bem-estar",
+  },
+  {
+    match: ["familia", "filhos", "criancas", "animais"],
+    packIds: ["familia", "supermercado", "saude", "habitacao"],
+    label: "a tua rotina familiar",
+  },
+  {
+    match: ["amigos", "social", "conversa", "dia-a-dia", "daily"],
+    packIds: ["social", "supermercado", "habitacao", "servicos", "familia"],
+    label: "conversas naturais do dia-a-dia",
+  },
+  {
+    match: ["tecnologia", "tech", "digital"],
+    packIds: ["digital", "remoto", "servicos"],
+    label: "o teu interesse digital",
+  },
 ];
 
 /** Sugere o próximo melhor pacote de contexto com base nos interesses e progresso do utilizador. */
@@ -4913,7 +7470,7 @@ export function recommendedContextPack(
   return { pack: CONTEXT_PACKS[0], reason: "Revê frases e diálogos para manter a fluência afiada" };
 }
 
-/* ---------------- Ligações de Contexto & Exemplos Reais por Palavra ---------------- */
+/* ---------------- Ligações de Contexto, Colocações & Palavra do Dia ---------------- */
 
 export interface WordContextSentence {
   text: string;
@@ -4926,6 +7483,8 @@ export interface WordContextInfo {
   packs: ContextPack[];
   extraSentences: WordContextSentence[];
   relatedWords: { key: string; pt: string }[];
+  /** Expressões fixas ou palavras compostas que contêm esta palavra. */
+  collocations: { key: string; pt: string }[];
 }
 
 interface UnitWordHit {
@@ -4975,14 +7534,15 @@ function getUnitWordIndex(lang: LangCode): Map<string, UnitWordHit[]> {
 /**
  * Enriquece qualquer palavra do dicionário com:
  *  - pacotes de contexto onde é usada;
- *  - frases reais extraídas de contextos e diálogos das 54 unidades (cobrindo entradas sem `entry.example`);
+ *  - frases reais extraídas de contextos e diálogos das 54 unidades;
+ *  - colocações / expressões multipalavra formadas com ela;
  *  - palavras companheiras do mesmo cenário para aprendizagem em rede semântica.
  */
 export function wordContextInfo(lang: LangCode, rawKey: string): WordContextInfo {
   const key = rawKey.toLowerCase().trim();
   const dict = CONTENT[lang].dictionary;
   const entry = dict[key];
-  if (!key || !entry) return { packs: [], extraSentences: [], relatedWords: [] };
+  if (!key || !entry) return { packs: [], extraSentences: [], relatedWords: [], collocations: [] };
 
   const primaryClean = entry.example ? plainText(entry.example.text, lang).toLowerCase() : "";
   const seenSentences = new Set<string>(primaryClean ? [primaryClean] : []);
@@ -5056,8 +7616,62 @@ export function wordContextInfo(lang: LangCode, rawKey: string): WordContextInfo
     }
   }
 
+  // Descobre expressões multipalavra ou compostos onde a palavra entra (ex.: "card" -> "boarding pass / key card / loyalty card")
+  const collocations: { key: string; pt: string }[] = [];
+  const baseTarget = entry.lemma ? entry.lemma.toLowerCase() : key;
+  if (lang === "ja") {
+    const minLen = /[\u4e00-\u9faf]/.test(key) ? 1 : 2;
+    if (key.length >= minLen) {
+      for (const [ck, ce] of Object.entries(dict)) {
+        if (ck !== key && ck.length > key.length && (ck.includes(key) || (baseTarget.length >= minLen && ck.includes(baseTarget)))) {
+          collocations.push({ key: ck, pt: ce.pt });
+          if (collocations.length >= 5) break;
+        }
+      }
+    }
+  } else if (!key.includes(" ")) {
+    const wordRe = new RegExp(`(^|[^\\p{L}])(${escapeRegExp(key)}|${escapeRegExp(baseTarget)})(?=[^\\p{L}]|$)`, "iu");
+    for (const [ck, ce] of Object.entries(dict)) {
+      if (ck !== key && (ck.includes(" ") || ck.includes("-")) && wordRe.test(ck)) {
+        collocations.push({ key: ck, pt: ce.pt });
+        if (collocations.length >= 5) break;
+      }
+    }
+  }
+
   const relatedWords = relatedKeys.slice(0, 6).map((rk) => ({ key: rk, pt: dict[rk].pt }));
-  return { packs, extraSentences, relatedWords };
+  return { packs, extraSentences, relatedWords, collocations };
+}
+
+/** Escolhe deterministicamente a Expressão / Palavra do Dia em contexto real (priorizando itens com exemplo ainda por guardar). */
+export function wordOfTheDay(
+  lang: LangCode,
+  srs: Record<string, Card> = {},
+  dayStr = "2026-01-01",
+): { key: string; entry: DictEntry; pack: ContextPack; saved: boolean } {
+  const dict = CONTENT[lang].dictionary;
+  const pool: { key: string; entry: DictEntry; pack: ContextPack; saved: boolean }[] = [];
+  const seen = new Set<string>();
+
+  for (const pack of CONTEXT_PACKS) {
+    for (const rawKey of pack.byLang[lang].vocabKeys) {
+      const key = rawKey.toLowerCase();
+      if (seen.has(key)) continue;
+      const entry = dict[key];
+      if (!entry || !entry.example) continue;
+      seen.add(key);
+      pool.push({ key, entry, pack, saved: !!srs[`w:${key}`] });
+    }
+  }
+
+  const unsaved = pool.filter((x) => !x.saved);
+  const activePool = unsaved.length > 0 ? unsaved : pool;
+  let hash = 0;
+  const tag = `${dayStr}:${lang}`;
+  for (let i = 0; i < tag.length; i++) {
+    hash = (hash * 31 + tag.charCodeAt(i)) >>> 0;
+  }
+  return activePool[hash % activePool.length];
 }
 
 /* ---------------- Pesquisador do Dicionário Vivo ---------------- */
@@ -5077,6 +7691,7 @@ export function searchDictionary(
     onlyNotes?: boolean;
     srsFilter?: "all" | "saved" | "unsaved" | "weak" | "strong";
     packId?: string | "all";
+    networkId?: string | "all";
     limit?: number;
   },
   srs: Record<string, Card> = {},
@@ -5087,13 +7702,19 @@ export function searchDictionary(
   const srsFilter = opts.srsFilter ?? "all";
   const packFilter =
     opts.packId && opts.packId !== "all" ? CONTEXT_PACKS.find((p) => p.id === opts.packId) : undefined;
+  const netFilter =
+    opts.networkId && opts.networkId !== "all" ? VOCAB_NETWORKS.find((n) => n.id === opts.networkId) : undefined;
   const allowedPackKeys = packFilter
     ? new Set(packFilter.byLang[lang].vocabKeys.map((k) => k.toLowerCase()))
+    : null;
+  const allowedNetKeys = netFilter
+    ? new Set(netFilter.keys[lang].map((k) => k.toLowerCase()))
     : null;
   const matched: DictSearchItem[] = [];
 
   for (const [key, entry] of Object.entries(dict)) {
     if (allowedPackKeys && !allowedPackKeys.has(key)) continue;
+    if (allowedNetKeys && !allowedNetKeys.has(key)) continue;
     if (pos !== "all" && entry.pos !== pos) continue;
     if (opts.onlyNotes && !entry.note) continue;
 
@@ -5139,11 +7760,12 @@ export function searchDictionary(
 
 /* ---------------- Gerador de Treino de Vocabulário em Contexto ---------------- */
 
-export type VocabDrillMode = "cloze" | "recall" | "mixed";
+export type VocabDrillMode = "cloze" | "recall" | "listen" | "write" | "mixed";
+export type VocabQuestionType = "cloze" | "recall" | "listen" | "write";
 
 export interface ContextualVocabQuestion {
   id: string;
-  questionType: "cloze" | "recall";
+  questionType: VocabQuestionType;
   wordKey: string;
   surfaceAnswer: string;
   maskedSentence: string;
@@ -5152,6 +7774,7 @@ export interface ContextualVocabQuestion {
   ptWord: string;
   pos: PartOfSpeech;
   reading?: string;
+  romaji?: string;
   note?: string;
   options: string[];
 }
@@ -5175,21 +7798,63 @@ function tryMaskSentence(sentence: string, target: string, lang: LangCode): { ma
   return { masked, surface };
 }
 
+/** Avalia uma resposta escrita pelo aluno no modo «Escrever» (aceita acentos aproximados e, em japonês, kana/kanji/romaji). */
+export function evaluateTypedVocabAnswer(
+  rawInput: string,
+  q: ContextualVocabQuestion,
+  lang: LangCode,
+): { ok: boolean; accentNote?: boolean } {
+  const trimmed = rawInput.trim();
+  if (!trimmed) return { ok: false };
+  const dict = CONTENT[lang].dictionary;
+  const entry = dict[q.wordKey];
+
+  const accepted = [q.surfaceAnswer, q.wordKey];
+  if (lang === "ja") {
+    if (entry?.reading) accepted.push(entry.reading);
+    if (entry?.romaji) accepted.push(entry.romaji);
+    if (q.romaji) accepted.push(q.romaji);
+  }
+
+  const uExact = normalizeAnswer(trimmed, lang, false);
+  const uFolded = normalizeAnswer(trimmed, lang, true);
+
+  for (const cand of accepted) {
+    if (!cand) continue;
+    if (normalizeAnswer(cand, lang, false) === uExact) return { ok: true };
+  }
+  for (const cand of accepted) {
+    if (!cand) continue;
+    if (normalizeAnswer(cand, lang, true) === uFolded) {
+      return { ok: true, accentNote: lang !== "ja" };
+    }
+  }
+  return { ok: false };
+}
+
 export function buildContextualVocabDrill(
   lang: LangCode,
   srs: Record<string, Card> = {},
   maxLevel = 9,
-  opts: { packId?: string; onlyWeak?: boolean; count?: number; seed?: number; mode?: VocabDrillMode } = {},
+  opts: {
+    packId?: string;
+    networkId?: string;
+    onlyWeak?: boolean;
+    count?: number;
+    seed?: number;
+    mode?: VocabDrillMode;
+  } = {},
 ): ContextualVocabQuestion[] {
   const count = opts.count ?? 6;
   const seed = Math.max(0, Math.floor(opts.seed ?? 0));
   const mode: VocabDrillMode = opts.mode ?? "cloze";
   const { dictionary, units } = CONTENT[lang];
   const activePack = opts.packId ? CONTEXT_PACKS.find((p) => p.id === opts.packId) : undefined;
+  const activeNetwork = opts.networkId ? VOCAB_NETWORKS.find((n) => n.id === opts.networkId) : undefined;
   const relatedSet = new Set(activePack?.relatedLevels ?? []);
   const sourceUnits = units.filter((u) => u.level <= Math.max(3, maxLevel) || relatedSet.has(u.level));
 
-  // Mapa auxiliar de frases de diálogo onde cada chave aparece
+  // Mapa auxiliar de frases de diálogo/contexto onde cada chave aparece
   const dialogueByKey = new Map<string, { text: string; pt: string }>();
   if (activePack) {
     const packLines = [...activePack.byLang[lang].phrases, ...getPackDialogue(activePack, lang)];
@@ -5198,6 +7863,18 @@ export function buildContextualVocabDrill(
         const k = vk.toLowerCase();
         if (!dialogueByKey.has(k) && tryMaskSentence(ph.text, k, lang)) {
           dialogueByKey.set(k, { text: ph.text, pt: ph.pt });
+        }
+      }
+    }
+  } else {
+    for (const p of CONTEXT_PACKS) {
+      const packLines = [...p.byLang[lang].phrases, ...getPackDialogue(p, lang)];
+      for (const ph of packLines) {
+        for (const vk of p.byLang[lang].vocabKeys) {
+          const k = vk.toLowerCase();
+          if (!dialogueByKey.has(k) && tryMaskSentence(ph.text, k, lang)) {
+            dialogueByKey.set(k, { text: ph.text, pt: ph.pt });
+          }
         }
       }
     }
@@ -5215,6 +7892,8 @@ export function buildContextualVocabDrill(
   let candidateKeys: string[] = [];
   if (activePack) {
     candidateKeys = [...activePack.byLang[lang].vocabKeys.map((k) => k.toLowerCase())];
+  } else if (activeNetwork) {
+    candidateKeys = [...activeNetwork.keys[lang].map((k) => k.toLowerCase())];
   } else if (opts.onlyWeak) {
     candidateKeys = Object.entries(srs)
       .filter(([k, c]) => k.startsWith("w:") && !isStrong(c))
@@ -5222,7 +7901,7 @@ export function buildContextualVocabDrill(
       .filter((k) => !!dictionary[k]);
   }
 
-  if (!activePack && candidateKeys.length < count * 2) {
+  if (!activePack && !activeNetwork && candidateKeys.length < count * 2) {
     const weakKeys = Object.entries(srs)
       .filter(([k, c]) => k.startsWith("w:") && !isStrong(c))
       .map(([k]) => k.slice(2));
@@ -5253,6 +7932,7 @@ export function buildContextualVocabDrill(
   }
 
   const allEntries = Object.entries(dictionary).filter(([k]) => k.length >= (lang === "ja" ? 1 : 2));
+  const mixedRotation: VocabQuestionType[] = ["cloze", "recall", "listen"];
   const out: ContextualVocabQuestion[] = [];
 
   for (let i = 0; i < candidateKeys.length && out.length < count; i++) {
@@ -5260,7 +7940,6 @@ export function buildContextualVocabDrill(
     const entry = dictionary[key];
     if (!entry) continue;
 
-    // Em rondas pares/ímpares alterna entre frase do diálogo/contexto e frase de exemplo quando ambas existem
     const primarySource = entry.example;
     const altSource = dialogueByKey.get(key);
     const source = seed % 2 === 1 && altSource ? altSource : (primarySource ?? altSource);
@@ -5289,8 +7968,8 @@ export function buildContextualVocabDrill(
     }
     if (distractors.length < 3) continue;
 
-    const questionType: "cloze" | "recall" =
-      mode === "mixed" ? ((out.length + seed) % 2 === 0 ? "cloze" : "recall") : mode;
+    const questionType: VocabQuestionType =
+      mode === "mixed" ? mixedRotation[(out.length + seed) % mixedRotation.length] : mode;
 
     const options = [maskAttempt.surface, ...distractors].sort((a, b) => a.localeCompare(b));
     out.push({
@@ -5304,10 +7983,194 @@ export function buildContextualVocabDrill(
       ptWord: entry.pt,
       pos: entry.pos,
       reading: entry.reading ?? entry.romaji,
+      romaji: entry.romaji,
       note: entry.note,
       options,
     });
   }
 
   return out;
+}
+
+/* ---------------- Simulação de Contextos com o Tutor (Roleplay Guiado/Livre/Desafio) ---------------- */
+
+function buildStepFromExchange(
+  tutorLine: { text: string; pt: string; romaji?: string },
+  userLine: { text: string; pt: string; romaji?: string },
+  lang: LangCode,
+  extraExpected: string[] = [],
+): ConversationStep {
+  const dict = CONTENT[lang].dictionary;
+  const model = plainText(userLine.text, lang);
+  const modelRomaji =
+    userLine.romaji ??
+    (lang === "ja"
+      ? tokenize(userLine.text, "ja", dict)
+          .filter((t) => !t.isPunct)
+          .map((t) => t.entry?.romaji ?? t.text)
+          .join(" ")
+      : undefined);
+
+  const expectedSet = new Set<string>([model]);
+  for (const ex of extraExpected) {
+    const clean = plainText(ex, lang).trim();
+    if (clean) expectedSet.add(clean);
+  }
+  if (lang === "ja" && modelRomaji) {
+    expectedSet.add(modelRomaji);
+  } else {
+    // Versão curta sem pontuação final ou apenas primeira frase se houver 2 frases
+    const firstClause = model.split(/(?<=[.!?])\s+/)[0]?.trim();
+    if (firstClause && firstClause !== model && firstClause.length >= 8) {
+      expectedSet.add(firstClause);
+    }
+  }
+  // Garante pelo menos 2 variantes aceites
+  if (expectedSet.size < 2) {
+    expectedSet.add(model.replace(/[.!?]+$/, ""));
+  }
+
+  // Extrai palavras-chave contidas em model
+  const toks = tokenize(userLine.text, lang, dict).filter((t) => !t.isPunct && t.text.trim().length > 0);
+  const contentToks = toks.filter(
+    (t) => t.entry && ["noun", "verb", "adj", "adv", "expr"].includes(t.entry.pos),
+  );
+  const chosenToks = (contentToks.length > 0 ? contentToks : toks).slice(0, 2);
+  const keywords = chosenToks
+    .map((t) => plainText(t.text, lang).toLowerCase())
+    .filter((kw) => normalizeAnswer(model, lang, true).includes(normalizeAnswer(kw, lang, true)));
+  if (keywords.length === 0) {
+    const fallbackKw = normalizeAnswer(model, lang, true).split(" ")[0] || model.slice(0, 2).toLowerCase();
+    keywords.push(fallbackKw);
+  }
+
+  const starter =
+    lang === "ja"
+      ? toks
+          .slice(0, Math.min(2, toks.length))
+          .map((t) => t.text)
+          .join("")
+      : model.split(" ").slice(0, 3).join(" ");
+
+  return {
+    tutor: tutorLine.text,
+    tutor_pt: tutorLine.pt,
+    tutor_romaji: tutorLine.romaji,
+    expected: Array.from(expectedSet),
+    keywords,
+    hint: `Expressa em contexto: «${userLine.pt}»`,
+    starter,
+    model,
+    model_pt: userLine.pt,
+    model_romaji: modelRomaji,
+  };
+}
+
+/** Converte qualquer ContextPack numa unidade conversacional completa para o Tutor (Guiado, Livre e Desafio). */
+export function contextPackToUnit(pack: ContextPack, lang: LangCode): Unit {
+  const data = pack.byLang[lang];
+  const dlg = getPackDialogue(pack, lang);
+
+  const openerByLang: Record<LangCode, { text: string; pt: string; romaji?: string }> = {
+    en: { text: "Hello! Welcome — how can I help you today?", pt: "Olá! Bem-vindo — como posso ajudá-lo hoje?" },
+    fr: { text: "Bonjour ! Bienvenue, comment puis-je vous aider ?", pt: "Bom dia! Bem-vindo, como posso ajudá-lo?" },
+    ja: {
+      text: "こんにちは|！|今日|は|どう|しました|か|。",
+      pt: "Olá! Em que posso ajudar hoje?",
+      romaji: "Konnichiwa! Kyou wa dou shimashita ka.",
+    },
+  };
+
+  const followUpByLang: Record<LangCode, (sitPt: string) => { text: string; pt: string; romaji?: string }> = {
+    en: (sitPt) => ({
+      text: "Got it! Anything else you'd like to ask or confirm?",
+      pt: `Entendido! (${sitPt})`,
+    }),
+    fr: (sitPt) => ({
+      text: "Très bien ! Avez-vous une autre question ou demande ?",
+      pt: `Muito bem! (${sitPt})`,
+    }),
+    ja: (sitPt) => ({
+      text: "分かりました|！|ほか|に|しつもん|は|あります|か|。",
+      pt: `Compreendido! (${sitPt})`,
+      romaji: "Wakarimashita! Hoka ni shitsumon wa arimasu ka.",
+    }),
+  };
+
+  const closingByLang: Record<LangCode, { text: string; pt: string }> = {
+    en: { text: "All sorted — have a wonderful day!", pt: "Tudo resolvido — tenha um excelente dia!" },
+    fr: { text: "C'est tout bon — je vous souhaite une très bonne journée !", pt: "Está tudo tratado — desejo-lhe um óptimo dia!" },
+    ja: { text: "かしこまりました。ありがとうございます、どうぞよろしくおねがいします！", pt: "Com certeza. Muito obrigado, tudo tratado!" },
+  };
+
+  const exchanges: { tutor: { text: string; pt: string; romaji?: string }; user: { text: string; pt: string; romaji?: string } }[] = [];
+
+  if (dlg.length >= 4) {
+    if (dlg[0].speaker !== "Tu" && dlg[1].speaker === "Tu") {
+      exchanges.push({ tutor: dlg[0], user: dlg[1] });
+      if (dlg[2].speaker !== "Tu" && dlg[3].speaker === "Tu") {
+        exchanges.push({ tutor: dlg[2], user: dlg[3] });
+      }
+    } else if (dlg[0].speaker === "Tu" && dlg[1].speaker !== "Tu" && dlg[2].speaker === "Tu") {
+      exchanges.push({ tutor: openerByLang[lang], user: dlg[0] });
+      exchanges.push({ tutor: dlg[1], user: dlg[2] });
+    }
+  }
+
+  // Completa até 3 turnos usando frases prontas do pacote para um roleplay rico
+  const usedTexts = new Set(exchanges.map((e) => plainText(e.user.text, lang)));
+  for (const ph of data.phrases) {
+    if (exchanges.length >= 3) break;
+    const clean = plainText(ph.text, lang);
+    if (usedTexts.has(clean)) continue;
+    usedTexts.add(clean);
+    exchanges.push({
+      tutor: followUpByLang[lang](ph.whenToUse),
+      user: { text: ph.text, pt: ph.pt, romaji: ph.romaji },
+    });
+  }
+
+  const steps = exchanges.slice(0, 3).map((ex, idx) => {
+    const sitVariant = data.situations[idx]?.correct;
+    return buildStepFromExchange(ex.tutor, ex.user, lang, sitVariant ? [sitVariant] : []);
+  });
+
+  const takeaways = data.phrases.slice(0, 2).map((p) => ({
+    text: plainText(p.text, lang),
+    pt: p.pt,
+  }));
+
+  return {
+    id: `ctx-${lang}-${pack.id}`,
+    lang,
+    level: pack.relatedLevels[0] ?? 1,
+    title: pack.title,
+    titleTarget: plainText(data.phrases[0]?.text ?? pack.title, lang),
+    category: pack.tag,
+    emoji: pack.emoji,
+    objective: pack.subtitle,
+    dialogue: dlg,
+    patterns: [],
+    vocab: data.vocabKeys.map((k) => k.toLowerCase()),
+    build: [],
+    conversation: {
+      goal: `${pack.emoji} ${pack.title} — ${pack.subtitle}`,
+      steps,
+      closing: closingByLang[lang].text,
+      closing_pt: closingByLang[lang].pt,
+      takeaways,
+    },
+  };
+}
+
+/** Resolve um ID de unidade sintética de contexto (`ctx-<lang>-<packId>`). */
+export function getContextTutorUnit(unitId: string): Unit | undefined {
+  if (!unitId.startsWith("ctx-")) return undefined;
+  const parts = unitId.split("-");
+  if (parts.length < 3) return undefined;
+  const lang = parts[1] as LangCode;
+  if (lang !== "en" && lang !== "fr" && lang !== "ja") return undefined;
+  const packId = parts.slice(2).join("-");
+  const pack = CONTEXT_PACKS.find((p) => p.id === packId);
+  return pack ? contextPackToUnit(pack, lang) : undefined;
 }

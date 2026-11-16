@@ -14,6 +14,7 @@ import {
   CONTEXT_PACKS,
   contextPackProgress,
   getPackDialogue,
+  globalContextStats,
   REGISTER_LABEL,
   recommendedContextPack,
   searchContexts,
@@ -181,6 +182,7 @@ function ContextosInner() {
   const [tagFilter, setTagFilter] = useState<string | null>(null);
   const [regFilter, setRegFilter] = useState<RegisterLevel | "all">("all");
   const [tab, setTab] = useState<PackTab>("kit");
+  const [globalDrillOpen, setGlobalDrillOpen] = useState(false);
   const [tok, setTok] = useState<RToken | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const tabRefs = useRef<Partial<Record<PackTab, HTMLButtonElement | null>>>({});
@@ -199,6 +201,10 @@ function ContextosInner() {
   const recContext = useMemo(
     () => recommendedContextPack(lang, state.settings.interests, state.srs[lang], state.xpEvents),
     [lang, state.settings.interests, state.srs, state.xpEvents],
+  );
+  const ctxStats = useMemo(
+    () => globalContextStats(lang, state.srs[lang], state.xpEvents),
+    [lang, state.srs, state.xpEvents],
   );
 
   const activePack = useMemo(() => CONTEXT_PACKS.find((p) => p.id === selectedId) ?? null, [selectedId]);
@@ -223,7 +229,6 @@ function ContextosInner() {
     const data = activePack.byLang[lang];
     const prog = contextPackProgress(activePack, lang, state.srs[lang], state.xpEvents);
     const allSaved = prog.savedCount >= prog.totalCount;
-    const primaryUnitId = `${lang}-${activePack.relatedLevels[0]}`;
     const dialogue = getPackDialogue(activePack, lang);
     const filteredPhrases =
       regFilter === "all" ? data.phrases : data.phrases.filter((p) => p.register === regFilter);
@@ -460,21 +465,33 @@ function ContextosInner() {
                 </ul>
               </section>
 
-              {/* Ligação directa à conversa com o tutor e unidades relacionadas */}
+              {/* Ligação directa à conversa com o tutor neste cenário exacto + unidades relacionadas */}
               <section className="space-y-2.5 pt-1" aria-label="Continuar a praticar este contexto">
-                <Link
-                  href={`/conversa?mode=livre&unit=${primaryUnitId}`}
-                  className="flex items-center gap-3 rounded-[24px] bg-[var(--color-teal)] p-4 text-white shadow-[var(--shadow-card)] transition active:scale-[0.99]"
-                >
-                  <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-white/25 text-2xl">
-                    {meta.tutor.avatar}
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block font-extrabold">Simular cenário com {meta.tutor.name}</span>
-                    <span className="block text-xs opacity-95">Conversa livre guiada neste contexto real</span>
-                  </span>
-                  <Icon name="chevron-right" size={20} />
-                </Link>
+                <div className="rounded-[24px] bg-[var(--color-teal)] p-4 text-white shadow-[var(--shadow-card)]">
+                  <div className="flex items-center gap-3">
+                    <span className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-white/25 text-2xl">
+                      {meta.tutor.avatar}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="font-extrabold">Simular «{activePack.title}» com {meta.tutor.name}</div>
+                      <div className="text-xs opacity-95">Roleplay interactivo com as frases e vocabulário deste contexto</div>
+                    </div>
+                  </div>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    <Link
+                      href={`/conversa?context=${activePack.id}&mode=guiado`}
+                      className="inline-flex min-h-[40px] flex-1 items-center justify-center gap-1.5 rounded-2xl bg-white px-3.5 py-2 text-xs font-extrabold text-[var(--color-ink)] transition active:scale-95"
+                    >
+                      🎯 Guiado (com ajuda)
+                    </Link>
+                    <Link
+                      href={`/conversa?context=${activePack.id}&mode=livre`}
+                      className="inline-flex min-h-[40px] flex-1 items-center justify-center gap-1.5 rounded-2xl bg-white/20 px-3.5 py-2 text-xs font-extrabold text-white transition hover:bg-white/30 active:scale-95"
+                    >
+                      💬 Conversa Livre
+                    </Link>
+                  </div>
+                </div>
 
                 <div className="card p-4">
                   <div className="text-xs font-extrabold uppercase tracking-wider text-[var(--color-muted)]">
@@ -541,8 +558,42 @@ function ContextosInner() {
       <LanguageSelector />
 
       <p className="mb-4 text-sm text-[var(--color-muted)]">
-        14 cenários reais prontos a usar desde o 1.º dia — frases clicáveis por registo social, mini-diálogos, alertas de falsos amigos e vocabulário prático em {meta.name.toLowerCase()}.
+        {CONTEXT_PACKS.length} cenários reais prontos a usar desde o 1.º dia — frases clicáveis por registo social, mini-diálogos, roleplay com tutor e vocabulário prático em {meta.name.toLowerCase()}.
       </p>
+
+      {/* Resumo global dos contextos + treino transversal */}
+      {!query.trim() && !tagFilter && (
+        <div className="card mb-4 p-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <div className="text-xs font-extrabold uppercase tracking-wider text-[var(--color-muted)]">
+                O teu domínio de contextos
+              </div>
+              <div className="mt-0.5 text-sm font-extrabold">
+                {ctxStats.masteredPacks}/{ctxStats.totalPacks} cenários dominados · {ctxStats.savedContextWords}/{ctxStats.totalContextWords} palavras na revisão
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setGlobalDrillOpen((v) => !v)}
+              className="btn btn-primary !px-3.5 !py-2 text-xs"
+            >
+              <Icon name="bolt" size={15} />
+              {globalDrillOpen ? "Fechar treino" : "Treinar vocabulário"}
+            </button>
+          </div>
+          {globalDrillOpen && (
+            <div className="mt-4">
+              <ContextualVocabDrill
+                lang={lang}
+                count={8}
+                title={`Vocabulário dos ${CONTEXT_PACKS.length} Contextos Reais`}
+                onDone={() => setGlobalDrillOpen(false)}
+              />
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Sugestão inteligente de contexto */}
       {!query.trim() && !tagFilter && (
@@ -745,6 +796,11 @@ function ContextosInner() {
                           {prog.vocabDone && (
                             <span className="rounded-full bg-[var(--color-lilac-soft)] px-1.5 py-0.5 text-[10px] font-bold text-[var(--color-ink)]">
                               🧩 ✓
+                            </span>
+                          )}
+                          {prog.convDone && (
+                            <span className="rounded-full bg-[var(--color-coral-soft)] px-1.5 py-0.5 text-[10px] font-bold text-[var(--color-coral)]">
+                              💬 ✓
                             </span>
                           )}
                         </>

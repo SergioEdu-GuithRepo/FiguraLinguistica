@@ -7,7 +7,8 @@
 import { CONTENT, DICT_PARTS } from "../src/content";
 import { CONTEXT_EXTRA_DICT } from "../src/content/contexts-dict";
 import { KANJI, KANJI_ORDER } from "../src/content/ja/kanji";
-import { CONTEXT_PACKS } from "../src/lib/contexts";
+import { segmentJa } from "../src/lib/adapt-offline";
+import { CONTEXT_PACKS, getPackDialogue, VOCAB_NETWORKS } from "../src/lib/contexts";
 import { tokenize, plainText, fillTemplate, normalizeAnswer } from "../src/lib/tokenize";
 import type { Dictionary, LangCode, Unit } from "../src/lib/types";
 
@@ -80,6 +81,25 @@ for (const lang of langs) {
       for (const sit of pData.situations) {
         if (!sit.options.includes(sit.correct)) {
           err(`contexto "${pack.id}" (${lang}) situação ${sit.id}: resposta correcta não está em options`);
+        }
+      }
+      const ctxLines = [
+        ...pData.phrases.map((x, idx) => ({ text: x.text, where: `contexto ${pack.id} frase#${idx + 1}` })),
+        ...getPackDialogue(pack, lang).map((x, idx) => ({ text: x.text, where: `contexto ${pack.id} diálogo#${idx + 1}` })),
+      ];
+      for (const cl of ctxLines) {
+        const prep = lang === "ja" && !cl.text.includes("|") ? segmentJa(cl.text, dictionary) : cl.text;
+        for (const t of tokenize(prep, lang, dictionary)) {
+          if (!t.isPunct && !t.entry && t.key && !/^[\d:.,h]+$/.test(t.text)) {
+            err(`${cl.where} (${lang}): palavra sem entrada no dicionário "${t.key}"`);
+          }
+        }
+      }
+    }
+    for (const net of VOCAB_NETWORKS) {
+      for (const nk of net.keys[lang]) {
+        if (!dictionary[nk.toLowerCase()]) {
+          err(`rede "${net.id}" (${lang}): chave "${nk}" não existe no dicionário`);
         }
       }
     }

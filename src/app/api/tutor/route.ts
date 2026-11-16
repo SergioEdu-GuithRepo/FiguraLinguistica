@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { getUnit, CONTENT } from "@/content";
+import { getContextTutorUnit } from "@/lib/contexts";
 import { aiEnabled, complete } from "@/lib/server/ai";
 import { clientIp, moderate, rateLimit } from "@/lib/server/guard";
 import {
@@ -30,7 +31,7 @@ export async function POST(req: Request) {
   const parsed = TutorRequestSchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: "Pedido inválido" }, { status: 400 });
   const r = parsed.data;
-  const unit = getUnit(r.unitId);
+  const unit = getUnit(r.unitId) ?? getContextTutorUnit(r.unitId);
   if (!unit || unit.lang !== r.lang || r.stepIndex >= unit.conversation.steps.length) {
     return NextResponse.json({ error: "Unidade inválida" }, { status: 400 });
   }

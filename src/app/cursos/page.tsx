@@ -7,6 +7,7 @@ import { Icon } from "@/components/Icon";
 import { Sheet } from "@/components/Sheet";
 import { Books, ProgressBar } from "@/components/ui";
 import { CONTENT, getUnit } from "@/content";
+import { CONTEXT_PACKS } from "@/lib/contexts";
 import { LANGS, STAGES } from "@/lib/langs";
 import { isUnitUnlocked, recommendedPack, unitDone, unitProgressPct } from "@/lib/state";
 import { useApp } from "@/lib/store";
@@ -126,7 +127,7 @@ function Cursos() {
             <div className="grid h-12 w-12 place-items-center rounded-2xl bg-[var(--color-teal-soft)] text-2xl">🧰</div>
             <div className="flex-1">
               <div className="font-extrabold">Contextos & Kit de Bolso</div>
-              <div className="text-sm text-[var(--color-muted)]">14 cenários reais desbloqueados, mini-diálogos, frases por registo e falsos amigos</div>
+              <div className="text-sm text-[var(--color-muted)]">{CONTEXT_PACKS.length} cenários reais desbloqueados, roleplay com tutor, mini-diálogos e falsos amigos</div>
             </div>
             <Icon name="chevron-right" className="text-[var(--color-muted)]" />
           </Link>

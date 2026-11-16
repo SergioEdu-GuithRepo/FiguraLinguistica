@@ -17,13 +17,19 @@ import { buildQuickResponsePrompts, buildTranslateSensePrompts, buildStageExam, 
 import { COUNTERS, POLITENESS_ROWS, buildCortesiaQuiz } from "@/lib/cortesia";
 import {
   CONTEXT_PACKS,
+  VOCAB_NETWORKS,
   buildContextualVocabDrill,
   contextPackProgress,
+  contextPackToUnit,
+  evaluateTypedVocabAnswer,
+  getContextTutorUnit,
   getPackDialogue,
+  globalContextStats,
   recommendedContextPack,
   searchContexts,
   searchDictionary,
   wordContextInfo,
+  wordOfTheDay,
 } from "@/lib/contexts";
 import { mergeUserStates } from "@/lib/server/cloud-db";
 import {
@@ -346,13 +352,14 @@ for (const lang of LANGS) {
     }
   });
   check(`Contextos Reais, Pesquisa de Dicionário e Treino em Frase (${lang})`, () => {
-    assert.equal(CONTEXT_PACKS.length, 14);
+    assert.equal(CONTEXT_PACKS.length, 20);
+    assert.equal(VOCAB_NETWORKS.length, 5);
     const unitIds = new Set(CONTENT[lang].units.map((u) => u.id));
     for (const pack of CONTEXT_PACKS) {
       const data = pack.byLang[lang];
-      assert.ok(data.vocabKeys.length >= 6, `${pack.id} ${lang} vocabKeys`);
-      assert.ok(data.phrases.length >= 4, `${pack.id} ${lang} phrases`);
-      assert.ok(data.situations.length >= 2, `${pack.id} ${lang} situations`);
+      assert.ok(data.vocabKeys.length >= 10, `${pack.id} ${lang} vocabKeys (${data.vocabKeys.length})`);
+      assert.ok(data.phrases.length >= 5, `${pack.id} ${lang} phrases`);
+      assert.ok(data.situations.length >= 3, `${pack.id} ${lang} situations`);
       for (const lvl of pack.relatedLevels) {
         assert.ok(unitIds.has(`${lang}-${lvl}`), `missing unit ${lang}-${lvl} for ${pack.id}`);
       }
@@ -368,36 +375,76 @@ for (const lang of LANGS) {
       }
       const drill0 = buildContextualVocabDrill(lang, {}, 9, { packId: pack.id, count: 4, seed: 0 });
       const drill1 = buildContextualVocabDrill(lang, {}, 9, { packId: pack.id, count: 4, seed: 1, mode: "mixed" });
+      const drillListen = buildContextualVocabDrill(lang, {}, 9, { packId: pack.id, count: 3, mode: "listen" });
+      const drillWrite = buildContextualVocabDrill(lang, {}, 9, { packId: pack.id, count: 3, mode: "write" });
       assert.ok(drill0.length >= 3, `${pack.id} ${lang} contextual drill (${drill0.length})`);
       assert.ok(drill1.length >= 3, `${pack.id} ${lang} contextual drill seed 1 (${drill1.length})`);
+      assert.ok(drillListen.every((q) => q.questionType === "listen"), `${pack.id} ${lang} listen mode`);
+      assert.ok(drillWrite.every((q) => q.questionType === "write"), `${pack.id} ${lang} write mode`);
+      for (const wq of drillWrite) {
+        assert.equal(evaluateTypedVocabAnswer(wq.surfaceAnswer, wq, lang).ok, true, `${wq.id} exact write`);
+        assert.equal(evaluateTypedVocabAnswer("___errado___", wq, lang).ok, false, `${wq.id} wrong write`);
+        if (lang === "ja" && wq.romaji) {
+          assert.equal(evaluateTypedVocabAnswer(wq.romaji, wq, "ja").ok, true, `${wq.id} romaji write`);
+        }
+      }
       assert.notDeepEqual(
         drill0.map((q) => q.wordKey),
         drill1.map((q) => q.wordKey),
         `${pack.id} ${lang} seed rotates questions`,
       );
       assert.ok(drill1.some((q) => q.questionType === "recall"), `${pack.id} ${lang} mixed mode includes recall`);
+      assert.ok(drill1.some((q) => q.questionType === "listen"), `${pack.id} ${lang} mixed mode includes listen`);
       for (const q of drill0) {
         assert.ok(q.options.includes(q.surfaceAnswer), `${q.id} includes surfaceAnswer`);
         assert.ok(q.maskedSentence.includes("＿＿＿"), `${q.id} masked`);
       }
+
+      // Roleplay de contexto com o tutor offline (Guiado & Livre)
+      const ctxUnit = getContextTutorUnit(`ctx-${lang}-${pack.id}`);
+      assert.ok(ctxUnit, `missing ctx tutor unit for ${pack.id}`);
+      assert.equal(ctxUnit!.id, contextPackToUnit(pack, lang).id);
+      assert.ok(ctxUnit!.conversation.steps.length >= 3, `${ctxUnit!.id} steps`);
+      ctxUnit!.conversation.steps.forEach((step, si) => {
+        for (const exp of step.expected) {
+          assert.equal(diagnose(exp, step, lang, CONTENT[lang].dictionary).avaliacao, "correcta", `${ctxUnit!.id}#${si} ${exp}`);
+        }
+        const turn = offlineTurn({ unit: ctxUnit!, stepIndex: si, userText: step.model, dict: CONTENT[lang].dictionary, attempt: 0 });
+        TutorReplySchema.parse(turn);
+        assert.equal(turn.avaliacao, "correcta");
+      });
     }
+
+    for (const net of VOCAB_NETWORKS) {
+      const netSr = searchDictionary(lang, "", { networkId: net.id });
+      assert.equal(netSr.total, net.keys[lang].length, `${net.id} ${lang} search count`);
+      const netDrill = buildContextualVocabDrill(lang, {}, 9, { networkId: net.id, count: 4, mode: "write" });
+      assert.ok(netDrill.length >= 3, `${net.id} ${lang} drill`);
+    }
+
     const sr = searchDictionary(lang, "", { onlyNotes: true });
     assert.ok(sr.total >= 15, `${lang} dictionary notes (${sr.total})`);
     const packSr = searchDictionary(lang, "", { packId: "restaurante" });
     assert.equal(packSr.total, CONTEXT_PACKS.find((p) => p.id === "restaurante")!.byLang[lang].vocabKeys.length);
 
-    // Pesquisa de contextos insensível a acentos (ex.: "caucao" -> habitação, "alergia" -> restaurante/saúde)
-    assert.equal(searchContexts(lang, "", null).packs.length, 14);
+    // Pesquisa de contextos insensível a acentos (ex.: "caucao" -> habitação, "alergia" -> restaurante/saúde, "validade" -> supermercado)
+    assert.equal(searchContexts(lang, "", null).packs.length, 20);
     const sc = searchContexts(lang, "caucao", null);
     assert.ok(sc.packs.some((p) => p.id === "habitacao"), `${lang} searchContexts caucao`);
+    const scSup = searchContexts(lang, "validade", null);
+    assert.ok(scSup.packs.some((p) => p.id === "supermercado"), `${lang} searchContexts validade`);
     const scPhrase = searchContexts(lang, "alergia", null);
     assert.ok(scPhrase.matchingPhrases.length >= 1, `${lang} searchContexts matchingPhrases alergia`);
 
-    // Ficha contextual da palavra (pacotes, frases reais e palavras companheiras)
+    // Ficha contextual da palavra (pacotes, colocações, frases reais e palavras companheiras) e Expressão do Dia
     const sampleKey = CONTEXT_PACKS.find((p) => p.id === "habitacao")!.byLang[lang].vocabKeys[0];
     const wInfo = wordContextInfo(lang, sampleKey);
     assert.ok(wInfo.packs.some((p) => p.id === "habitacao"), `${lang} wordContextInfo packs`);
     assert.ok(wInfo.relatedWords.length >= 3, `${lang} wordContextInfo relatedWords`);
+    const colProbe = lang === "en" ? "card" : lang === "fr" ? "carte" : "日本";
+    assert.ok(wordContextInfo(lang, colProbe).collocations.length >= 2, `${lang} collocations for ${colProbe}`);
+    const wotd = wordOfTheDay(lang, {}, "2026-11-16");
+    assert.ok(wotd.entry.example && wotd.pack, `${lang} wordOfTheDay`);
   });
 }
 
@@ -486,10 +533,17 @@ check("contextPackProgress e recommendedContextPack acompanham domínio e intere
   s = saveWordsBatch(s, "en", carreiraPack.byLang.en.vocabKeys, 2);
   s = addActivity(s, "en", "context-sit:carreira", 20);
   s = addActivity(s, "en", "context-vocab:carreira", 20);
+  s = addActivity(s, "en", "context-conv:carreira", 25);
   const prog = contextPackProgress(carreiraPack, "en", s.srs.en, s.xpEvents);
   assert.equal(prog.situationsDone, true);
   assert.equal(prog.vocabDone, true);
+  assert.equal(prog.convDone, true);
   assert.equal(prog.mastered, true);
+
+  const gStats = globalContextStats("en", s.srs.en, s.xpEvents);
+  assert.equal(gStats.totalPacks, 20);
+  assert.equal(gStats.masteredPacks, 1);
+  assert.ok(gStats.savedContextWords >= carreiraPack.byLang.en.vocabKeys.length);
 
   const rec2 = recommendedContextPack("en", s.settings.interests, s.srs.en, s.xpEvents);
   assert.equal(rec2.pack.id, "remoto");

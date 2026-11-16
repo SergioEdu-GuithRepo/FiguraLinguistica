@@ -15,6 +15,7 @@ import {
   currentLevel,
   recordError,
   recordResponseMetric,
+  saveWordsBatch,
   type ConversationLog,
   type ConversationMode,
 } from "@/lib/state";
@@ -188,6 +189,9 @@ export function TutorChat({
         n = completeStep(n, unit.id, "conversa", xp);
         const today = Object.keys(n.days).sort().pop()!;
         n = { ...n, days: { ...n.days, [today]: { ...n.days[today], conversations: n.days[today].conversations + 1 } } };
+      } else if (unit.id.startsWith("ctx-")) {
+        const packId = unit.id.split("-").slice(2).join("-");
+        n = addActivity(n, lang, `context-conv:${packId}`, xp, { conversation: true });
       } else {
         n = addActivity(n, lang, `conversation:${mode}`, xp, { conversation: true });
       }
@@ -410,6 +414,15 @@ export function TutorChat({
               <div className="font-bold">🎯 1 ponto a melhorar</div>
               <div className="target">{finished.improve}</div>
             </div>
+            {unit.vocab.some((v) => !state.srs[lang][`w:${v.toLowerCase()}`]) && (
+              <button
+                type="button"
+                onClick={() => update((s) => saveWordsBatch(s, lang, unit.vocab, 2))}
+                className="btn btn-primary mt-1 w-full text-xs"
+              >
+                <Icon name="bookmark" size={16} /> Guardar vocabulário deste cenário na revisão
+              </button>
+            )}
           </div>
         </div>
       ) : (
@@ -455,6 +468,7 @@ export function TutorChat({
                 name="reply"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
+                onCompositionStart={imeChat.onCompositionStart}
                 onCompositionEnd={imeChat.onCompositionEnd}
                 onKeyDown={imeChat.onKeyDown}
                 placeholder={lang === "ja" ? "Escreve em japonês ou romaji…" : `Responde em ${meta.name.toLowerCase()}…`}

@@ -48,7 +48,7 @@ export type TutorReply = z.infer<typeof TutorReplySchema>;
 
 export const TutorRequestSchema = z.object({
   lang: z.enum(["en", "fr", "ja"]),
-  unitId: z.string().max(20),
+  unitId: z.string().max(40),
   stepIndex: z.number().int().min(0).max(20),
   userText: z.string().min(1).max(400),
   mode: z.enum(["guiado", "livre", "desafio"]).default("guiado"),
