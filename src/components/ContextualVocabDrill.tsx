@@ -23,6 +23,7 @@ export function ContextualVocabDrill({
   networkId,
   onlyWeak = false,
   count = 6,
+  initialMode = "mixed",
   title = "Treino de vocabulário em contexto",
   onDone,
 }: {
@@ -31,6 +32,7 @@ export function ContextualVocabDrill({
   networkId?: string;
   onlyWeak?: boolean;
   count?: number;
+  initialMode?: VocabDrillMode;
   title?: string;
   onDone?: () => void;
 }) {
@@ -42,7 +44,7 @@ export function ContextualVocabDrill({
   const dict = CONTENT[lang].dictionary;
 
   const [round, setRound] = useState(0);
-  const [drillMode, setDrillMode] = useState<VocabDrillMode>("mixed");
+  const [drillMode, setDrillMode] = useState<VocabDrillMode>(initialMode);
   const [questions, setQuestions] = useState<ContextualVocabQuestion[]>([]);
   const [idx, setIdx] = useState(0);
   const [picked, setPicked] = useState<string | null>(null);
@@ -52,6 +54,10 @@ export function ContextualVocabDrill({
   const [score, setScore] = useState(0);
   const [done, setDone] = useState(false);
   const spokenListenRef = useRef<string>("");
+
+  useEffect(() => {
+    setDrillMode(initialMode);
+  }, [initialMode]);
 
   useEffect(() => {
     const lvl = currentLevel(state, lang);
@@ -209,6 +215,7 @@ export function ContextualVocabDrill({
             ["recall", "🎯 Activar"],
             ["listen", "🎧 Ouvir"],
             ["write", "✍️ Escrever"],
+            ["pairs", "⚖️ Nuances"],
           ] as const
         ).map(([m, label]) => (
           <button
@@ -230,6 +237,11 @@ export function ContextualVocabDrill({
           <span className="rounded-full bg-white px-2.5 py-0.5 font-bold text-[var(--color-ink)]">
             {POS_PT[q.pos] ?? q.pos}
           </span>
+          {q.sourceLabel && (
+            <span className="max-w-[220px] truncate rounded-full bg-[var(--color-teal-soft)]/80 px-2.5 py-0.5 text-[11px] font-bold text-[var(--color-ink)]">
+              {q.sourceLabel}
+            </span>
+          )}
           {q.questionType === "recall" ? (
             <span className="font-bold text-[var(--color-coral)]">
               🎯 Como dizes «{q.ptWord}» nesta frase?
@@ -241,6 +253,10 @@ export function ContextualVocabDrill({
           ) : q.questionType === "write" ? (
             <span className="font-bold text-[var(--color-lilac)]">
               ✍️ Escreve «{q.ptWord}» em {LANGS[lang].name.toLowerCase()}
+            </span>
+          ) : q.questionType === "pairs" ? (
+            <span className="font-bold text-[var(--color-coral)]">
+              ⚖️ Qual das duas palavras encaixa? ({q.ptWord})
             </span>
           ) : (
             <span>Pista: «{q.ptWord}»</span>

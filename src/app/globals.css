@@ -673,3 +673,71 @@ dialog.sheet::backdrop {
   inset: auto 10px 0;
   border-block-end: 3px solid var(--color-coral);
 }
+
+/* Botão de cópia acessível e bolha role="status" (copy-button) */
+.copy-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+.copy-btn {
+  display: inline-grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--color-bg);
+  color: var(--color-ink);
+  cursor: pointer;
+  transition:
+    background-color 0.16s ease,
+    color 0.16s ease,
+    transform 0.16s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.copy-btn:hover {
+  transform: translateY(-1px);
+}
+.copy-btn:active {
+  transform: scale(0.92);
+}
+.copy-btn[data-copied] {
+  background: var(--color-good-soft);
+  color: var(--color-good);
+}
+.copy-btn[data-failed] {
+  background: var(--color-bad-soft);
+  color: var(--color-bad);
+}
+.copy-tip {
+  position: absolute;
+  inset-block-end: calc(100% + 6px);
+  inset-inline-start: 50%;
+  transform: translateX(-50%) translateY(4px);
+  padding: 0.22rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 800;
+  white-space: nowrap;
+  pointer-events: none;
+  background: var(--color-ink);
+  color: var(--color-surface);
+  box-shadow: var(--shadow-card);
+  opacity: 0;
+  transition:
+    opacity 0.16s ease,
+    transform 0.16s ease;
+  z-index: 20;
+}
+.copy-btn[data-copied] + .copy-tip,
+.copy-btn[data-failed] + .copy-tip {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+@media (prefers-reduced-motion: reduce) {
+  .copy-btn,
+  .copy-tip {
+    transform: none !important;
+    transition: opacity 0.15s ease !important;
+  }
+  .copy-tip {
+    transform: translateX(-50%) !important;
+  }
+}

@@ -10,7 +10,7 @@ import { WordSheet } from "@/components/Reader";
 import { AppFrame, LanguageSelector } from "@/components/Shell";
 import { Empty, SpeakButton, Toast, TopBar } from "@/components/ui";
 import { CONTENT } from "@/content";
-import { CONTEXT_PACKS, searchDictionary, VOCAB_NETWORKS } from "@/lib/contexts";
+import { CONFUSABLE_PAIRS, CONTEXT_PACKS, searchDictionary, VOCAB_NETWORKS, type VocabDrillMode } from "@/lib/contexts";
 import { useImeSafeEnter } from "@/lib/ime";
 import { LANGS, POS_PT } from "@/lib/langs";
 import { isUnitUnlocked, saveWordsBatch } from "@/lib/state";
@@ -41,7 +41,10 @@ function Vocabulario() {
   const [open, setOpen] = useState<string | null>(units[0]?.id ?? null);
   const [openPack, setOpenPack] = useState<string | null>(null);
   const [openNet, setOpenNet] = useState<string | null>(null);
+  const [pairsOpen, setPairsOpen] = useState(false);
   const [drillNetworkId, setDrillNetworkId] = useState<string | undefined>(undefined);
+  const [drillPackId, setDrillPackId] = useState<string | undefined>(undefined);
+  const [drillInitialMode, setDrillInitialMode] = useState<VocabDrillMode>("mixed");
   const [tok, setTok] = useState<RToken | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const tabRefs = useRef<Partial<Record<ModeTab, HTMLButtonElement | null>>>({});
@@ -204,7 +207,9 @@ function Vocabulario() {
                             <button
                               type="button"
                               onClick={() => {
+                                setDrillPackId(undefined);
                                 setDrillNetworkId(net.id);
+                                setDrillInitialMode("mixed");
                                 setMode("treino");
                               }}
                               className="rounded-full bg-[var(--color-teal-soft)] px-3 py-1.5 text-xs font-extrabold text-[#2a6b64] transition hover:opacity-90"
@@ -267,6 +272,107 @@ function Vocabulario() {
                 })}
               </div>
             </section>
+
+            {/* Pares confusos & nuances para lusófonos */}
+            <section aria-labelledby="confusable-pairs-heading">
+              <div className="mb-2 flex items-baseline justify-between gap-2">
+                <h2 id="confusable-pairs-heading" className="font-extrabold">
+                  Pares Confusos & Nuances ({CONFUSABLE_PAIRS[lang].length})
+                </h2>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDrillNetworkId(undefined);
+                    setDrillPackId(undefined);
+                    setDrillInitialMode("pairs");
+                    setMode("treino");
+                  }}
+                  className="text-xs font-extrabold text-[var(--color-coral)] hover:underline"
+                >
+                  ⚖️ Treinar nuances →
+                </button>
+              </div>
+              <p className="mb-3 text-xs text-[var(--color-muted)]">
+                Contrastes directos entre palavras que os falantes de português confundem com frequência.
+              </p>
+              <div className="card overflow-hidden">
+                <button
+                  type="button"
+                  aria-expanded={pairsOpen}
+                  onClick={() => setPairsOpen((v) => !v)}
+                  className="flex min-h-[58px] w-full items-center gap-3 p-3.5 text-left"
+                >
+                  <span className="grid h-10 w-10 shrink-0 place-items-center rounded-2xl bg-[var(--color-coral-soft)] text-xl">
+                    ⚖️
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate text-sm font-extrabold">
+                      Ver os {CONFUSABLE_PAIRS[lang].length} pares de contraste em {LANGS[lang].name.toLowerCase()}
+                    </span>
+                    <span className="block truncate text-xs text-[var(--color-muted)]">
+                      {CONFUSABLE_PAIRS[lang]
+                        .slice(0, 3)
+                        .map((p) => `${p.wordA} ↔ ${p.wordB}`)
+                        .join(" · ")}
+                    </span>
+                  </span>
+                  <Icon
+                    name={pairsOpen ? "chevron-down" : "chevron-right"}
+                    size={18}
+                    className="shrink-0 text-[var(--color-muted)]"
+                  />
+                </button>
+                {pairsOpen && (
+                  <div className={`space-y-2.5 px-3.5 pb-3.5 lang-${lang}`}>
+                    {CONFUSABLE_PAIRS[lang].map((pr) => {
+                      const eA = dictionary[pr.wordA];
+                      const eB = dictionary[pr.wordB];
+                      if (!eA || !eB) return null;
+                      return (
+                        <div key={pr.id} className="rounded-2xl bg-[var(--color-bg)] p-3">
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <div className="flex flex-wrap items-center gap-1.5">
+                              <SpeakButton text={pr.wordA} lang={lang} size={30} className="!bg-white" label={`Ouvir ${pr.wordA}`} />
+                              <button
+                                type="button"
+                                onClick={() => setTok({ text: pr.wordA, key: pr.wordA, entry: eA, isPunct: false, spaceAfter: false })}
+                                className="rounded-xl bg-white px-2.5 py-1 text-xs font-extrabold shadow-sm hover:bg-[var(--color-lilac-soft)]"
+                              >
+                                <span lang={speechLang} className="target">{pr.wordA}</span>
+                              </button>
+                              <span className="text-xs font-bold text-[var(--color-muted)]">vs.</span>
+                              <SpeakButton text={pr.wordB} lang={lang} size={30} className="!bg-white" label={`Ouvir ${pr.wordB}`} />
+                              <button
+                                type="button"
+                                onClick={() => setTok({ text: pr.wordB, key: pr.wordB, entry: eB, isPunct: false, spaceAfter: false })}
+                                className="rounded-xl bg-white px-2.5 py-1 text-xs font-extrabold shadow-sm hover:bg-[var(--color-lilac-soft)]"
+                              >
+                                <span lang={speechLang} className="target">{pr.wordB}</span>
+                              </button>
+                            </div>
+                            <span className="text-[11px] font-bold text-[var(--color-coral)]">{pr.summaryPt}</span>
+                          </div>
+                          <p className="mt-2 text-xs leading-relaxed text-[var(--color-ink)]">💡 {pr.tipPt}</p>
+                        </div>
+                      );
+                    })}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setDrillNetworkId(undefined);
+                        setDrillPackId(undefined);
+                        setDrillInitialMode("pairs");
+                        setMode("treino");
+                      }}
+                      className="btn btn-primary w-full !py-2.5 text-xs"
+                    >
+                      ⚖️ Praticar pares confusos em frases reais
+                    </button>
+                  </div>
+                )}
+              </div>
+            </section>
+
             {/* Colecções temáticas de Contextos Reais (todas abertas desde o nível 1) */}
             <section aria-labelledby="context-collections-heading">
               <div className="mb-2 flex items-baseline justify-between gap-2">
@@ -557,7 +663,7 @@ function Vocabulario() {
                       packFilter === p.id ? "!bg-[var(--color-ink)] text-white" : ""
                     }`}
                   >
-                    {p.emoji} {p.tag}
+                    {p.emoji} {p.title.split(/[,&]/)[0].trim()}
                   </button>
                 ))}
               </div>
@@ -717,23 +823,45 @@ function Vocabulario() {
       <div role="tabpanel" aria-labelledby="vocab-tab-treino" hidden={mode !== "treino"}>
         {mode === "treino" && (
           <div className="space-y-3">
-            <div className="no-scrollbar flex gap-1.5 overflow-x-auto pb-1" role="group" aria-label="Escolher conjunto de treino">
+            <div className="no-scrollbar flex gap-1.5 overflow-x-auto pb-1" role="group" aria-label="Escolher rede ou modo especial de treino">
               <button
                 type="button"
-                aria-pressed={!drillNetworkId}
-                onClick={() => setDrillNetworkId(undefined)}
+                aria-pressed={!drillNetworkId && !drillPackId && drillInitialMode !== "pairs"}
+                onClick={() => {
+                  setDrillNetworkId(undefined);
+                  setDrillPackId(undefined);
+                  setDrillInitialMode("mixed");
+                }}
                 className={`chip shrink-0 min-h-[34px] !px-3 !py-1 text-xs ${
-                  !drillNetworkId ? "!bg-[var(--color-ink)] text-white" : ""
+                  !drillNetworkId && !drillPackId && drillInitialMode !== "pairs" ? "!bg-[var(--color-ink)] text-white" : ""
                 }`}
               >
                 🌍 Geral (todos os temas)
+              </button>
+              <button
+                type="button"
+                aria-pressed={drillInitialMode === "pairs"}
+                onClick={() => {
+                  setDrillNetworkId(undefined);
+                  setDrillPackId(undefined);
+                  setDrillInitialMode(drillInitialMode === "pairs" ? "mixed" : "pairs");
+                }}
+                className={`chip shrink-0 min-h-[34px] !px-3 !py-1 text-xs ${
+                  drillInitialMode === "pairs" ? "!bg-[var(--color-coral)] text-white" : ""
+                }`}
+              >
+                ⚖️ Pares confusos ({CONFUSABLE_PAIRS[lang].length})
               </button>
               {VOCAB_NETWORKS.map((n) => (
                 <button
                   key={n.id}
                   type="button"
                   aria-pressed={drillNetworkId === n.id}
-                  onClick={() => setDrillNetworkId(drillNetworkId === n.id ? undefined : n.id)}
+                  onClick={() => {
+                    setDrillPackId(undefined);
+                    setDrillInitialMode("mixed");
+                    setDrillNetworkId(drillNetworkId === n.id ? undefined : n.id);
+                  }}
                   className={`chip shrink-0 min-h-[34px] !px-3 !py-1 text-xs ${
                     drillNetworkId === n.id ? "!bg-[var(--color-ink)] text-white" : ""
                   }`}
@@ -742,14 +870,41 @@ function Vocabulario() {
                 </button>
               ))}
             </div>
+
+            <div className="no-scrollbar flex gap-1.5 overflow-x-auto pb-1" role="group" aria-label="Treinar por cenário de contexto real">
+              {CONTEXT_PACKS.map((p) => (
+                <button
+                  key={p.id}
+                  type="button"
+                  aria-pressed={drillPackId === p.id}
+                  onClick={() => {
+                    setDrillNetworkId(undefined);
+                    setDrillInitialMode("mixed");
+                    setDrillPackId(drillPackId === p.id ? undefined : p.id);
+                  }}
+                  className={`chip shrink-0 min-h-[32px] !px-2.5 !py-1 text-[11px] ${
+                    drillPackId === p.id ? "!bg-[var(--color-teal)] text-white" : ""
+                  }`}
+                >
+                  {p.emoji} {p.title.split(/[,&]/)[0].trim()}
+                </button>
+              ))}
+            </div>
+
             <ContextualVocabDrill
               lang={lang}
+              packId={drillPackId}
               networkId={drillNetworkId}
+              initialMode={drillInitialMode}
               count={8}
               title={
-                drillNetworkId
-                  ? `Rede: ${VOCAB_NETWORKS.find((n) => n.id === drillNetworkId)?.title ?? "Vocabulário"}`
-                  : "Completa, ouve ou escreve no contexto certo"
+                drillInitialMode === "pairs"
+                  ? "Pares confusos & nuances"
+                  : drillPackId
+                    ? `Contexto: ${CONTEXT_PACKS.find((p) => p.id === drillPackId)?.title ?? "Cenário"}`
+                    : drillNetworkId
+                      ? `Rede: ${VOCAB_NETWORKS.find((n) => n.id === drillNetworkId)?.title ?? "Vocabulário"}`
+                      : "Completa, ouve ou escreve no contexto certo"
               }
               onDone={() => setMode("cenas")}
             />

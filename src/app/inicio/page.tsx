@@ -5,7 +5,7 @@ import { useState } from "react";
 import { AppFrame, LanguageSelector, NotificationsButton, ScreenHeader, StreakBadge } from "@/components/Shell";
 import { Icon } from "@/components/Icon";
 import { WordSheet } from "@/components/Reader";
-import { ProgressBar, ProgressRing, SpeakButton, Toast } from "@/components/ui";
+import { CopyTextButton, ProgressBar, ProgressRing, SpeakButton, Toast } from "@/components/ui";
 import { getUnit } from "@/content";
 import { CONTEXT_PACKS, wordOfTheDay } from "@/lib/contexts";
 import { LANGS } from "@/lib/langs";
@@ -244,11 +244,27 @@ function Home() {
             </button>
           </div>
           {wotd.entry.example && (
-            <div className="mt-2.5 rounded-2xl bg-[var(--color-bg)] px-3.5 py-2.5 text-xs">
-              <div lang={meta.speechLang} className={`target font-bold text-[var(--color-ink)] ${lang === "ja" ? "jp" : ""}`}>
-                {plainText(wotd.entry.example.text, lang)}
+            <div className="mt-2.5 flex items-center gap-2.5 rounded-2xl bg-[var(--color-bg)] px-3.5 py-2.5 text-xs">
+              <div className="min-w-0 flex-1">
+                <div lang={meta.speechLang} className={`target font-bold text-[var(--color-ink)] ${lang === "ja" ? "jp" : ""}`}>
+                  {plainText(wotd.entry.example.text, lang)}
+                </div>
+                <div className="mt-0.5 text-[var(--color-muted)]">{wotd.entry.example.pt}</div>
               </div>
-              <div className="mt-0.5 text-[var(--color-muted)]">{wotd.entry.example.pt}</div>
+              <SpeakButton
+                text={wotd.entry.example.text}
+                lang={lang}
+                size={34}
+                className="!bg-white"
+                label={`Ouvir exemplo: ${wotd.entry.example.pt}`}
+              />
+              <CopyTextButton
+                text={wotd.entry.example.text}
+                lang={lang}
+                size={34}
+                className="!bg-white"
+                label={`Copiar exemplo: ${wotd.entry.example.pt}`}
+              />
             </div>
           )}
         </section>
@@ -259,7 +275,7 @@ function Home() {
           <div className="flex-1">
             <div className="font-extrabold">Contextos & Kit de Bolso</div>
             <div className="text-sm text-[var(--color-muted)]">
-              {CONTEXT_PACKS.length} cenários reais: hotel, supermercado, burocracia, casa, carreira e mais
+              {CONTEXT_PACKS.length} cenários reais: condução, roupa, clima, desporto, negociação, festas e mais
             </div>
           </div>
           <Icon name="chevron-right" className="text-[var(--color-muted)]" />

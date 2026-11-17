@@ -38,6 +38,8 @@ export type IconName =
   | "pen"
   | "stop"
   | "eye"
+  | "eye-off"
+  | "copy"
   | "layers"
   | "translate";
 
@@ -145,6 +147,18 @@ const paths: Record<IconName, React.ReactNode> = {
     <>
       <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12Z" />
       <circle cx="12" cy="12" r="3" />
+    </>
+  ),
+  "eye-off": (
+    <>
+      <path d="M3 3l18 18M10.6 10.6a3 3 0 0 0 4.2 4.2" />
+      <path d="M9.9 5.1A10.5 10.5 0 0 1 12 5c6.5 0 10 7 10 7a17.6 17.6 0 0 1-4 4.9M6.2 6.3C3.6 8.2 2 12 2 12s3.5 7 10 7c1.6 0 3.1-.4 4.4-1" />
+    </>
+  ),
+  copy: (
+    <>
+      <rect x="9" y="9" width="11" height="11" rx="2" />
+      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
     </>
   ),
   layers: <path d="m12 3 9 5-9 5-9-5 9-5ZM3 13l9 5 9-5" />,

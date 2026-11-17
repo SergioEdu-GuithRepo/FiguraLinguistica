@@ -8,7 +8,7 @@ import { CONTENT, DICT_PARTS } from "../src/content";
 import { CONTEXT_EXTRA_DICT } from "../src/content/contexts-dict";
 import { KANJI, KANJI_ORDER } from "../src/content/ja/kanji";
 import { segmentJa } from "../src/lib/adapt-offline";
-import { CONTEXT_PACKS, getPackDialogue, VOCAB_NETWORKS } from "../src/lib/contexts";
+import { CONFUSABLE_PAIRS, CONTEXT_PACKS, getPackDialogue, VOCAB_NETWORKS } from "../src/lib/contexts";
 import { tokenize, plainText, fillTemplate, normalizeAnswer } from "../src/lib/tokenize";
 import type { Dictionary, LangCode, Unit } from "../src/lib/types";
 
@@ -101,6 +101,16 @@ for (const lang of langs) {
         if (!dictionary[nk.toLowerCase()]) {
           err(`rede "${net.id}" (${lang}): chave "${nk}" não existe no dicionário`);
         }
+      }
+    }
+    for (const cp of CONFUSABLE_PAIRS[lang]) {
+      for (const w of [cp.wordA, cp.wordB, cp.quizAnswer, cp.quizDistractor]) {
+        if (!dictionary[w.toLowerCase()]) {
+          err(`par confuso "${cp.id}" (${lang}): palavra "${w}" não existe no dicionário`);
+        }
+      }
+      if (!cp.quizSentence.includes("＿＿＿")) {
+        err(`par confuso "${cp.id}" (${lang}): quizSentence sem lacuna "＿＿＿"`);
       }
     }
   }

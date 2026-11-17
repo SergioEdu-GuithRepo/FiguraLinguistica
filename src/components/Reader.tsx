@@ -15,7 +15,7 @@ import type { DialogueLine, LangCode, Pattern, SentenceBlock } from "@/lib/types
 
 import { Icon } from "./Icon";
 import { Sheet } from "./Sheet";
-import { SpeakButton, Toast, useSpeaker } from "./ui";
+import { CopyTextButton, SpeakButton, Toast, useSpeaker } from "./ui";
 
 const KANJI_CHAR_RE = /[\u4e00-\u9faf]/g;
 const KANJI_BY_CHAR = new Map(KANJI.map((k) => [k.char, k]));
@@ -185,6 +185,7 @@ export function WordSheet({ tok, lang, onClose }: { tok: RToken | null; lang: La
               </div>
               <SpeakButton text={activeTok.text} lang={lang} size={48} />
               <SpeakButton text={activeTok.text} lang={lang} size={40} slow label="Ouvir devagar" className="opacity-70" />
+              <CopyTextButton text={activeTok.text} lang={lang} size={40} label={`Copiar ${activeTok.text}`} />
             </div>
             <div className="mt-4 text-xl font-bold">{e.pt}</div>
             <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold">
@@ -215,6 +216,51 @@ export function WordSheet({ tok, lang, onClose }: { tok: RToken | null; lang: La
               </div>
             )}
             {e.note && <div className="mt-3 rounded-2xl bg-[var(--color-yellow-soft)] p-3 text-sm">💡 {e.note}</div>}
+            {ctxInfo && ctxInfo.confusableWith.length > 0 && (
+              <div className="mt-3 space-y-2">
+                {ctxInfo.confusableWith.map((cw) => {
+                  const cwEntry = dict[cw.otherKey];
+                  return (
+                    <div
+                      key={cw.otherKey}
+                      className="rounded-2xl border border-[var(--color-coral)]/35 bg-[var(--color-coral-soft)]/55 p-3 text-xs"
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <span className="font-extrabold text-[var(--color-coral)]">
+                          ⚖️ Não confundir com{" "}
+                          <span lang={speechLang} className="target underline">
+                            {cw.otherKey}
+                          </span>{" "}
+                          ({cw.otherPt})
+                        </span>
+                        {cwEntry && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setSubTok({
+                                parentKey: rootKey,
+                                tok: {
+                                  text: cw.otherKey,
+                                  key: cw.otherKey,
+                                  entry: cwEntry,
+                                  isPunct: false,
+                                  spaceAfter: false,
+                                  chunk: cw.otherKey.includes(" "),
+                                },
+                              })
+                            }
+                            className="rounded-full bg-white px-2.5 py-1 text-[11px] font-extrabold text-[var(--color-ink)] shadow-sm transition hover:bg-[var(--color-lilac-soft)]"
+                          >
+                            Ver «{cw.otherKey}» →
+                          </button>
+                        )}
+                      </div>
+                      <p className="mt-1 leading-relaxed text-[var(--color-ink)]">{cw.tipPt}</p>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
             {lang === "ja" && hasKanji(activeTok.text) && (
               <div className="mt-3 rounded-2xl bg-[var(--color-bg)] p-3 text-sm" data-testid="word-kanji">
                 <div className="mb-1 text-xs font-bold text-[var(--color-muted)]">KANJI</div>
@@ -296,10 +342,10 @@ export function WordSheet({ tok, lang, onClose }: { tok: RToken | null; lang: La
                 </div>
               </div>
             )}
-            {ctxInfo && ctxInfo.packs.length > 0 && (
+            {ctxInfo && (ctxInfo.packs.length > 0 || ctxInfo.networks.length > 0) && (
               <div className="mt-3">
                 <div className="mb-1.5 text-[11px] font-extrabold uppercase tracking-wider text-[var(--color-muted)]">
-                  Cenários práticos onde usar
+                  Cenários e redes onde usar
                 </div>
                 <div className="flex flex-wrap gap-1.5">
                   {ctxInfo.packs.map((p) => (
@@ -311,6 +357,17 @@ export function WordSheet({ tok, lang, onClose }: { tok: RToken | null; lang: La
                     >
                       <span>{p.emoji}</span>
                       <span>{p.title}</span>
+                    </Link>
+                  ))}
+                  {ctxInfo.networks.map((n) => (
+                    <Link
+                      key={n.id}
+                      href="/cursos/vocabulario"
+                      onClick={handleClose}
+                      className="inline-flex min-h-[34px] items-center gap-1.5 rounded-full bg-[var(--color-lilac-soft)] px-3 py-1 text-xs font-bold text-[var(--color-ink)] transition hover:opacity-90"
+                    >
+                      <span>{n.emoji}</span>
+                      <span>{n.title}</span>
                     </Link>
                   ))}
                 </div>

@@ -8,7 +8,7 @@ import { ContextualVocabDrill } from "@/components/ContextualVocabDrill";
 import { Icon } from "@/components/Icon";
 import { DialogueReader, TokenLine, WordSheet } from "@/components/Reader";
 import { AppFrame, LanguageSelector } from "@/components/Shell";
-import { CelebrationBurst, Empty, SpeakButton, Toast, TopBar, useSpeaker } from "@/components/ui";
+import { CelebrationBurst, CopyTextButton, Empty, SpeakButton, Toast, TopBar, useSpeaker } from "@/components/ui";
 import { CONTENT, getUnit } from "@/content";
 import {
   CONTEXT_PACKS,
@@ -167,6 +167,7 @@ function SituationQuiz({ pack, onBackToKit }: { pack: ContextPack; onBackToKit: 
 
 function ContextosInner() {
   const { state, update } = useApp();
+  const { sayMany, stop } = useSpeaker();
   const router = useRouter();
   const searchParams = useSearchParams();
   const lang = state.activeLang;
@@ -182,10 +183,22 @@ function ContextosInner() {
   const [tagFilter, setTagFilter] = useState<string | null>(null);
   const [regFilter, setRegFilter] = useState<RegisterLevel | "all">("all");
   const [tab, setTab] = useState<PackTab>("kit");
+  const [selfTest, setSelfTest] = useState(false);
+  const [revealedPhrases, setRevealedPhrases] = useState<Record<number, boolean>>({});
+  const [dlgPlaying, setDlgPlaying] = useState(false);
+  const [activeDlgIdx, setActiveDlgIdx] = useState<number | undefined>(undefined);
+  const dlgCancelRef = useRef<() => void>(() => {});
   const [globalDrillOpen, setGlobalDrillOpen] = useState(false);
   const [tok, setTok] = useState<RToken | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const tabRefs = useRef<Partial<Record<PackTab, HTMLButtonElement | null>>>({});
+
+  const stopDialogueAudio = () => {
+    dlgCancelRef.current();
+    stop();
+    setDlgPlaying(false);
+    setActiveDlgIdx(undefined);
+  };
 
   const imeSearch = useImeSafeEnter(() => {
     if (typeof document !== "undefined" && document.activeElement instanceof HTMLElement) {
@@ -220,6 +233,7 @@ function ContextosInner() {
     if (nextIdx >= 0) {
       event.preventDefault();
       const nextId = order[nextIdx];
+      stopDialogueAudio();
       setTab(nextId);
       tabRefs.current[nextId]?.focus();
     }
@@ -247,9 +261,12 @@ function ContextosInner() {
       <>
         <TopBar
           back={() => {
+            stopDialogueAudio();
             setSelectedId(null);
             setTab("kit");
             setRegFilter("all");
+            setSelfTest(false);
+            setRevealedPhrases({});
           }}
           title={`${activePack.emoji} ${activePack.title}`}
         />
@@ -292,7 +309,10 @@ function ContextosInner() {
                 role="tab"
                 aria-selected={active}
                 tabIndex={active ? 0 : -1}
-                onClick={() => setTab(id)}
+                onClick={() => {
+                  stopDialogueAudio();
+                  setTab(id);
+                }}
                 className="fl-tab min-h-[44px] rounded-2xl px-2.5 py-2 text-xs font-extrabold transition"
               >
                 {label}
@@ -314,11 +334,27 @@ function ContextosInner() {
 
               {/* Frases prontas a usar */}
               <section aria-labelledby="pocket-phrases-heading">
-                <div className="mb-2 flex flex-wrap items-baseline justify-between gap-2">
-                  <h2 id="pocket-phrases-heading" className="font-extrabold">
-                    Frases prontas a usar
-                  </h2>
-                  <span className="text-xs text-[var(--color-muted)]">Toca numa palavra · Normal e 0.6×</span>
+                <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <h2 id="pocket-phrases-heading" className="font-extrabold">
+                      Frases prontas a usar
+                    </h2>
+                    <span className="text-xs text-[var(--color-muted)]">Toca numa palavra · Ouvir, 0.6× e copiar</span>
+                  </div>
+                  <button
+                    type="button"
+                    aria-pressed={selfTest}
+                    onClick={() => {
+                      setSelfTest((v) => !v);
+                      setRevealedPhrases({});
+                    }}
+                    className={`chip min-h-[36px] !px-3 !py-1 text-xs ${
+                      selfTest ? "!bg-[var(--color-coral)] text-white" : ""
+                    }`}
+                  >
+                    <Icon name={selfTest ? "eye" : "eye-off"} size={14} />
+                    {selfTest ? "Mostrar todas" : "Auto-teste"}
+                  </button>
                 </div>
 
                 <div className="mb-3 flex flex-wrap gap-1.5" role="group" aria-label="Filtrar frases por registo social">
@@ -352,6 +388,7 @@ function ContextosInner() {
                   <ul role="list" className={`flex flex-col gap-3 lang-${lang}`}>
                     {filteredPhrases.map((p, idx) => {
                       const reg = REGISTER_LABEL[p.register];
+                      const hiddenByTest = selfTest && !revealedPhrases[idx];
                       return (
                         <li key={idx} className="card p-4">
                           <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
@@ -360,25 +397,46 @@ function ContextosInner() {
                             </span>
                             <span className="text-xs text-[var(--color-muted)]">{p.whenToUse}</span>
                           </div>
-                          <div lang={speechLang} className={`text-base font-extrabold leading-snug ${lang === "ja" ? "jp" : ""}`}>
-                            <TokenLine text={p.text} lang={lang} onWord={setTok} />
-                          </div>
-                          {lang === "ja" && state.settings.romaji && p.romaji && (
-                            <p className="mt-0.5 text-xs font-medium text-[var(--color-muted)]">{p.romaji}</p>
+                          {hiddenByTest ? (
+                            <div className="space-y-2.5">
+                              <p className="text-base font-extrabold text-[var(--color-ink)]">«{p.pt}»</p>
+                              <button
+                                type="button"
+                                onClick={() => setRevealedPhrases((prev) => ({ ...prev, [idx]: true }))}
+                                className="flex min-h-[42px] w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-[var(--color-lilac)]/60 bg-[var(--color-lilac-soft)]/35 px-3.5 py-2 text-xs font-extrabold text-[var(--color-ink)] transition hover:bg-[var(--color-lilac-soft)]/70"
+                              >
+                                <Icon name="eye" size={16} /> Tenta dizer primeiro — toca para revelar em {meta.name.toLowerCase()}
+                              </button>
+                            </div>
+                          ) : (
+                            <>
+                              <div lang={speechLang} className={`text-base font-extrabold leading-snug ${lang === "ja" ? "jp" : ""}`}>
+                                <TokenLine text={p.text} lang={lang} onWord={setTok} />
+                              </div>
+                              {lang === "ja" && state.settings.romaji && p.romaji && (
+                                <p className="mt-0.5 text-xs font-medium text-[var(--color-muted)]">{p.romaji}</p>
+                              )}
+                              <p className="mt-1 text-sm text-[var(--color-muted)]">{p.pt}</p>
+                              <div className="mt-3 flex flex-wrap items-center gap-2">
+                                <SpeakButton text={p.text} lang={lang} size={38} label={`Ouvir: ${p.pt}`} />
+                                <SpeakButton
+                                  text={p.text}
+                                  lang={lang}
+                                  size={38}
+                                  slow
+                                  label={`Ouvir devagar: ${p.pt}`}
+                                  className="!bg-[var(--color-teal-soft)]/70"
+                                />
+                                <CopyTextButton
+                                  text={p.text}
+                                  lang={lang}
+                                  size={38}
+                                  label={`Copiar frase: ${p.pt}`}
+                                />
+                                <span className="text-xs text-[var(--color-muted)]">Ouvir · Devagar 🐢 · Copiar</span>
+                              </div>
+                            </>
                           )}
-                          <p className="mt-1 text-sm text-[var(--color-muted)]">{p.pt}</p>
-                          <div className="mt-3 flex items-center gap-2">
-                            <SpeakButton text={p.text} lang={lang} size={38} label="Ouvir velocidade normal" />
-                            <SpeakButton
-                              text={p.text}
-                              lang={lang}
-                              size={38}
-                              slow
-                              label="Ouvir devagar"
-                              className="!bg-[var(--color-teal-soft)]/70"
-                            />
-                            <span className="text-xs text-[var(--color-muted)]">Ouvir · Devagar 🐢</span>
-                          </div>
                         </li>
                       );
                     })}
@@ -389,13 +447,41 @@ function ContextosInner() {
               {/* Mini-diálogo interactivo na vida real */}
               {dialogue.length > 0 && (
                 <section aria-labelledby="pack-dialogue-heading">
-                  <div className="mb-2.5 flex items-baseline justify-between gap-2">
-                    <h2 id="pack-dialogue-heading" className="font-extrabold">
-                      💬 Mini-diálogo na vida real
-                    </h2>
-                    <span className="text-xs text-[var(--color-muted)]">Áudio, tradução e palavras clicáveis</span>
+                  <div className="mb-2.5 flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <h2 id="pack-dialogue-heading" className="font-extrabold">
+                        💬 Mini-diálogo na vida real
+                      </h2>
+                      <span className="text-xs text-[var(--color-muted)]">Duas vozes neurais, tradução e palavras clicáveis</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (dlgPlaying) {
+                          stopDialogueAudio();
+                          return;
+                        }
+                        setDlgPlaying(true);
+                        dlgCancelRef.current = sayMany(
+                          dialogue.map((l) => l.text),
+                          lang,
+                          (i) => setActiveDlgIdx(i),
+                          () => {
+                            setDlgPlaying(false);
+                            setActiveDlgIdx(undefined);
+                          },
+                          dialogue.map((l) => l.speaker),
+                        );
+                      }}
+                      className={`chip min-h-[38px] !px-3.5 !py-1.5 text-xs font-extrabold ${
+                        dlgPlaying ? "!bg-[var(--color-ink)] text-white" : "!bg-[var(--color-teal-soft)] text-[#24665f]"
+                      }`}
+                    >
+                      <Icon name={dlgPlaying ? "stop" : "play"} size={15} />
+                      {dlgPlaying ? "Parar diálogo" : "Ouvir diálogo todo"}
+                    </button>
                   </div>
-                  <DialogueReader lines={dialogue} lang={lang} />
+                  <DialogueReader lines={dialogue} lang={lang} activeIndex={activeDlgIdx} />
                 </section>
               )}
 
@@ -725,15 +811,21 @@ function ContextosInner() {
                     <p className="mt-0.5 text-xs text-[var(--color-muted)]">{m.phrase.romaji}</p>
                   )}
                   <p className="mt-1 text-xs text-[var(--color-muted)]">{m.phrase.pt}</p>
-                  <div className="mt-2 flex items-center gap-2">
-                    <SpeakButton text={m.phrase.text} lang={lang} size={34} label="Ouvir frase" />
+                  <div className="mt-2 flex flex-wrap items-center gap-2">
+                    <SpeakButton text={m.phrase.text} lang={lang} size={34} label={`Ouvir: ${m.phrase.pt}`} />
                     <SpeakButton
                       text={m.phrase.text}
                       lang={lang}
                       size={34}
                       slow
-                      label="Ouvir devagar"
+                      label={`Ouvir devagar: ${m.phrase.pt}`}
                       className="!bg-[var(--color-teal-soft)]/70"
+                    />
+                    <CopyTextButton
+                      text={m.phrase.text}
+                      lang={lang}
+                      size={34}
+                      label={`Copiar frase: ${m.phrase.pt}`}
                     />
                     <span className="text-[11px] text-[var(--color-muted)]">{m.phrase.whenToUse}</span>
                   </div>

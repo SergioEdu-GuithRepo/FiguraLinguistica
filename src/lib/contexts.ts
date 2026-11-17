@@ -6561,6 +6561,2130 @@ export const CONTEXT_PACKS: ContextPack[] = [
       },
     },
   },
+  {
+    id: "conducao",
+    emoji: "🚗",
+    title: "Condução, Aluguer de Carro & Estrada",
+    subtitle: "Alugar viatura, seguro e franquia, abastecer, portagens, estacionamento e avarias",
+    tag: "Viagens",
+    color: "var(--color-teal)",
+    softColor: "var(--color-teal-soft)",
+    relatedLevels: [12, 28, 34],
+    byLang: {
+      en: {
+        vocabKeys: [
+          "car rental",
+          "driver's license",
+          "full insurance",
+          "deductible",
+          "petrol station",
+          "toll",
+          "parking lot",
+          "flat tyre",
+          "speed limit",
+          "roundabout",
+        ],
+        phrases: [
+          {
+            text: "Hi, I booked a car rental online — here is my driver's license.",
+            pt: "Olá, reservei um aluguer de carro online — aqui está a minha carta de condução.",
+            register: "formal",
+            whenToUse: "Ao levantar a viatura no balcão da agência de aluguer",
+          },
+          {
+            text: "Does full insurance reduce the deductible to zero?",
+            pt: "O seguro contra todos os riscos reduz a franquia a zero?",
+            register: "formal",
+            whenToUse: "Essencial perguntar antes de assinar o contrato de aluguer!",
+          },
+          {
+            text: "Excuse me, where is the nearest petrol station, and is this car unleaded or diesel?",
+            pt: "Com licença, onde fica a bomba de combustível mais próxima, e este carro é a gasolina ou gasóleo?",
+            register: "neutro",
+            whenToUse: "Antes de abastecer para devolver o depósito cheio",
+          },
+          {
+            text: "Take the second exit at the roundabout and watch the speed limit.",
+            pt: "Sai na segunda saída da rotunda e tem atenção ao limite de velocidade.",
+            register: "informal",
+            whenToUse: "Ao dar indicações de estrada a quem vai ao volante",
+          },
+          {
+            text: "Hello, we have a flat tyre near the toll booth — could you send roadside assistance?",
+            pt: "Olá, temos um pneu furado perto da portagem — poderiam enviar assistência em viagem?",
+            register: "formal",
+            whenToUse: "Em caso de furo ou avaria na auto-estrada",
+          },
+        ],
+        culturalTip:
+          "No Reino Unido conduz-se pela esquerda («left-hand traffic») e entra-se nas rotundas no sentido dos ponteiros do relógio! Além disso, diz-se «petrol station» e «tyre» no UK, mas «gas station» e «tire» nos EUA.",
+        situations: [
+          {
+            id: "en-drv-1",
+            situationPt: "Estás a alugar um carro e queres confirmar se o seguro cobre tudo sem franquia em caso de danos.",
+            register: "formal",
+            correct: "Does full insurance cover everything with zero deductible?",
+            options: [
+              "Does full insurance cover everything with zero deductible?",
+              "Is the roundabout subtitled at the toll?",
+              "Can I borrow a recipe for my flat tyre?",
+              "Where is the fitting room for this petrol station?",
+            ],
+            explanationPt: "«Full insurance» com «zero deductible» (ou «zero excess» no UK) evita surpresas na caução.",
+          },
+          {
+            id: "en-drv-2",
+            situationPt: "Ficaste com um pneu furado na berma e ligas para a linha de assistência da rent-a-car.",
+            register: "formal",
+            correct: "Hello, we have a flat tyre — could you send roadside assistance?",
+            options: [
+              "Hello, we have a flat tyre — could you send roadside assistance?",
+              "Hi, please wrap my speed limit as a gift.",
+              "Can I pay the parking lot on mute?",
+              "My driver's license is sold out.",
+            ],
+            explanationPt: "«Flat tyre» (pneu furado) e «roadside assistance» (assistência em viagem) são os termos-chave.",
+          },
+          {
+            id: "en-drv-3",
+            situationPt: "Queres perguntar se o parque de estacionamento aceita pagamento por cartão.",
+            register: "neutro",
+            correct: "Can we pay for the parking lot by card at the exit?",
+            options: [
+              "Can we pay for the parking lot by card at the exit?",
+              "Is this roundabout dry cleaning only?",
+              "Did the toll expire in the fridge?",
+              "Have you got a looser driver's license?",
+            ],
+            explanationPt: "«Parking lot» (US) / «car park» (UK) refere-se ao parque de estacionamento.",
+          },
+        ],
+        miniDialogue: [
+          {
+            speaker: "Tu",
+            text: "Good morning! I have a reservation for a compact car rental for four days.",
+            pt: "Bom dia! Tenho uma reserva de aluguer de um carro compacto por quatro dias.",
+          },
+          {
+            speaker: "Agent",
+            text: "Welcome! May I see your passport, credit card, and driver's license, please?",
+            pt: "Bem-vindo! Posso ver o seu passaporte, cartão de crédito e carta de condução, por favor?",
+          },
+          {
+            speaker: "Tu",
+            text: "Here you go. I'd like to add full insurance with zero deductible, please.",
+            pt: "Aqui tem. Gostaria de adicionar o seguro completo sem franquia, por favor.",
+          },
+          {
+            speaker: "Agent",
+            text: "All set! Return the tank full — there's a petrol station right past the roundabout.",
+            pt: "Tudo pronto! Devolva com o depósito cheio — há uma bomba de gasolina logo depois da rotunda.",
+          },
+        ],
+      },
+      fr: {
+        vocabKeys: [
+          "location de voiture",
+          "permis de conduire",
+          "assurance tous risques",
+          "franchise",
+          "station-service",
+          "péage",
+          "parking",
+          "pneu crevé",
+          "limitation de vitesse",
+          "rond-point",
+        ],
+        phrases: [
+          {
+            text: "Bonjour, j'ai réservé une location de voiture — voici mon permis de conduire.",
+            pt: "Bom dia, reservei um aluguer de carro — aqui está a minha carta de condução.",
+            register: "formal",
+            whenToUse: "Ao levantar o carro numa agência em estação TGV ou aeroporto",
+          },
+          {
+            text: "Est-ce que l'assurance tous risques réduit bien la franchise à zéro ?",
+            pt: "O seguro contra todos os riscos reduz mesmo a franquia a zero?",
+            register: "formal",
+            whenToUse: "Em França «la franchise» de aluguer pode ultrapassar 1000 € sem cobertura extra!",
+          },
+          {
+            text: "Excusez-moi, cette voiture roule au sans-plomb ou au gazole ?",
+            pt: "Com licença, este carro anda a gasolina sem chumbo ou a gasóleo?",
+            register: "neutro",
+            whenToUse: "Antes de sair do parque ou parar na «station-service»",
+          },
+          {
+            text: "Prends la deuxième sortie au rond-point et fais attention à la limitation de vitesse.",
+            pt: "Sai na segunda saída da rotunda e tem atenção ao limite de velocidade.",
+            register: "informal",
+            whenToUse: "Em França há muitos radares automáticos nas estradas e auto-estradas!",
+          },
+          {
+            text: "Bonjour, nous avons un pneu crevé après le péage — pouvez-vous envoyer une dépanneuse ?",
+            pt: "Bom dia, temos um pneu furado depois da portagem — podem enviar um reboque?",
+            register: "formal",
+            whenToUse: "Ao ligar para a assistência na auto-estrada («autoroute»)",
+          },
+        ],
+        culturalTip:
+          "Nas auto-estradas francesas («autoroutes»), quase todos os troços têm portagem («péage»): tiras um bilhete à entrada e pagas com cartão ou dinheiro à saída. Nas bombas, gasolina é «sans-plomb 95/98» e gasóleo é «gazole»!",
+        situations: [
+          {
+            id: "fr-drv-1",
+            situationPt: "No balcão de aluguer em Lyon, queres garantir o seguro completo sem franquia.",
+            register: "formal",
+            correct: "Bonjour, je voudrais ajouter l'assurance tous risques sans franchise.",
+            options: [
+              "Bonjour, je voudrais ajouter l'assurance tous risques sans franchise.",
+              "Bonjour, quelle est la pointure du rond-point ?",
+              "Avez-vous une ordonnance pour le péage ?",
+              "Je laisse le pneu crevé au vestiaire.",
+            ],
+            explanationPt: "«L'assurance tous risques sans franchise» protege contra custos elevados por pequenos riscos.",
+          },
+          {
+            id: "fr-drv-2",
+            situationPt: "Precisas de abastecer antes de entregar o carro e procuras uma bomba de combustível.",
+            register: "neutro",
+            correct: "Excusez-moi, où se trouve la station-service la plus proche ?",
+            options: [
+              "Excusez-moi, où se trouve la station-service la plus proche ?",
+              "Où se trouve la cabine d'essayage de l'autoroute ?",
+              "Est-ce que le parking est fait maison ?",
+              "Le permis de conduire est déjà complet ?",
+            ],
+            explanationPt: "«La station-service» é a bomba de combustível / área de serviço.",
+          },
+          {
+            id: "fr-drv-3",
+            situationPt: "Tens um furo na estrada e precisas de explicar o problema à assistência.",
+            register: "formal",
+            correct: "Bonjour, j'ai un pneu crevé près de la sortie du parking.",
+            options: [
+              "Bonjour, j'ai un pneu crevé près de la sortie du parking.",
+              "J'ai une averse sur ma facture.",
+              "Mon rond-point est trop serré.",
+              "Je voudrais emballer la limitation de vitesse.",
+            ],
+            explanationPt: "«Avoir un pneu crevé» é a expressão natural para ter um pneu furado.",
+          },
+        ],
+        miniDialogue: [
+          {
+            speaker: "Tu",
+            text: "Bonjour ! J'ai réservé une location de voiture pour trois jours.",
+            pt: "Bom dia! Reservei um aluguer de carro por três dias.",
+          },
+          {
+            speaker: "Agence",
+            text: "Bonjour ! Puis-je voir votre permis de conduire et une carte bancaire pour la caution ?",
+            pt: "Bom dia! Posso ver a sua carta de condução e um cartão bancário para a caução?",
+          },
+          {
+            speaker: "Tu",
+            text: "Voici. Je préfère prendre l'assurance tous risques pour réduire la franchise.",
+            pt: "Aqui estão. Prefiro fazer o seguro contra todos os riscos para reduzir a franquia.",
+          },
+          {
+            speaker: "Agence",
+            text: "Parfait ! La voiture est au parking niveau moins un, et il y a une station-service près du rond-point.",
+            pt: "Perfeito! O carro está no estacionamento piso menos um, e há uma bomba perto da rotunda.",
+          },
+        ],
+      },
+      ja: {
+        vocabKeys: [
+          "レンタカー",
+          "めんきょ",
+          "ほけん",
+          "ガソリンスタンド",
+          "まんたん",
+          "こうそくどうろ",
+          "駐車場",
+          "じこ",
+          "運転",
+          "カーナビ",
+        ],
+        phrases: [
+          {
+            text: "予約|した|レンタカー|を|かります|。|これ|が|こくさい|めんきょ|です|。",
+            pt: "Venho levantar o carro alugado que reservei. Aqui está a carta de condução internacional.",
+            romaji: "Yoyaku shita rentakaa o karimasu. Kore ga kokusai menkyo desu.",
+            register: "formal",
+            whenToUse: "O Japão exige carta internacional («国際免許» — kokusai menkyo) emitida ao abrigo da Convenção de Genebra!",
+          },
+          {
+            text: "フルカバー|の|ほけん|も|つけたい|です|。",
+            pt: "Gostaria também de incluir o seguro com cobertura completa.",
+            romaji: "Furukabaa no hoken mo tsuketai desu.",
+            register: "formal",
+            whenToUse: "No balcão de aluguer de carros (Toyota Rent a Car, Nippon, Times)",
+          },
+          {
+            text: "すみません|、|レギュラー|を|まんたん|で|おねがいします|。",
+            pt: "Com licença, ateste o depósito com gasolina normal, por favor.",
+            romaji: "Sumimasen, regyuraa o mantan de onegaishimasu.",
+            register: "formal",
+            whenToUse: "Nos «ガソリンスタンド» japoneses a gasolina comum chama-se «レギュラー» (vermelho) e «まんたん» é depósito cheio!",
+          },
+          {
+            text: "カーナビ|を|英語|に|かえて|もらえますか|。",
+            pt: "Poderia mudar o GPS do carro para inglês?",
+            romaji: "Kaanabi o eigo ni kaete moraemasu ka.",
+            register: "formal",
+            whenToUse: "Antes de arrancar do parque da agência",
+          },
+          {
+            text: "近く|に|駐車場|は|あります|か|。",
+            pt: "Há algum parque de estacionamento aqui perto?",
+            romaji: "Chikaku ni chuushajou wa arimasu ka.",
+            register: "neutro",
+            whenToUse: "No Japão é proibido estacionar na rua — procura sempre um «駐車場» (コインパーキング)!",
+          },
+        ],
+        culturalTip:
+          "No Japão conduz-se pela esquerda, o limite de álcool no sangue é ZERO absoluto (0,0%) e nunca se estaciona na berma da rua — usa sempre parques pagos («駐車場»). Nos postos de combustível, «レギュラー満タン» significa atestar gasolina normal!",
+        situations: [
+          {
+            id: "ja-drv-1",
+            situationPt: "Paraste numa bomba de gasolina no Japão antes de devolver o carro e queres atestar o depósito.",
+            register: "formal",
+            correct: "すみません、レギュラーを まんたんで おねがいします。",
+            options: [
+              "すみません、レギュラーを まんたんで おねがいします。",
+              "駐車場を あたためて ください。",
+              "この カーナビは きついです。",
+              "こうそくどうろを 二枚 ください。",
+            ],
+            explanationPt: "«レギュラーをまんたん» (gasolina normal, depósito cheio) é a frase padrão para devolver um «レンタカー».",
+          },
+          {
+            id: "ja-drv-2",
+            situationPt: "Queres pedir ao funcionário que configure o GPS da viatura em inglês.",
+            register: "formal",
+            correct: "カーナビを 英語に かえて もらえますか。",
+            options: [
+              "カーナビを 英語に かえて もらえますか。",
+              "めんきょの しょうみきげんは いつですか。",
+              "ほけんを つつんで ください。",
+              "ガソリンスタンドで しちゃくしても いいですか。",
+            ],
+            explanationPt: "«カーナビ» é o sistema de navegação automóvel; «かえてもらえますか» pede a alteração com cortesia.",
+          },
+          {
+            id: "ja-drv-3",
+            situationPt: "Chegaste perto de um restaurante e precisas de saber onde deixar o carro legalmente.",
+            register: "neutro",
+            correct: "すみません、近くに 駐車場は ありますか。",
+            options: [
+              "すみません、近くに 駐車場は ありますか。",
+              "じこを おみやげに 買いました。",
+              "こうそくどうろは ゆるいですか。",
+              "運転を わりびきして ください。",
+            ],
+            explanationPt: "«駐車場» (ちゅうしゃじょう) é o sinal «P» que vês por todas as cidades japonesas.",
+          },
+        ],
+        miniDialogue: [
+          {
+            speaker: "Tu",
+            text: "こんにちは|。|予約|した|レンタカー|を|おねがいします|。",
+            pt: "Olá. Venho levantar o carro de aluguer que reservei, por favor.",
+            romaji: "Konnichiwa. Yoyaku shita rentakaa o onegaishimasu.",
+          },
+          {
+            speaker: "スタッフ",
+            text: "かしこまりました|。|パスポート|と|こくさい|めんきょ|を|見せて|ください|。",
+            pt: "Com certeza. Mostre-me o passaporte e a carta internacional, por favor.",
+            romaji: "Kashikomarimashita. Pasupooto to kokusai menkyo o misete kudasai.",
+          },
+          {
+            speaker: "Tu",
+            text: "はい|、|どうぞ|。|ほけん|も|つけて|、|カーナビ|を|英語|に|おねがいします|。",
+            pt: "Sim, aqui tem. Inclua também o seguro e ponha o GPS em inglês, por favor.",
+            romaji: "Hai, douzo. Hoken mo tsukete, kaanabi o eigo ni onegaishimasu.",
+          },
+          {
+            speaker: "スタッフ",
+            text: "分かりました|！|帰る|まえ|に|近く|の|ガソリンスタンド|で|まんたん|に|して|ください|。",
+            pt: "Compreendido! Antes de devolver, ateste o depósito na bomba aqui perto, por favor.",
+            romaji: "Wakarimashita! Kaeru mae ni chikaku no gasorin sutando de mantan ni shite kudasai.",
+          },
+        ],
+      },
+    },
+  },
+  {
+    id: "vestuario",
+    emoji: "🧥",
+    title: "Roupa, Calçado, Tamanhos & Lavandaria",
+    subtitle: "Provadores, pedir outro número, tecidos, bainhas e limpeza a seco",
+    tag: "Dia-a-dia",
+    color: "var(--color-coral)",
+    softColor: "var(--color-coral-soft)",
+    relatedLevels: [8, 21, 30],
+    byLang: {
+      en: {
+        vocabKeys: [
+          "fitting room",
+          "try on",
+          "size",
+          "tight",
+          "loose",
+          "cotton",
+          "waterproof",
+          "dry cleaning",
+          "stain",
+          "tailor",
+        ],
+        phrases: [
+          {
+            text: "Excuse me, could I try this jacket on? Where is the fitting room?",
+            pt: "Com licença, posso experimentar este casaco? Onde fica o provador?",
+            register: "neutro",
+            whenToUse: "Em qualquer loja de roupa ou grandes armazéns",
+          },
+          {
+            text: "These shoes feel a bit tight — do you have them half a size bigger?",
+            pt: "Estes sapatos estão um pouco apertados — têm meio número acima?",
+            register: "neutro",
+            whenToUse: "Na sapataria (atenção: 40 EU corresponde aprox. a UK 6.5 / US 7.5–8.5!)",
+          },
+          {
+            text: "Is this sweater pure cotton, and is the coat waterproof?",
+            pt: "Esta camisola é de puro algodão, e o casaco é impermeável?",
+            register: "neutro",
+            whenToUse: "Ao verificar a etiqueta de materiais antes do Inverno ou chuva",
+          },
+          {
+            text: "The waist is a little loose — does your store have a tailor for alterations?",
+            pt: "A cintura está um pouco larga — a loja tem alfaiate para arranjos?",
+            register: "formal",
+            whenToUse: "Ao comprar calças, fatos ou vestidos",
+          },
+          {
+            text: "Hi, I need dry cleaning for this coat — can you get this coffee stain out?",
+            pt: "Olá, preciso de limpeza a seco para este sobretudo — conseguem tirar esta nódoa de café?",
+            register: "neutro",
+            whenToUse: "Na lavandaria / limpeza a seco («dry cleaner's»)",
+          },
+        ],
+        culturalTip:
+          "Os tamanhos de calçado e roupa mudam bastante entre a Europa (38/40/42), o Reino Unido (UK 5/6/8) e os EUA (US 7/8/10) — pede sempre para experimentar («try on») e guarda o «receipt» para trocas!",
+        situations: [
+          {
+            id: "en-clo-1",
+            situationPt: "Pegaste numa camisa e queres saber onde a podes experimentar.",
+            register: "neutro",
+            correct: "Excuse me, can I try this on? Where is the fitting room?",
+            options: [
+              "Excuse me, can I try this on? Where is the fitting room?",
+              "Excuse me, where is the toll booth for this cotton?",
+              "Can I refuel this jacket at the roundabout?",
+              "Is this stain subtitled or dubbed?",
+            ],
+            explanationPt: "«Try on» (experimentar roupa/calçado) e «fitting room» (ou «changing room» no UK) são indispensáveis.",
+          },
+          {
+            id: "en-clo-2",
+            situationPt: "Experimentaste umas calças mas ficaram apertadas; queres o tamanho acima.",
+            register: "neutro",
+            correct: "These are a bit tight — have you got the next size up?",
+            options: [
+              "These are a bit tight — have you got the next size up?",
+              "These are a bit waterproof — have you got a flat tyre?",
+              "Can I declare these trousers at customs?",
+              "My size has a zero deductible.",
+            ],
+            explanationPt: "«Tight» = apertado; «loose» = largo; «the next size up/down» = o tamanho acima/abaixo.",
+          },
+          {
+            id: "en-clo-3",
+            situationPt: "Entornaste café num casaco delicado e levas à lavandaria.",
+            register: "neutro",
+            correct: "Could you dry-clean this coat and remove the stain on the sleeve?",
+            options: [
+              "Could you dry-clean this coat and remove the stain on the sleeve?",
+              "Could you warm up this coat in the stadium?",
+              "Does this stain include a student discount?",
+              "Please lend my tailor to the petrol station.",
+            ],
+            explanationPt: "«Dry cleaning» (limpeza a seco) e «stain» (nódoa) resolvem qualquer imprevisto com roupa.",
+          },
+        ],
+        miniDialogue: [
+          {
+            speaker: "Tu",
+            text: "Excuse me, do you have this waterproof jacket in medium size?",
+            pt: "Com licença, têm este casaco impermeável no tamanho médio?",
+          },
+          {
+            speaker: "Shop Assistant",
+            text: "Here is a medium! The fitting room is right over there by the mirror.",
+            pt: "Aqui tem um M! O provador fica logo ali ao pé do espelho.",
+          },
+          {
+            speaker: "Tu",
+            text: "Thanks! The shoulders feel a little tight — could I try on a large instead?",
+            pt: "Obrigado! Os ombros estão um pouco apertados — posso experimentar um L?",
+          },
+          {
+            speaker: "Shop Assistant",
+            text: "Of course, the large fits much better! Keep your receipt for thirty days in case you need an exchange.",
+            pt: "Claro, o L assenta muito melhor! Guarde o talão durante trinta dias caso precise de trocar.",
+          },
+        ],
+      },
+      fr: {
+        vocabKeys: [
+          "cabine d'essayage",
+          "essayer",
+          "pointure",
+          "taille",
+          "serré",
+          "large",
+          "coton",
+          "imperméable",
+          "pressing",
+          "tache",
+        ],
+        phrases: [
+          {
+            text: "Bonjour, puis-je essayer ce manteau ? Où sont les cabines d'essayage ?",
+            pt: "Bom dia, posso experimentar este casaco? Onde ficam os provadores?",
+            register: "formal",
+            whenToUse: "Ao entrar numa loja de roupa em França (lembra-te do «Bonjour» à entrada!)",
+          },
+          {
+            text: "C'est un peu serré aux épaules — auriez-vous la taille au-dessus ?",
+            pt: "Está um pouco apertado nos ombros — teria o tamanho acima?",
+            register: "formal",
+            whenToUse: "Usa «la taille» para roupa e «la pointure» exclusivamente para calçado!",
+          },
+          {
+            text: "Excusez-moi, avez-vous ces chaussures en pointure quarante et un ?",
+            pt: "Com licença, têm estes sapatos no número quarenta e um?",
+            register: "formal",
+            whenToUse: "Felizmente a numeração francesa de calçado é igual à portuguesa (EU)!",
+          },
+          {
+            text: "Est-ce que cette veste est vraiment imperméable pour la pluie ?",
+            pt: "Este blusão é mesmo impermeável para a chuva?",
+            register: "neutro",
+            whenToUse: "«Un imperméable» (ou «un imper») significa também gabardina!",
+          },
+          {
+            text: "Bonjour, je dépose ma chemise au pressing pour enlever cette tache.",
+            pt: "Bom dia, venho deixar a minha camisa na limpeza a seco para tirar esta nódoa.",
+            register: "formal",
+            whenToUse: "Atenção ao falso anglicismo francês: «le pressing» não é ginásio nem imprensa — é a lavandaria a seco!",
+          },
+        ],
+        culturalTip:
+          "Falso amigo inglês dentro do francês: em França, «le pressing» significa lavandaria / limpeza a seco (e não passar a ferro, que é «repasser»), e «un smoking» é o fato de gala (smoking/tuxedo)!",
+        situations: [
+          {
+            id: "fr-clo-1",
+            situationPt: "Estás numa sapataria em Bordéus e queres pedir uns ténis no número 39.",
+            register: "formal",
+            correct: "Bonjour, auriez-vous ce modèle en pointure trente-neuf ?",
+            options: [
+              "Bonjour, auriez-vous ce modèle en pointure trente-neuf ?",
+              "Bonjour, quelle est la franchise de ce coton ?",
+              "Puis-je essayer ce pneu crevé au pressing ?",
+              "Avez-vous une tache avec assurance tous risques ?",
+            ],
+            explanationPt: "Para calçado usa-se sempre «la pointure» (e não «la taille»).",
+          },
+          {
+            id: "fr-clo-2",
+            situationPt: "As calças ficaram largas demais na cintura e queres o tamanho abaixo.",
+            register: "neutro",
+            correct: "Ce pantalon est trop large — avez-vous la taille en dessous ?",
+            options: [
+              "Ce pantalon est trop large — avez-vous la taille en dessous ?",
+              "Ce pantalon est au péage de la station-service.",
+              "La cabine d'essayage est déjà complète au stade.",
+              "Je voudrais porter un toast à ma chemise.",
+            ],
+            explanationPt: "«Trop large» = demasiado largo; «la taille en dessous» = o tamanho abaixo.",
+          },
+          {
+            id: "fr-clo-3",
+            situationPt: "Precisas de mandar limpar a seco um casaco com uma nódoa.",
+            register: "formal",
+            correct: "Bonjour, pouvez-vous nettoyer ce manteau au pressing et enlever cette tache ?",
+            options: [
+              "Bonjour, pouvez-vous nettoyer ce manteau au pressing et enlever cette tache ?",
+              "Bonjour, pouvez-vous garer ma chemise au parking ?",
+              "Est-ce que cette tache passe en VOSTFR ?",
+              "Je viens emprunter une pointure à la douane.",
+            ],
+            explanationPt: "«Le pressing» é a limpeza a seco e «enlever une tache» é tirar uma nódoa.",
+          },
+        ],
+        miniDialogue: [
+          {
+            speaker: "Tu",
+            text: "Bonjour ! Est-ce que je peux essayer cet imperméable en taille M ?",
+            pt: "Bom dia! Posso experimentar esta gabardina no tamanho M?",
+          },
+          {
+            speaker: "Vendeuse",
+            text: "Bien sûr ! Les cabines d'essayage sont au fond du magasin à gauche.",
+            pt: "Claro! Os provadores ficam ao fundo da loja à esquerda.",
+          },
+          {
+            speaker: "Tu",
+            text: "Il est un peu serré avec un pull — auriez-vous la taille au-dessus ?",
+            pt: "Fica um pouco apertada com uma camisola — teria o tamanho acima?",
+          },
+          {
+            speaker: "Vendeuse",
+            text: "Voici le L en coton imperméable — il vous va très bien !",
+            pt: "Aqui tem o L em algodão impermeável — fica-lhe muito bem!",
+          },
+        ],
+      },
+      ja: {
+        vocabKeys: [
+          "しちゃくしつ",
+          "しちゃく",
+          "サイズ",
+          "きつい",
+          "ゆるい",
+          "めん",
+          "ぼうすい",
+          "クリーニング",
+          "しみ",
+          "おなおし",
+        ],
+        phrases: [
+          {
+            text: "すみません|、|これ|を|しちゃく|しても|いい|ですか|。",
+            pt: "Com licença, posso experimentar esta peça?",
+            romaji: "Sumimasen, kore o shichaku shite mo ii desu ka.",
+            register: "formal",
+            whenToUse: "Nas lojas de roupa no Japão tira-se SEMPRE os sapatos antes de pisar o tapete do provador («試着室»)!",
+          },
+          {
+            text: "少し|きつい|ので|、|もう|一つ|大きい|サイズ|は|あります|か|。",
+            pt: "Está um pouco apertado; têm um tamanho acima?",
+            romaji: "Sukoshi kitsui node, mou hitotsu ookii saizu wa arimasu ka.",
+            register: "formal",
+            whenToUse: "Os tamanhos japoneses costumam ser um número mais pequenos do que os europeus!",
+          },
+          {
+            text: "この|くつ|は|二十六|センチ|が|あります|か|。",
+            pt: "Têm estes sapatos no tamanho vinte e seis centímetros?",
+            romaji: "Kono kutsu wa nijuu-roku senchi ga arimasu ka.",
+            register: "formal",
+            whenToUse: "No Japão o calçado mede-se directamente em centímetros (ex.: 40 EU ≈ 25.5 cm; 42 EU ≈ 26.5–27 cm)!",
+          },
+          {
+            text: "ズボン|が|長い|ので|、|すそ|の|おなおし|を|おねがいします|。",
+            pt: "As calças estão compridas; gostaria de pedir para fazer a bainha, por favor.",
+            romaji: "Zubon ga nagai node, suso no onaoshi o onegaishimasu.",
+            register: "formal",
+            whenToUse: "Muitas lojas japonesas (como a Uniqlo) fazem bainhas («すそのおなおし») na hora!",
+          },
+          {
+            text: "この|しみ|を|クリーニング|で|おとせますか|。",
+            pt: "Conseguem tirar esta nódoa na limpeza a seco?",
+            romaji: "Kono shimi o kuriiningu de otosemasu ka.",
+            register: "formal",
+            whenToUse: "Na lavandaria («クリーニング店»)",
+          },
+        ],
+        culturalTip:
+          "Etiqueta essencial nos provadores («しちゃくしつ») no Japão: descalça os sapatos antes de entrar no tapete e, se usares maquilhagem, o funcionário dar-te-á uma touca descartável («フェイスカバー») para proteger a roupa ao vestir!",
+        situations: [
+          {
+            id: "ja-clo-1",
+            situationPt: "Encontraste um casaco numa loja em Tóquio e queres pedir para o experimentar.",
+            register: "formal",
+            correct: "すみません、これを しちゃくしても いいですか。",
+            options: [
+              "すみません、これを しちゃくしても いいですか。",
+              "これを まんたんに しても いいですか。",
+              "しちゃくしつの しょうひきげんは いつですか。",
+              "この しみを かります。",
+            ],
+            explanationPt: "«しちゃくしてもいいですか» é a frase exacta para pedir acesso ao provador.",
+          },
+          {
+            id: "ja-clo-2",
+            situationPt: "A camisola ficou apertada e precisas de um tamanho maior.",
+            register: "formal",
+            correct: "少し きついので、大きい サイズは ありますか。",
+            options: [
+              "少し きついので、大きい サイズは ありますか。",
+              "少し ゆるいので、駐車場は ありますか。",
+              "クリーニングを 二杯 ください。",
+              "この めんは うりきれです。",
+            ],
+            explanationPt: "«きつい» = apertado; «ゆるい» = largo; «大きいサイズ» = tamanho maior.",
+          },
+          {
+            id: "ja-clo-3",
+            situationPt: "Compraste umas calças compridas e queres pedir o ajuste da bainha na loja.",
+            register: "formal",
+            correct: "すみません、すその おなおしを おねがいします。",
+            options: [
+              "すみません、すその おなおしを おねがいします。",
+              "すみません、カーナビを 英語に おねがいします。",
+              "ぼうすいの チケットを 二枚 ください。",
+              "ただいま、クリーニングです。",
+            ],
+            explanationPt: "«すそのおなおし» (arranjo da bainha) é rápido e muitas vezes gratuito nas lojas japonesas.",
+          },
+        ],
+        miniDialogue: [
+          {
+            speaker: "Tu",
+            text: "すみません|、|この|ぼうすい|ジャケット|を|しちゃく|しても|いい|ですか|。",
+            pt: "Com licença, posso experimentar este blusão impermeável?",
+            romaji: "Sumimasen, kono bousui jaketto o shichaku shite mo ii desu ka.",
+          },
+          {
+            speaker: "店員",
+            text: "はい|、|どうぞ|！|くつ|を|ぬいで|、|こちら|の|しちゃくしつ|へ|お入り|ください|。",
+            pt: "Sim, faça favor! Descalce os sapatos e entre neste provador, por favor.",
+            romaji: "Hai, douzo! Kutsu o nuide, kochira no shichakushitsu e ohairi kudasai.",
+          },
+          {
+            speaker: "Tu",
+            text: "ありがとうございます|。|少し|きつい|ので|、|もう|一つ|大きい|サイズ|は|あります|か|。",
+            pt: "Obrigado. Está um pouco apertado; têm um tamanho acima?",
+            romaji: "Arigatou gozaimasu. Sukoshi kitsui node, mou hitotsu ookii saizu wa arimasu ka.",
+          },
+          {
+            speaker: "店員",
+            text: "はい|、|エル|サイズ|が|ございます|。|すぐ|おもちします|！",
+            pt: "Sim, temos o tamanho L. Vou já buscá-lo!",
+            romaji: "Hai, eru saizu ga gozaimasu. Sugu omochishimasu!",
+          },
+        ],
+      },
+    },
+  },
+  {
+    id: "clima",
+    emoji: "🌦️",
+    title: "Clima, Natureza, Trilhos & Alertas",
+    subtitle: "Previsão meteorológica, vagas de calor, chuvadas, tufões, sismos e trilhos",
+    tag: "Natureza",
+    color: "var(--color-teal)",
+    softColor: "var(--color-teal-soft)",
+    relatedLevels: [14, 29, 38],
+    byLang: {
+      en: {
+        vocabKeys: [
+          "weather forecast",
+          "heatwave",
+          "downpour",
+          "thunderstorm",
+          "hiking trail",
+          "sunscreen",
+          "shade",
+          "slippery",
+          "shelter",
+          "chilly",
+        ],
+        phrases: [
+          {
+            text: "Have you checked the weather forecast? They're expecting a thunderstorm later.",
+            pt: "Já viste a previsão do tempo? Estão a prever trovoada mais logo.",
+            register: "neutro",
+            whenToUse: "Antes de sair para passear ou planear actividades ao ar livre",
+          },
+          {
+            text: "Put on plenty of sunscreen and stay in the shade during this heatwave.",
+            pt: "Põe bastante protector solar e fica à sombra durante esta vaga de calor.",
+            register: "informal",
+            whenToUse: "Em dias de verão intenso na praia ou cidade",
+          },
+          {
+            text: "Excuse me, is this hiking trail safe after yesterday's downpour, or is it too slippery?",
+            pt: "Com licença, este trilho pedestre é seguro depois da chuvada de ontem, ou está demasiado escorregadio?",
+            register: "neutro",
+            whenToUse: "Num centro de visitantes de parque natural ou montanha",
+          },
+          {
+            text: "Let's wait under that shelter until the heavy rain stops.",
+            pt: "Vamos esperar debaixo daquele abrigo até a chuva forte parar.",
+            register: "informal",
+            whenToUse: "Quando és surpreendido por um aguaceiro repentino",
+          },
+          {
+            text: "Bring a light jacket — it gets chilly in the evening by the coast.",
+            pt: "Traz um casaco leve — fica fresquinho à noite junto à costa.",
+            register: "informal",
+            whenToUse: "«Chilly» descreve aquele frio ligeiro que pede agasalho",
+          },
+        ],
+        culturalTip:
+          "No Reino Unido falar do tempo («Lovely day, isn't it?» / «Bit chilly today!») é a forma número um de quebrar o gelo em elevadores, lojas e paragens — não é uma pergunta técnica, é simpatia social!",
+        situations: [
+          {
+            id: "en-wea-1",
+            situationPt: "Vais fazer uma caminhada na serra após um dia de chuva e queres saber o estado do caminho.",
+            register: "neutro",
+            correct: "Is the hiking trail slippery after the rain?",
+            options: [
+              "Is the hiking trail slippery after the rain?",
+              "Is the thunderstorm dry cleaning only?",
+              "Does this heatwave have a zero deductible?",
+              "Where is the fitting room for the sunscreen?",
+            ],
+            explanationPt: "«Hiking trail» (trilho pedestre) e «slippery» (escorregadio) ajudam a evitar acidentes.",
+          },
+          {
+            id: "en-wea-2",
+            situationPt: "Está um calor abrasador ao meio-dia e sugeres procurar uma mesa à sombra e usar protector.",
+            register: "informal",
+            correct: "Let's sit in the shade and put on some sunscreen.",
+            options: [
+              "Let's sit in the shade and put on some sunscreen.",
+              "Let's pay the toll in the downpour.",
+              "Could I try on a chilly roundabout?",
+              "Keep the recipe for the weather forecast.",
+            ],
+            explanationPt: "«In the shade» = à sombra (não confundir com «shadow», que é a silhueta proyectada!).",
+          },
+          {
+            id: "en-wea-3",
+            situationPt: "Começa uma trovoada forte e vês um coberto onde esperar.",
+            register: "neutro",
+            correct: "There's a thunderstorm coming — let's find shelter quickly!",
+            options: [
+              "There's a thunderstorm coming — let's find shelter quickly!",
+              "The heatwave is half a size bigger!",
+              "Our sunscreen has a flat tyre!",
+              "Nothing to declare at the chilly!",
+            ],
+            explanationPt: "«Find shelter» / «take shelter» significa abrigar-se do mau tempo.",
+          },
+        ],
+        miniDialogue: [
+          {
+            speaker: "Tu",
+            text: "Did you see the weather forecast for our hike tomorrow morning?",
+            pt: "Viste a previsão do tempo para a nossa caminhada de amanhã de manhã?",
+          },
+          {
+            speaker: "Ranger",
+            text: "Sunny early on, though chilly at the top, with a chance of a brief downpour after three.",
+            pt: "Sol cedo, embora fresco no topo, com hipótese de um aguaceiro curto depois das três.",
+          },
+          {
+            speaker: "Tu",
+            text: "Good to know! Are the rocks on the main hiking trail slippery right now?",
+            pt: "Bom saber! As pedras no trilho principal estão escorregadias neste momento?",
+          },
+          {
+            speaker: "Ranger",
+            text: "Only near the river — bring waterproof shoes, sunscreen, and note the wooden shelter halfway up.",
+            pt: "Só perto do rio — tragam calçado impermeável, protector solar e reparem no abrigo de madeira a meio da subida.",
+          },
+        ],
+      },
+      fr: {
+        vocabKeys: [
+          "météo",
+          "canicule",
+          "averse",
+          "orage",
+          "sentier",
+          "crème solaire",
+          "ombre",
+          "glissant",
+          "abri",
+          "frais",
+        ],
+        phrases: [
+          {
+            text: "Tu as regardé la météo ? On annonce un orage en fin d'après-midi.",
+            pt: "Viste a meteorologia? Anunciam trovoada ao fim da tarde.",
+            register: "informal",
+            whenToUse: "«La météo» usa-se tanto para o boletim como para o estado do tempo!",
+          },
+          {
+            text: "Pendant la canicule, pensez à boire de l'eau et à rester à l'ombre.",
+            pt: "Durante a vaga de calor, lembre-se de beber água e ficar à sombra.",
+            register: "formal",
+            whenToUse: "Aviso frequente nos transportes e parques franceses no Verão («Plan Canicule»)",
+          },
+          {
+            text: "Excusez-moi, est-ce que le sentier de randonnée est glissant après l'averse ?",
+            pt: "Com licença, o trilho de caminhada está escorregadio depois do aguaceiro?",
+            register: "formal",
+            whenToUse: "Nos Alpes, Pirenéus ou parques naturais",
+          },
+          {
+            text: "N'oublie pas la crème solaire, le soleil tape fort aujourd'hui !",
+            pt: "Não te esqueças do protector solar, o sol está forte hoje!",
+            register: "informal",
+            whenToUse: "Na praia, esplanada ou passeio de montanha",
+          },
+          {
+            text: "Mets une petite veste, le vent devient frais le soir.",
+            pt: "Veste um casaco leve, o vento fica fresco à noite.",
+            register: "informal",
+            whenToUse: "Ao sair para jantar numa esplanada",
+          },
+        ],
+        culturalTip:
+          "Atenção em francês: para dizer «está calor / está frio» sobre o tempo usa-se «Il fait chaud / Il fait frais / Il fait froid» — nunca «C'est chaud» (que significa 'está perigoso/tenso' na gíria) nem «Je suis chaud» ('estou entusiasmado/alinhado')!",
+        situations: [
+          {
+            id: "fr-wea-1",
+            situationPt: "Está uma vaga de calor em França e queres pedir uma mesa à sombra na esplanada.",
+            register: "formal",
+            correct: "Bonjour, auriez-vous une table à l'ombre avec cette canicule ?",
+            options: [
+              "Bonjour, auriez-vous une table à l'ombre avec cette canicule ?",
+              "Bonjour, auriez-vous un orage au pressing ?",
+              "Le sentier passe en bagage cabine ?",
+              "Quelle est la pointure de cette averse ?",
+            ],
+            explanationPt: "«À l'ombre» (à sombra) e «la canicule» (vaga de calor) ouvem-se durante todo o Verão.",
+          },
+          {
+            id: "fr-wea-2",
+            situationPt: "Cai um aguaceiro forte e sugeres esperar debaixo de um abrigo.",
+            register: "informal",
+            correct: "C'est une grosse averse, mettons-nous sous cet abri cinq minutes !",
+            options: [
+              "C'est une grosse averse, mettons-nous sous cet abri cinq minutes !",
+              "Mettons la crème solaire au péage !",
+              "Ce sentier a une franchise trop serrée !",
+              "Je dépose la météo dans la cabine d'essayage !",
+            ],
+            explanationPt: "«Une averse» é uma chuvada passageira; «se mettre à l'abri / sous un abri» é abrigar-se.",
+          },
+          {
+            id: "fr-wea-3",
+            situationPt: "Queres avisar um amigo para ter cuidado porque o trilho de pedra escorrega.",
+            register: "informal",
+            correct: "Fais attention, le sentier est très glissant après la pluie !",
+            options: [
+              "Fais attention, le sentier est très glissant après la pluie !",
+              "Le sentier est déjà complet à la billetterie !",
+              "L'orage roule au gazole !",
+              "Voici mon permis de conduire frais !",
+            ],
+            explanationPt: "«Glissant» significa escorregadio (muito comum em placas «Sol glissant»).",
+          },
+        ],
+        miniDialogue: [
+          {
+            speaker: "Tu",
+            text: "Bonjour ! Nous voudrions marcher jusqu'au lac — que dit la météo aujourd'hui ?",
+            pt: "Bom dia! Gostaríamos de caminhar até ao lago — o que diz a meteorologia hoje?",
+          },
+          {
+            speaker: "Guide",
+            text: "Il fait beau ce matin, mais un petit orage est possible vers seize heures.",
+            pt: "Está bom tempo esta manhã, mas é possível uma pequena trovoada por volta das dezasseis horas.",
+          },
+          {
+            speaker: "Tu",
+            text: "Merci ! Le sentier est-il glissant, et y a-t-il un abri sur la route ?",
+            pt: "Obrigado! O trilho está escorregadio, e há algum abrigo pelo caminho?",
+          },
+          {
+            speaker: "Guide",
+            text: "Non, le chemin est sec : prenez de la crème solaire et un coupe-vent, il fait frais là-haut !",
+            pt: "Não, o caminho está seco: levem protector solar e um corta-vento, está fresco lá em cima!",
+          },
+        ],
+      },
+      ja: {
+        vocabKeys: [
+          "てんきよほう",
+          "台風",
+          "じしん",
+          "ひなんじょ",
+          "蒸し暑い",
+          "日焼け止め",
+          "ハイキング",
+          "かさ",
+          "すべりやすい",
+          "すずしい",
+        ],
+        phrases: [
+          {
+            text: "てんきよほう|に|よると|、|午後|から|強い|雨|が|ふります|。",
+            pt: "Segundo a previsão do tempo, vai chover forte a partir da tarde.",
+            romaji: "Tenki yohou ni yoru to, gogo kara tsuyoi ame ga furimasu.",
+            register: "neutro",
+            whenToUse: "«〜によると» ('segundo / de acordo com') é super útil para citar notícias e avisos!",
+          },
+          {
+            text: "台風|で|電車|が|止まって|います|か|。",
+            pt: "Os comboios estão parados por causa do tufão?",
+            romaji: "Taifuu de densha ga tomatte imasu ka.",
+            register: "formal",
+            whenToUse: "Entre Agosto e Outubro no Japão, os tufões podem suspender o Shinkansen e os voos",
+          },
+          {
+            text: "じしん|です|！|あわてないで|、|近く|の|ひなんじょ|は|どこ|ですか|。",
+            pt: "É um sismo! Sem pânico — onde fica o local de evacuação mais próximo?",
+            romaji: "Jishin desu! Awatenaide, chikaku no hinanjo wa doko desu ka.",
+            register: "formal",
+            whenToUse: "Frase vital de segurança no Japão: as escolas e parques funcionam como «避難所» (ひなんじょ)!",
+          },
+          {
+            text: "今日|は|とても|蒸し暑い|から|、|水|と|日焼け止め|を|わすれないで|ね|。",
+            pt: "Hoje está muito quente e húmido, por isso não te esqueças de água e protector solar.",
+            romaji: "Kyou wa totemo mushiatsui kara, mizu to hiyakedome o wasurenaide ne.",
+            register: "informal",
+            whenToUse: "O verão japonês é famoso pelo calor húmido («蒸し暑い» — mushiatsui)!",
+          },
+          {
+            text: "雨|の|あと|で|道|が|すべりやすい|です|。|きをつけて|ください|。",
+            pt: "O caminho está escorregadio depois da chuva. Tenha cuidado, por favor.",
+            romaji: "Ame no ato de michi ga suberiyasui desu. Ki o tsukete kudasai.",
+            register: "formal",
+            whenToUse: "Em degraus de templos, estações ou trilhos de montanha",
+          },
+        ],
+        culturalTip:
+          "No Japão, descarrega uma aplicação de alertas sísmicos e meteorológicos (como «Safety tips» ou «NERV»): verás placas verdes com uma pessoa a correr que indicam o «避難所» (ひなんじょ — abrigo de evacuação) em todos os bairros!",
+        situations: [
+          {
+            id: "ja-wea-1",
+            situationPt: "Aproxima-se um tufão e queres perguntar na estação se a linha de comboio parou.",
+            register: "formal",
+            correct: "すみません、台風で 電車が 止まって いますか。",
+            options: [
+              "すみません、台風で 電車が 止まって いますか。",
+              "すみません、台風を しちゃくしても いいですか。",
+              "じしんを まんたんで おねがいします。",
+              "日焼け止めの すそを おなおしして ください。",
+            ],
+            explanationPt: "«台風で電車が止まっていますか» confirma se a circulação ferroviária foi suspensa.",
+          },
+          {
+            id: "ja-wea-2",
+            situationPt: "Sentes um tremor de terra e queres saber qual é o ponto oficial de abrigo do bairro.",
+            register: "formal",
+            correct: "すみません、近くの ひなんじょは どこですか。",
+            options: [
+              "すみません、近くの ひなんじょは どこですか。",
+              "蒸し暑い サイズは ありますか。",
+              "かさの しょうひきげんは 今日です。",
+              "ハイキングを クリーニングで おとせますか。",
+            ],
+            explanationPt: "«ひなんじょ» (避難所) é o ponto de evacuação e abrigo designado em cada zona.",
+          },
+          {
+            id: "ja-wea-3",
+            situationPt: "Vais subir um trilho no Verão húmido japonês e lembras o teu amigo do protector solar.",
+            register: "informal",
+            correct: "今日は 蒸し暑いから、日焼け止めと 水を もっていこう！",
+            options: [
+              "今日は 蒸し暑いから、日焼け止めと 水を もっていこう！",
+              "今日は 寒いから、レンタカーを 食べよう！",
+              "道が きつい サイズだから、かさを かします！",
+              "てんきよほうは うりきれです！",
+            ],
+            explanationPt: "«蒸し暑い» (quente e húmido) e «日焼け止め» (protector solar) são essenciais de Junho a Setembro.",
+          },
+        ],
+        miniDialogue: [
+          {
+            speaker: "Tu",
+            text: "明日|の|ハイキング|です|が|、|てんきよほう|を|見ました|か|。",
+            pt: "Sobre a caminhada de amanhã, já viste a previsão do tempo?",
+            romaji: "Ashita no haikingu desu ga, tenki yohou o mimashita ka.",
+          },
+          {
+            speaker: "けんた",
+            text: "うん|、|朝|は|すずしい|けれど|、|昼|は|蒸し暑い|みたい|だ|よ|。",
+            pt: "Sim, parece que de manhã está fresco, mas ao almoço vai estar quente e abafado.",
+            romaji: "Un, asa wa suzushii keredo, hiru wa mushiatsui mitai da yo.",
+          },
+          {
+            speaker: "Tu",
+            text: "なるほど|！|日焼け止め|と|おりたたみ|の|かさ|も|もっていきます|。",
+            pt: "Percebido! Vou levar protector solar e também um guarda-chuva dobrável.",
+            romaji: "Naruhodo! Hiyakedome to oritatami no kasa mo motte ikimasu.",
+          },
+          {
+            speaker: "けんた",
+            text: "いいね|！|山|の|道|は|すべりやすい|ところ|が|ある|から|、|きをつけよう|。",
+            pt: "Boa! O caminho da montanha tem partes escorregadias, por isso vamos ter cuidado.",
+            romaji: "Ii ne! Yama no michi wa suberiyasui tokoro ga aru kara, ki o tsukeyou.",
+          },
+        ],
+      },
+    },
+  },
+  {
+    id: "desporto",
+    emoji: "⚽",
+    title: "Desporto, Jogos, Estádio & Equipa",
+    subtitle: "Futebol, apoiar no estádio, reservar campo, resultado e jogar com amigos",
+    tag: "Lazer",
+    color: "var(--color-yellow)",
+    softColor: "var(--color-yellow-soft)",
+    relatedLevels: [17, 23, 40],
+    byLang: {
+      en: {
+        vocabKeys: [
+          "match",
+          "stadium",
+          "score",
+          "draw",
+          "team",
+          "coach",
+          "warm up",
+          "pitch",
+          "referee",
+          "supporter",
+        ],
+        phrases: [
+          {
+            text: "What's the score so far, and which team are you supporting?",
+            pt: "Qual é o resultado até agora, e que equipa estás a apoiar?",
+            register: "informal",
+            whenToUse: "Ao ver um jogo num café desportivo ou no estádio",
+          },
+          {
+            text: "It was a thrilling match — it ended in a two-all draw in the last minute!",
+            pt: "Foi um jogo emocionante — terminou num empate a dois no último minuto!",
+            register: "neutro",
+            whenToUse: "Em inglês um empate 2–2 diz-se «two-all» e 0–0 diz-se «nil-nil»!",
+          },
+          {
+            text: "Excuse me, which gate leads to block B of the stadium?",
+            pt: "Com licença, que porta dá acesso ao sector B do estádio?",
+            register: "neutro",
+            whenToUse: "Ao chegar a um estádio ou arena desportiva",
+          },
+          {
+            text: "We booked a five-a-side pitch for Thursday evening — want to join our team?",
+            pt: "Reservámos um campo de futebol de cinco para quinta à noite — queres juntar-te à nossa equipa?",
+            register: "informal",
+            whenToUse: "Excelente forma de fazer amigos locais através de desporto amador!",
+          },
+          {
+            text: "Let's warm up properly for ten minutes so we don't pull a muscle.",
+            pt: "Vamos aquecer bem durante dez minutos para não fazermos uma distensão.",
+            register: "informal",
+            whenToUse: "Antes de correr, jogar futebol, ténis ou basquetebol",
+          },
+        ],
+        culturalTip:
+          "No Reino Unido diz-se «football» e «pitch» (campo) e o zero no marcador lê-se «nil» («two-nil» = 2–0); nos EUA e Canadá diz-se «soccer», «field» e «two-zero»!",
+        situations: [
+          {
+            id: "en-spo-1",
+            situationPt: "Chegaste a meio da transmissão de um jogo e queres saber quanto está o resultado.",
+            register: "informal",
+            correct: "Hey, what's the score so far?",
+            options: [
+              "Hey, what's the score so far?",
+              "Hey, what's the deductible of the referee?",
+              "Is the stadium dry cleaning only?",
+              "Did the coach expire in the shade?",
+            ],
+            explanationPt: "«What's the score?» pergunta o resultado actual ou final da partida.",
+          },
+          {
+            id: "en-spo-2",
+            situationPt: "O jogo terminou 1–1 sem vencedor e estás a contar a um colega.",
+            register: "neutro",
+            correct: "It was a close match — it ended in a draw.",
+            options: [
+              "It was a close match — it ended in a draw.",
+              "The pitch had a flat tyre at customs.",
+              "We tried on the supporter in the fitting room.",
+              "The thunderstorm scored a receipt.",
+            ],
+            explanationPt: "«End in a draw» (UK) / «tie» (US) significa terminar empatado.",
+          },
+          {
+            id: "en-spo-3",
+            situationPt: "Vais jogar com amigos num dia frio e lembras o grupo de aquecer antes de começar.",
+            register: "informal",
+            correct: "Let's warm up for a few minutes before we start playing.",
+            options: [
+              "Let's warm up for a few minutes before we start playing.",
+              "Let's pay the toll on the pitch.",
+              "Could you tailor the referee's stain?",
+              "Put sunscreen on the score.",
+            ],
+            explanationPt: "«Warm up» é fazer o aquecimento físico antes do desporto.",
+          },
+        ],
+        miniDialogue: [
+          {
+            speaker: "Tu",
+            text: "Hey Sam! Are you watching the big match on Saturday evening?",
+            pt: "Olá Sam! Vais ver o grande jogo no sábado à noite?",
+          },
+          {
+            speaker: "Sam",
+            text: "Definitely! I managed to get two tickets at the stadium — want to come along?",
+            pt: "Sem dúvida! Consegui arranjar dois bilhetes no estádio — queres vir comigo?",
+          },
+          {
+            speaker: "Tu",
+            text: "I'd love to! Last time those two teams played, it ended in a thrilling draw.",
+            pt: "Adorava! Da última vez que essas duas equipas jogaram, acabou num empate emocionante.",
+          },
+          {
+            speaker: "Sam",
+            text: "True! Let's meet outside gate four early — the supporters create an amazing atmosphere!",
+            pt: "Verdade! Encontramo-nos cedo à porta quatro — os adeptos criam um ambiente incrível!",
+          },
+        ],
+      },
+      fr: {
+        vocabKeys: [
+          "match",
+          "stade",
+          "score",
+          "match nul",
+          "équipe",
+          "entraîneur",
+          "s'échauffer",
+          "terrain",
+          "arbitre",
+          "supporter",
+        ],
+        phrases: [
+          {
+            text: "C'est combien le score ? Quelle équipe est-ce que tu supportes ?",
+            pt: "Quanto está o resultado? Que equipa apoias?",
+            register: "informal",
+            whenToUse: "Ao assistir a futebol ou râguebi (muito popular no sul de França!)",
+          },
+          {
+            text: "Quel match intense ! Les deux équipes ont fait match nul deux partout.",
+            pt: "Que jogo intenso! As duas equipas empataram dois a dois.",
+            register: "neutro",
+            whenToUse: "«Faire match nul» = empatar; «deux partout» = 2–2; «zéro à zéro» = 0–0!",
+          },
+          {
+            text: "Excusez-moi, par quelle porte entre-t-on pour la tribune nord du stade ?",
+            pt: "Com licença, por que porta se entra para a bancada norte do estádio?",
+            register: "formal",
+            whenToUse: "No acesso ao estádio ou pavilhão desportivo",
+          },
+          {
+            text: "On a réservé un terrain de foot à cinq jeudi soir — ça te dit de jouer ?",
+            pt: "Reservámos um campo de futebol de cinco na quinta à noite — alinhas jogar?",
+            register: "informal",
+            whenToUse: "Convite descontraído entre colegas ou vizinhos",
+          },
+          {
+            text: "Il faut bien s'échauffer pendant dix minutes avant d'entrer sur le terrain.",
+            pt: "É preciso aquecer bem durante dez minutos antes de entrar em campo.",
+            register: "neutro",
+            whenToUse: "Antes de correr ou treinar com o clube",
+          },
+        ],
+        culturalTip:
+          "Em França, além do futebol («le foot»), o râguebi («le rugby»), o ténis (Roland-Garros) e o ciclismo (Tour de France) geram imensa conversa social no trabalho às segundas-feiras! Para encorajar a equipa grita-se «Allez les Bleus !».",
+        situations: [
+          {
+            id: "fr-spo-1",
+            situationPt: "Entras num café onde está a dar um jogo e perguntas quanto está o marcador.",
+            register: "informal",
+            correct: "Salut, c'est combien le score pour l'instant ?",
+            options: [
+              "Salut, c'est combien le score pour l'instant ?",
+              "Quelle est la pointure de l'arbitre ?",
+              "Le stade passe au pressing aujourd'hui ?",
+              "Avez-vous une franchise pour ce match nul ?",
+            ],
+            explanationPt: "«C'est combien le score ?» (ou «Il y a combien ?») é a pergunta mais natural entre adeptos.",
+          },
+          {
+            id: "fr-spo-2",
+            situationPt: "Queres contar que o jogo acabou empatado sem vencedor.",
+            register: "neutro",
+            correct: "C'était très serré, ils ont fini sur un match nul.",
+            options: [
+              "C'était très serré, ils ont fini sur un match nul.",
+              "L'entraîneur a eu une averse à la douane.",
+              "Le terrain roule au sans-plomb.",
+              "L'arbitre est sous un abri en coton.",
+            ],
+            explanationPt: "«Un match nul» designa qualquer empate desportivo.",
+          },
+          {
+            id: "fr-spo-3",
+            situationPt: "Convidaram-te para jogar e lembras o grupo de fazer aquecimento antes.",
+            register: "informal",
+            correct: "On prend cinq minutes pour bien s'échauffer avant le match !",
+            options: [
+              "On prend cinq minutes pour bien s'échauffer avant le match !",
+              "On dépose l'équipe dans la cabine d'essayage !",
+              "Mettons de la crème solaire sur le score !",
+              "Payons le péage au supporter !",
+            ],
+            explanationPt: "«S'échauffer» significa aquecer os músculos antes do esforço físico.",
+          },
+        ],
+        miniDialogue: [
+          {
+            speaker: "Tu",
+            text: "Salut Lucas ! On cherche un joueur pour notre match sur le terrain couvert demain soir.",
+            pt: "Olá Lucas! Estamos à procura de um jogador para o nosso jogo no campo coberto amanhã à noite.",
+          },
+          {
+            speaker: "Lucas",
+            text: "Carrément, avec plaisir ! Vous jouez à quelle heure ?",
+            pt: "Sem dúvida, com todo o gosto! Jogam a que horas?",
+          },
+          {
+            speaker: "Tu",
+            text: "À dix-neuf heures, mais viens un peu en avance pour t'échauffer avec l'équipe.",
+            pt: "Às dezanove horas, mas vem um pouco mais cedo para aqueceres com a equipa.",
+          },
+          {
+            speaker: "Lucas",
+            text: "Ça marche ! La dernière fois qu'on a joué, ça avait fini en match nul !",
+            pt: "Combinado! Da última vez que jogámos, tinha acabado empatado!",
+          },
+        ],
+      },
+      ja: {
+        vocabKeys: [
+          "しあい",
+          "スタジアム",
+          "てん",
+          "ひきわけ",
+          "チーム",
+          "コーチ",
+          "運動",
+          "コート",
+          "おうえん",
+          "せんしゅ",
+        ],
+        phrases: [
+          {
+            text: "今|、|何たい何|ですか|。|どの|チーム|を|おうえん|して|います|か|。",
+            pt: "Quanto está agora o resultado? Que equipa estás a apoiar?",
+            romaji: "Ima, nan tai nan desu ka. Dono chiimu o ouen shite imasu ka.",
+            register: "formal",
+            whenToUse: "Para dizer resultados em japonês usa-se «対» (たい): «二たい一» = 2 a 1!",
+          },
+          {
+            text: "きのう|の|サッカー|の|しあい|は|二たい二|の|ひきわけ|でした|。",
+            pt: "O jogo de futebol de ontem terminou num empate dois a dois.",
+            romaji: "Kinou no sakkaa no shiai wa ni tai ni no hikiwake deshita.",
+            register: "neutro",
+            whenToUse: "Ao conversar com colegas sobre a J-League, futebol europeu ou basebol",
+          },
+          {
+            text: "今週末|、|スタジアム|へ|しあい|を|見に|行きませんか|。",
+            pt: "Este fim-de-semana, queres ir ao estádio ver o jogo?",
+            romaji: "Konshuumatsu, sutajiamu e shiai o mi ni ikimasen ka.",
+            register: "formal",
+            whenToUse: "Ir ver futebol (J-League) ou basebol (NPB) no Japão é uma experiência festiva e muito segura!",
+          },
+          {
+            text: "フットサル|の|コート|を|予約|した|ので|、|いっしょに|やりませんか|。",
+            pt: "Reservei um campo de futsal, queres jogar connosco?",
+            romaji: "Futtosaru no kooto o yoyaku shita node, issho ni yarimasen ka.",
+            register: "formal",
+            whenToUse: "O futsal («フットサル») ao fim do trabalho é super popular nas cidades japonesas!",
+          },
+          {
+            text: "けが|を|しない|ように|、|まず|少し|運動|して|あたためましょう|。",
+            pt: "Para não nos lesionarmos, vamos primeiro aquecer um pouco.",
+            romaji: "Kega o shinai you ni, mazu sukoshi undou shite atatamemashou.",
+            register: "neutro",
+            whenToUse: "Antes de começar uma partida ou corrida",
+          },
+        ],
+        culturalTip:
+          "Nos estádios japoneses («スタジアム»), as bancadas atrás das balizas são exclusivas para adeptos organizados da equipa da casa ou visitante (não uses a camisola adversária nesse sector!), e no fim muitos adeptos recolhem o próprio lixo num saco!",
+        situations: [
+          {
+            id: "ja-spo-1",
+            situationPt: "Queres convidar um colega para jogar futsal num campo que reservaste.",
+            register: "formal",
+            correct: "フットサルの コートを 予約したので、いっしょに やりませんか。",
+            options: [
+              "フットサルの コートを 予約したので、いっしょに やりませんか。",
+              "スタジアムを クリーニングで おとせますか。",
+              "せんしゅの しょうひきげんは 明日です。",
+              "ひきわけを まんたんに してください。",
+            ],
+            explanationPt: "«コートを予約した» (reservei o campo) + «いっしょにやりませんか» é o convite perfeito.",
+          },
+          {
+            id: "ja-spo-2",
+            situationPt: "Perguntam-te quem ganhou o jogo de ontem, mas acabou empatado.",
+            register: "neutro",
+            correct: "いい しあいでしたが、一たい一の ひきわけでした。",
+            options: [
+              "いい しあいでしたが、一たい一の ひきわけでした。",
+              "チームが 少し きつい サイズでした。",
+              "おうえんは ひなんじょに あります。",
+              "コーチに 日焼け止めを かしました。",
+            ],
+            explanationPt: "«ひきわけ» significa empate, e «一たい一» lê-se «ichi tai ichi» (1–1).",
+          },
+          {
+            id: "ja-spo-3",
+            situationPt: "Queres perguntar a um amigo japonês qual é o clube que ele apoia.",
+            register: "neutro",
+            correct: "どの チームを おうえんして いますか。",
+            options: [
+              "どの チームを おうえんして いますか。",
+              "どの 駐車場を しちゃくして いますか。",
+              "スタジアムは 蒸し暑いですか。",
+              "てんを 二枚 つつんで ください。",
+            ],
+            explanationPt: "«おうえんする» (apoiar / torcer por) usa-se tanto para equipas como para encorajar amigos!",
+          },
+        ],
+        miniDialogue: [
+          {
+            speaker: "Tu",
+            text: "土曜日|に|スタジアム|で|サッカー|の|しあい|が|あります|ね|！",
+            pt: "No sábado há jogo de futebol no estádio, não é!",
+            romaji: "Doyoubi ni sutajiamu de sakkaa no shiai ga arimasu ne!",
+          },
+          {
+            speaker: "たかし",
+            text: "そう|です|！|私|の|すきな|せんしゅ|も|出る|から|、|おうえん|に|行きます|。",
+            pt: "Exacto! O meu jogador favorito também vai jogar, por isso vou lá apoiar.",
+            romaji: "Sou desu! Watashi no suki na senshu mo deru kara, ouen ni ikimasu.",
+          },
+          {
+            speaker: "Tu",
+            text: "たのしみ|です|ね|！|まえ|の|しあい|は|ひきわけ|でした|よね|。",
+            pt: "Que entusiasmo! O jogo anterior ficou empatado, não foi?",
+            romaji: "Tanoshimi desu ne! Mae no shiai wa hikiwake deshita yo ne.",
+          },
+          {
+            speaker: "たかし",
+            text: "はい|、|二たい二|でした|！|今度|は|チケット|が|二枚|ある|ので|、|いっしょに|行きませんか|。",
+            pt: "Sim, ficou dois a dois! Desta vez tenho dois bilhetes, queres ir comigo?",
+            romaji: "Hai, ni tai ni deshita! Kondo wa chiketto ga nimai aru node, issho ni ikimasen ka.",
+          },
+        ],
+      },
+    },
+  },
+  {
+    id: "negociacao",
+    emoji: "🤝",
+    title: "Negociação, Orçamentos & Reclamações",
+    subtitle: "Pedir orçamento por escrito, negociar condições, contestar facturas e garantia",
+    tag: "Trabalho",
+    color: "var(--color-lilac)",
+    softColor: "var(--color-lilac-soft)",
+    relatedLevels: [25, 47, 52],
+    byLang: {
+      en: {
+        vocabKeys: [
+          "quote",
+          "invoice",
+          "overcharge",
+          "discount",
+          "terms",
+          "agreement",
+          "compromise",
+          "dispute",
+          "customer support",
+          "in writing",
+        ],
+        phrases: [
+          {
+            text: "Could you send us a detailed quote in writing before we approve the work?",
+            pt: "Poderia enviar-nos um orçamento detalhado por escrito antes de aprovarmos o trabalho?",
+            register: "formal",
+            whenToUse: "Ao contratar serviços, reparações, freelancers ou fornecedores",
+          },
+          {
+            text: "I noticed an overcharge on this invoice — it doesn't match the agreed quote.",
+            pt: "Reparei numa cobrança a mais nesta factura — não coincide com o orçamento acordado.",
+            register: "formal",
+            whenToUse: "Para contestar educadamente um valor errado numa factura",
+          },
+          {
+            text: "If we commit to a yearly agreement, would there be room for a ten percent discount?",
+            pt: "Se nos comprometermos com um contrato anual, haveria margem para dez por cento de desconto?",
+            register: "formal",
+            whenToUse: "Fórmula diplomática inglesa para negociar preços comerciais sem soar agressivo",
+          },
+          {
+            text: "Let's find a fair compromise on the delivery terms so it works for both sides.",
+            pt: "Vamos encontrar um meio-termo justo nas condições de entrega para funcionar para ambos os lados.",
+            register: "neutro",
+            whenToUse: "Atenção ao falso amigo: «compromise» em inglês é acordo/concessão mútua, não 'compromisso' («commitment/appointment»)!",
+          },
+          {
+            text: "I'd like to contact customer support to dispute this unexpected charge.",
+            pt: "Gostaria de contactar o apoio ao cliente para contestar esta cobrança inesperada.",
+            register: "formal",
+            whenToUse: "Em telecomunicações, assinaturas digitais ou serviços bancários",
+          },
+        ],
+        culturalTip:
+          "Falso amigo crucial em negociações em inglês: «compromise» significa chegar a um meio-termo cedendo de parte a parte — para dizer «tenho um compromisso», usa «I have an appointment» ou «a commitment»!",
+        situations: [
+          {
+            id: "en-neg-1",
+            situationPt: "Antes de avançares com uma reparação em casa, queres o orçamento confirmado por e-mail.",
+            register: "formal",
+            correct: "Could you send me the quote in writing by email, please?",
+            options: [
+              "Could you send me the quote in writing by email, please?",
+              "Could you warm up the invoice on the pitch?",
+              "Is this overcharge waterproof in the shade?",
+              "Let's try on customer support in the fitting room.",
+            ],
+            explanationPt: "«A quote» (ou «quotation») é o orçamento prévio; «in writing» garante prova escrita.",
+          },
+          {
+            id: "en-neg-2",
+            situationPt: "A factura final veio mais cara do que o valor combinado inicialmente.",
+            register: "formal",
+            correct: "Excuse me, there seems to be an overcharge on my invoice.",
+            options: [
+              "Excuse me, there seems to be an overcharge on my invoice.",
+              "There seems to be a thunderstorm in my recipe.",
+              "My agreement ended in a nil-nil draw.",
+              "Does this dispute come in pure cotton?",
+            ],
+            explanationPt: "«There seems to be an overcharge…» é firme, profissional e muito eficaz.",
+          },
+          {
+            id: "en-neg-3",
+            situationPt: "As duas equipas têm prazos diferentes e queres propor uma solução intermédia.",
+            register: "neutro",
+            correct: "Can we reach a reasonable compromise on the terms?",
+            options: [
+              "Can we reach a reasonable compromise on the terms?",
+              "Can we park the discount at the roundabout?",
+              "Have you got a flat tyre on your invoice?",
+              "Nothing to declare at customer support.",
+            ],
+            explanationPt: "«Reach a compromise» significa chegar a um consenso equilibrado.",
+          },
+        ],
+        miniDialogue: [
+          {
+            speaker: "Tu",
+            text: "Hello! Thank you for sending the quote, though the total is slightly above our budget.",
+            pt: "Olá! Obrigado por enviar o orçamento, embora o total esteja ligeiramente acima do nosso orçamento.",
+          },
+          {
+            speaker: "Supplier",
+            text: "I understand. Which terms would help us reach an agreement?",
+            pt: "Compreendo. Que condições nos ajudariam a chegar a um acordo?",
+          },
+          {
+            speaker: "Tu",
+            text: "If we sign for twelve months, could we agree on a ten percent discount as a compromise?",
+            pt: "Se assinarmos por doze meses, poderíamos acordar dez por cento de desconto como meio-termo?",
+          },
+          {
+            speaker: "Supplier",
+            text: "That works for us — I'll confirm the updated quote and invoice schedule in writing today.",
+            pt: "Funciona para nós — confirmo hoje por escrito o orçamento actualizado e o calendário de facturação.",
+          },
+        ],
+      },
+      fr: {
+        vocabKeys: [
+          "devis",
+          "facture",
+          "surfacturation",
+          "remise",
+          "conditions",
+          "accord",
+          "compromis",
+          "réclamation",
+          "service client",
+          "par écrit",
+        ],
+        phrases: [
+          {
+            text: "Pourriez-vous m'envoyer un devis détaillé par écrit avant le début des travaux ?",
+            pt: "Poderia enviar-me um orçamento detalhado por escrito antes do início dos trabalhos?",
+            register: "formal",
+            whenToUse: "Em França qualquer reparação ou serviço acima de 150 € exige «un devis» prévio assinado!",
+          },
+          {
+            text: "Bonjour, je constate une erreur de surfacturation sur ma dernière facture.",
+            pt: "Bom dia, verifico um erro de cobrança excessiva na minha última factura.",
+            register: "formal",
+            whenToUse: "Ao ligar ou escrever ao «service client» de operadoras, energia ou oficinas",
+          },
+          {
+            text: "Si nous signons un accord annuel, pourriez-vous nous accorder une remise commerciale ?",
+            pt: "Se assinarmos um acordo anual, poderiam conceder-nos um desconto comercial?",
+            register: "formal",
+            whenToUse: "Em negociações B2Busa-se «une remise» (desconto comercial) em vez de «soldes» (saldos de loja)",
+          },
+          {
+            text: "Essayons de trouver un bon compromis sur les conditions de livraison.",
+            pt: "Tentemos encontrar um bom meio-termo nas condições de entrega.",
+            register: "neutro",
+            whenToUse: "Ao alinhar prazos ou responsabilidades num projecto",
+          },
+          {
+            text: "Je souhaite déposer une réclamation auprès du service client avec mon numéro de dossier.",
+            pt: "Desejo apresentar uma reclamação junto do apoio ao cliente com o meu número de processo.",
+            register: "formal",
+            whenToUse: "Para formalizar um pedido de reembolso ou correcção contratual",
+          },
+        ],
+        culturalTip:
+          "Distinção muito útil em francês: «un devis» é o orçamento ANTES de aceitares o serviço; «une facture» é a factura a pagar DEPOIS; e no restaurante pede-se sempre «l'addition»!",
+        situations: [
+          {
+            id: "fr-neg-1",
+            situationPt: "Precisas de um orçamento assinado por escrito antes de autorizar uma reparação.",
+            register: "formal",
+            correct: "Bonjour, pourriez-vous m'envoyer le devis par écrit par e-mail ?",
+            options: [
+              "Bonjour, pourriez-vous m'envoyer le devis par écrit par e-mail ?",
+              "Pourriez-vous échauffer ma facture sur le terrain ?",
+              "Ce compromis est en pointure quarante ?",
+              "J'ai une averse dans le service client.",
+            ],
+            explanationPt: "«Un devis par écrit» protege legalmente o consumidor antes de qualquer cobrança.",
+          },
+          {
+            id: "fr-neg-2",
+            situationPt: "Cobraram-te um serviço duplicado na factura mensal e queres apresentar reclamação.",
+            register: "formal",
+            correct: "Je contacte le service client pour faire une réclamation sur cette facture.",
+            options: [
+              "Je contacte le service client pour faire une réclamation sur cette facture.",
+              "Je dépose ma remise au pressing pour une tache.",
+              "L'accord a fini sur un match nul au stade.",
+              "Où est le rond-point de la surfacturation ?",
+            ],
+            explanationPt: "«Faire / déposer une réclamation» junto do «service client» é a fórmula oficial.",
+          },
+          {
+            id: "fr-neg-3",
+            situationPt: "Queres negociar um desconto comercial caso encomendes maior quantidade.",
+            register: "formal",
+            correct: "Serait-il possible d'obtenir une remise sur ces conditions ?",
+            options: [
+              "Serait-il possible d'obtenir une remise sur ces conditions ?",
+              "Ce devis est-il glissant sous l'orage ?",
+              "Puis-je emprunter un pneu crevé par écrit ?",
+              "L'arbitre a signé la canicule.",
+            ],
+            explanationPt: "«Obtenir / accorder une remise» é a expressão certa para negociar preço profissionalmente.",
+          },
+        ],
+        miniDialogue: [
+          {
+            speaker: "Tu",
+            text: "Bonjour ! J'ai bien reçu votre devis, mais le montant dépasse un peu notre budget.",
+            pt: "Bom dia! Recebi o vosso orçamento, mas o montante ultrapassa um pouco o nosso orçamento.",
+          },
+          {
+            speaker: "Fournisseur",
+            text: "Bonjour ! Quelles conditions vous permettraient d'arriver à un accord ?",
+            pt: "Bom dia! Que condições vos permitiriam chegar a um acordo?",
+          },
+          {
+            speaker: "Tu",
+            text: "Avec une remise de dix pour cent, nous pouvons valider le devis dès aujourd'hui.",
+            pt: "Com um desconto de dez por cento, podemos validar o orçamento já hoje.",
+          },
+          {
+            speaker: "Fournisseur",
+            text: "C'est un bon compromis — je vous renvoie l'accord mis à jour par écrit tout de suite !",
+            pt: "É um bom meio-termo — reenvio-lhe já o acordo actualizado por escrito!",
+          },
+        ],
+      },
+      ja: {
+        vocabKeys: [
+          "みつもり",
+          "せいきゅうしょ",
+          "わりびき",
+          "じょうけん",
+          "けいやく",
+          "そうだん",
+          "かくにん",
+          "ほしょう",
+          "サポート",
+          "しょめん",
+        ],
+        phrases: [
+          {
+            text: "けいやく|の|まえ|に|、|みつもり|を|しょめん|で|いただけますか|。",
+            pt: "Antes do contrato, poderia enviar-nos o orçamento por escrito?",
+            romaji: "Keiyaku no mae ni, mitsumori o shomen de itadakemasu ka.",
+            register: "formal",
+            whenToUse: "«見積もり» (みつもり) é o orçamento; «書面で» (しょめんで) significa por escrito / documento!",
+          },
+          {
+            text: "すみません|、|せいきゅうしょ|の|きんがく|を|もう|一度|かくにん|して|もらえますか|。",
+            pt: "Com licença, poderia confirmar mais uma vez o valor da factura?",
+            romaji: "Sumimasen, seikyuusho no kingaku o mou ichido kakunin shite moraemasu ka.",
+            register: "formal",
+            whenToUse: "No Japão, pedir para «confirmar» («かくにんしてもらえますか») resolve erros de factura sem confronto!",
+          },
+          {
+            text: "じょうけん|と|わりびき|に|ついて|、|少し|そうだん|しても|いい|ですか|。",
+            pt: "Posso conversar consigo um pouco sobre as condições e um possível desconto?",
+            romaji: "Jouken to waribiki ni tsuite, sukoshi soudan shite mo ii desu ka.",
+            register: "formal",
+            whenToUse: "Em negócios no Japão usa-se «そうだん» (consultar/alinhar em conjunto) em vez de exigir desconto directo!",
+          },
+          {
+            text: "この|せいひん|には|一年間|の|ほしょう|が|ついて|います|か|。",
+            pt: "Este produto inclui garantia de um ano?",
+            romaji: "Kono seihin ni wa ichinenkan no hoshou ga tsuite imasu ka.",
+            register: "formal",
+            whenToUse: "Ao comprar electrónica ou assinar serviços técnicos",
+          },
+          {
+            text: "サポート|に|れんらく|して|、|メール|で|かくにん|を|おくります|。",
+            pt: "Vou contactar o suporte e enviar a confirmação por e-mail.",
+            romaji: "Sapooto ni renraku shite, meeru de kakunin o okurimasu.",
+            register: "neutro",
+            whenToUse: "No acompanhamento de um pedido de assistência ou contrato",
+          },
+        ],
+        culturalTip:
+          "Na cultura japonesa de negócios, apontar um erro frontalmente cria desconforto: em vez de dizer «cobraram a mais!», pergunta «すみません、せいきゅうしょのきんがくをかくにんしてもらえますか» ('poderia confirmar o valor da factura?') — a correcção é imediata e super cortês!",
+        situations: [
+          {
+            id: "ja-neg-1",
+            situationPt: "Queres pedir um orçamento por escrito antes de fechar um contrato.",
+            register: "formal",
+            correct: "まず、みつもりしょを メールか しょめんで いただけますか。",
+            options: [
+              "まず、みつもりしょを メールか しょめんで いただけますか。",
+              "まず、スタジアムの ひきわけを いただけますか。",
+              "せいきゅうしょを しちゃくしても いいですか。",
+              "けいやくを レギュラー まんたんで おねがいします。",
+            ],
+            explanationPt: "«みつもり» / «みつもりしょ» (orçamento) + «しょめんでいただけますか» é o padrão profissional.",
+          },
+          {
+            id: "ja-neg-2",
+            situationPt: "O valor na factura parece diferente do acordado e queres pedir verificação com tacto japonês.",
+            register: "formal",
+            correct: "すみません、せいきゅうしょの きんがくを かくにんして もらえますか。",
+            options: [
+              "すみません、せいきゅうしょの きんがくを かくにんして もらえますか。",
+              "この ほしょうは 蒸し暑いですか。",
+              "しょめんの すそを おなおしして ください。",
+              "サポートは ひなんじょに 止まって います。",
+            ],
+            explanationPt: "Pedir «かくにん» (confirmação) permite corrigir qualquer erro mantendo a harmonia.",
+          },
+          {
+            id: "ja-neg-3",
+            situationPt: "Queres negociar diplomaticamente as condições de um projecto anual.",
+            register: "formal",
+            correct: "けいやくの じょうけんに ついて、少し そうだんさせて ください。",
+            options: [
+              "けいやくの じょうけんに ついて、少し そうだんさせて ください。",
+              "コートを 二たい二で わりびきして ください。",
+              "日焼け止めに サインを かします。",
+              "台風を サポートに つつみます。",
+            ],
+            explanationPt: "«そうだんさせてください» ('permita-nos consultar/conversar consigo') abre espaço à negociação.",
+          },
+        ],
+        miniDialogue: [
+          {
+            speaker: "Tu",
+            text: "みつもり|を|ありがとうございます|。|じょうけん|に|ついて|少し|そうだん|しても|いい|ですか|。",
+            pt: "Muito obrigado pelo orçamento. Posso alinhar consigo alguns detalhes sobre as condições?",
+            romaji: "Mitsumori o arigatou gozaimasu. Jouken ni tsuite sukoshi soudan shite mo ii desu ka.",
+          },
+          {
+            speaker: "担当者",
+            text: "はい|、|もちろん|です|。|どの|てん|でしょうか|。",
+            pt: "Sim, com certeza. Sobre que ponto seria?",
+            romaji: "Hai, mochiron desu. Dono ten deshou ka.",
+          },
+          {
+            speaker: "Tu",
+            text: "一年|けいやく|に|する|ばあい|、|少し|わりびき|は|できますか|。",
+            pt: "No caso de fazermos um contrato de um ano, seria possível um pequeno desconto?",
+            romaji: "Ichinen keiyaku ni suru baai, sukoshi waribiki wa dekimasu ka.",
+          },
+          {
+            speaker: "担当者",
+            text: "かしこまりました|！|新しい|みつもり|を|しょめん|で|すぐ|おくります|。",
+            pt: "Com certeza! Vou enviar já o novo orçamento por escrito.",
+            romaji: "Kashikomarimashita! Atarashii mitsumori o shomen de sugu okurimasu.",
+          },
+        ],
+      },
+    },
+  },
+  {
+    id: "eventos",
+    emoji: "🎉",
+    title: "Festas, Anfitriões, Presentes & Etiqueta",
+    subtitle: "Jantares em casa, casamentos, lembranças, brindes e cortesia como convidado",
+    tag: "Social",
+    color: "var(--color-coral)",
+    softColor: "var(--color-coral-soft)",
+    relatedLevels: [22, 39, 54],
+    byLang: {
+      en: {
+        vocabKeys: [
+          "host",
+          "housewarming",
+          "gift",
+          "toast",
+          "congratulations",
+          "dress code",
+          "wrap",
+          "homemade",
+          "hospitality",
+          "rsvp",
+        ],
+        phrases: [
+          {
+            text: "Thank you so much for having us — we brought a small gift for your housewarming!",
+            pt: "Muito obrigado por nos receberem — trouxemos uma pequena lembrança para a inauguração da casa!",
+            register: "neutro",
+            whenToUse: "Ao chegar a casa dos anfitriões («Thank you for having me/us» é a frase de ouro!)",
+          },
+          {
+            text: "Could you gift-wrap this box and remove the price tag, please?",
+            pt: "Poderia embrulhar esta caixa para presente e retirar a etiqueta do preço, por favor?",
+            register: "formal",
+            whenToUse: "Na loja ao comprar um presente de aniversário ou casamento",
+          },
+          {
+            text: "Let's make a toast — congratulations on your wedding and new chapter!",
+            pt: "Vamos fazer um brinde — parabéns pelo vosso casamento e por esta nova etapa!",
+            register: "neutro",
+            whenToUse: "Num jantar comemorativo, casamento ou festa de promoção",
+          },
+          {
+            text: "By the way, is there a dress code for Saturday's dinner, and did you RSVP yet?",
+            pt: "Já agora, há código de vestuário para o jantar de sábado, e já confirmaste presença?",
+            register: "informal",
+            whenToUse: "Em inglês «RSVP» usa-se até como verbo («Please RSVP by Friday» = confirma presença até sexta)!",
+          },
+          {
+            text: "Everything was delicious, especially the homemade dessert — thank you for your hospitality!",
+            pt: "Estava tudo delicioso, sobretudo a sobremesa caseira — obrigado pela vossa hospitalidade!",
+            register: "formal",
+            whenToUse: "Ao despedir-te dos anfitriões ou na mensagem de agradecimento no dia seguinte",
+          },
+        ],
+        culturalTip:
+          "Curiosidade: «RSVP» nos convites em inglês vem do francês «Répondez s'il vous plaît»! E quando és recebido em casa de alguém, evita perguntar «Can I enter?» — diz «Thanks for having me!» à chegada e à saída.",
+        situations: [
+          {
+            id: "en-evt-1",
+            situationPt: "Compraste uma lembrança numa loja e queres pedir para embrulharem para oferta.",
+            register: "formal",
+            correct: "Could you wrap this as a gift, please?",
+            options: [
+              "Could you wrap this as a gift, please?",
+              "Could you dispute this toast at the toll?",
+              "Is this housewarming slippery on the pitch?",
+              "Does the host come with full insurance?",
+            ],
+            explanationPt: "«Wrap as a gift» / «gift-wrap» pede o embrulho de presente sem mostrar o preço.",
+          },
+          {
+            id: "en-evt-2",
+            situationPt: "Foste jantar a casa de amigos pela primeira vez na casa nova deles e queres agradecer à saída.",
+            register: "neutro",
+            correct: "Thank you so much for your hospitality — your new home is lovely!",
+            options: [
+              "Thank you so much for your hospitality — your new home is lovely!",
+              "There is an overcharge on your homemade dessert!",
+              "Please send me a quote for the dress code!",
+              "Your living room ended in a draw!",
+            ],
+            explanationPt: "Elogiar a casa e agradecer a «hospitality» («Thanks for having us!») é etiqueta essencial.",
+          },
+          {
+            id: "en-evt-3",
+            situationPt: "Recebeste um convite formal e queres saber que tipo de roupa levar.",
+            register: "neutro",
+            correct: "Is there a specific dress code for the reception?",
+            options: [
+              "Is there a specific dress code for the reception?",
+              "Is there a petrol station inside the gift?",
+              "Did you warm up the congratulations?",
+              "Where is the shelter for the RSVP?",
+            ],
+            explanationPt: "Termos comuns de «dress code»: «casual», «smart casual», «cocktail» e «black tie».",
+          },
+        ],
+        miniDialogue: [
+          {
+            speaker: "Tu",
+            text: "Hi Clara! Congratulations on the new flat — thanks for inviting us to your housewarming!",
+            pt: "Olá Clara! Parabéns pelo novo apartamento — obrigado por nos convidares para a inauguração da casa!",
+          },
+          {
+            speaker: "Host",
+            text: "So glad you could make it! Come on in — did you find parking easily?",
+            pt: "Ainda bem que puderam vir! Entrem — encontraram estacionamento facilmente?",
+          },
+          {
+            speaker: "Tu",
+            text: "Yes, right around the corner! Here's a small gift and a homemade cake for everyone.",
+            pt: "Sim, logo ao virar da esquina! Aqui está uma pequena lembrança e um bolo caseiro para todos.",
+          },
+          {
+            speaker: "Host",
+            text: "How thoughtful, thank you! Grab a glass — we're about to make a toast!",
+            pt: "Que simpático, obrigada! Peguem num copo — estamos prestes a fazer um brinde!",
+          },
+        ],
+      },
+      fr: {
+        vocabKeys: [
+          "hôte",
+          "pendaison de crémaillère",
+          "cadeau",
+          "porter un toast",
+          "félicitations",
+          "tenue",
+          "emballer",
+          "fait maison",
+          "accueil",
+          "confirmer",
+        ],
+        phrases: [
+          {
+            text: "Merci infiniment pour votre accueil — voici un petit cadeau pour la pendaison de crémaillère !",
+            pt: "Muito obrigado pela vossa recepção — aqui está uma pequena lembrança para a inauguração da casa!",
+            register: "formal",
+            whenToUse: "Expressão idiomática francesa deliciosa: «pendaison de crémaillère» é a festa de casa nova!",
+          },
+          {
+            text: "Bonjour, c'est pour offrir — pourriez-vous l'emballer en paquet cadeau ?",
+            pt: "Bom dia, é para oferecer — poderia embrulhar como presente?",
+            register: "formal",
+            whenToUse: "«C'est pour offrir» ('é para oferecer') é a frase mágica em todas as lojas francesas!",
+          },
+          {
+            text: "Toutes mes félicitations ! Je voudrais porter un toast aux mariés : santé !",
+            pt: "Muitos parabéns! Gostaria de fazer um brinde aos noivos: saúde!",
+            register: "formal",
+            whenToUse: "Ao brindar em França, olha sempre cada pessoa nos olhos ao dizer «Santé !» ou «Tchin-tchin !»",
+          },
+          {
+            text: "Quelle tenue est prévue samedi soir, et as-tu pensé à confirmer ta présence ?",
+            pt: "Que código de vestuário está previsto para sábado à noite, e lembraste-te de confirmar presença?",
+            register: "informal",
+            whenToUse: "«Tenue correcte exigée» ou «tenue de soirée» aparece frequentemente em convites",
+          },
+          {
+            text: "Ce gâteau est fait maison ? Il est délicieux, merci à nos hôtes !",
+            pt: "Este bolo é caseiro? Está delicioso, obrigado aos nossos anfitriões!",
+            register: "neutro",
+            whenToUse: "Atenção: «hôte» em francês significa tanto o anfitrião que recebe como o hóspede recebido!",
+          },
+        ],
+        culturalTip:
+          "Etiqueta francesa em jantares em casa («dîner chez des amis»): nunca chegues antes da hora marcada — o famoso «quart d'heure de politesse» significa chegar 10 a 15 minutos DEPOIS da hora combinada para dar tempo ao anfitrião, levando flores, vinho ou chocolates!",
+        situations: [
+          {
+            id: "fr-evt-1",
+            situationPt: "Estás na caixa de uma livraria em França e o livro é um presente de aniversário.",
+            register: "formal",
+            correct: "Bonjour, c'est pour offrir — pouvez-vous faire un paquet cadeau ?",
+            options: [
+              "Bonjour, c'est pour offrir — pouvez-vous faire un paquet cadeau ?",
+              "Bonjour, pouvez-vous envoyer un devis pour ce toast ?",
+              "Cette tenue a un pneu crevé au stade ?",
+              "Je dépose une réclamation sur le gâteau fait maison.",
+            ],
+            explanationPt: "«C'est pour offrir» avisa logo o lojista para esconder o preço e embrulhar («emballer»).",
+          },
+          {
+            id: "fr-evt-2",
+            situationPt: "Amigos mudaram-se para um apartamento novo e convidaram-te para a festa de inauguração.",
+            register: "neutro",
+            correct: "Félicitations pour l'appartement ! Merci de m'inviter à la pendaison de crémaillère !",
+            options: [
+              "Félicitations pour l'appartement ! Merci de m'inviter à la pendaison de crémaillère !",
+              "Voici ma surfacturation pour votre service client !",
+              "Quelle est la limitation de vitesse dans le salon ?",
+              "Le cadeau est très glissant sous l'averse !",
+            ],
+            explanationPt: "«La pendaison de crémaillère» é o nome tradicional da festa de inauguração de casa.",
+          },
+          {
+            id: "fr-evt-3",
+            situationPt: "Terminou um óptimo jantar em casa de colegas franceses e queres agradecer ao sair.",
+            register: "formal",
+            correct: "Merci beaucoup pour votre accueil chaleureux, tout était délicieux !",
+            options: [
+              "Merci beaucoup pour votre accueil chaleureux, tout était délicieux !",
+              "Merci d'avoir essayé ma pointure au pressing !",
+              "Nous avons fait match nul sur le dessert !",
+              "Puis-je payer le péage en sortant ?",
+            ],
+            explanationPt: "«Merci pour votre accueil» é a fórmula mais elegante para agradecer a quem te recebe.",
+          },
+        ],
+        miniDialogue: [
+          {
+            speaker: "Tu",
+            text: "Bonsoir ! Merci pour votre accueil et félicitations pour ce nouvel appartement !",
+            pt: "Boa noite! Obrigado por nos receberem e parabéns por este novo apartamento!",
+          },
+          {
+            speaker: "Hôte",
+            text: "Bienvenue à notre pendaison de crémaillère ! Entrez, mettez-vous à l'aise !",
+            pt: "Bem-vindos à inauguração da nossa casa! Entrem, fiquem à vontade!",
+          },
+          {
+            speaker: "Tu",
+            text: "Voici un petit cadeau et une tarte faite maison pour le dessert.",
+            pt: "Aqui está uma pequena lembrança e uma tarte caseira para a sobremesa.",
+          },
+          {
+            speaker: "Hôte",
+            text: "Oh, il ne fallait pas, merci ! Prenons un verre pour porter un toast : santé !",
+            pt: "Oh, não era preciso, obrigado! Peguemos num copo para fazer um brinde: saúde!",
+          },
+        ],
+      },
+      ja: {
+        vocabKeys: [
+          "おみやげ",
+          "おいわい",
+          "かんぱい",
+          "おめでとうございます",
+          "おじゃまします",
+          "てみやげ",
+          "つつむ",
+          "てづくり",
+          "しょうたい",
+          "おれい",
+        ],
+        phrases: [
+          {
+            text: "ごけっこん|、|ほんとうに|おめでとうございます|！",
+            pt: "Muitos parabéns pelo vosso casamento!",
+            romaji: "Gokekkon, hontou ni omedetou gozaimasu!",
+            register: "formal",
+            whenToUse: "Para casamentos, promoções, nascimentos ou formaturas («おめでとうございます»)",
+          },
+          {
+            text: "今日|は|しょうたい|して|くれて|ありがとう|。|おじゃまします|！",
+            pt: "Obrigado pelo convite de hoje. Com licença por entrar na vossa casa!",
+            romaji: "Kyou wa shoutai shite kurete arigatou. Ojama shimasu!",
+            register: "neutro",
+            whenToUse: "Diz SEMPRE «おじゃまします» ao cruzar a entrada («玄関») de casa de alguém e tira os sapatos!",
+          },
+          {
+            text: "つまらない|もの|です|が|、|てみやげ|に|おかし|を|もってきました|。",
+            pt: "É apenas uma lembrança modesta, mas trouxe uns doces para partilharmos.",
+            romaji: "Tsumaranai mono desu ga, temiyage ni okashi o motte kimashita.",
+            register: "formal",
+            whenToUse: "Ao visitar uma casa japonesa leva-se sempre «手土産» (てみやげ — doces ou fruta)!",
+          },
+          {
+            text: "プレゼント|よう|に|つつんで|もらえますか|。",
+            pt: "Poderia embrulhar para presente, por favor?",
+            romaji: "Purezento you ni tsutsunde moraemasu ka.",
+            register: "formal",
+            whenToUse: "A arte japonesa de embrulhar presentes nas lojas é impecável e geralmente gratuita!",
+          },
+          {
+            text: "みなさん|、|グラス|を|もって|ください|。|かんぱい|！",
+            pt: "Pessoal, peguem todos no vosso copo, por favor. Saúde!",
+            romaji: "Minasan, gurasu o motte kudasai. Kanpai!",
+            register: "neutro",
+            whenToUse: "No Japão ninguém bebe o primeiro gole antes de todos terem bebida e dizerem «乾杯！» (かんぱい)!",
+          },
+        ],
+        culturalTip:
+          "Três regras de ouro em casas e festas no Japão: 1) diz «おじゃまします» ao entrar e alinha os sapatos virados para a porta; 2) espera pelo «かんぱい！» colectivo antes de beber; 3) não abras um presente à frente de quem o deu a menos que te peçam!",
+        situations: [
+          {
+            id: "ja-evt-1",
+            situationPt: "Foste convidado a entrar na casa de um amigo japonês e acabas de tirar os sapatos à entrada.",
+            register: "formal",
+            correct: "おじゃまします！てみやげに おかしを どうぞ。",
+            options: [
+              "おじゃまします！てみやげに おかしを どうぞ。",
+              "ただいま！みつもりしょを どうぞ。",
+              "せいきゅうしょで かんぱいしましょう！",
+              "ひなんじょを プレゼントに つつんで ください。",
+            ],
+            explanationPt: "«おじゃまします» ('desculpe incomodar') é obrigatório ao entrar na casa ou escritório de outra pessoa.",
+          },
+          {
+            id: "ja-evt-2",
+            situationPt: "Compraste uma caixa de chá numa loja para oferecer como lembrança e queres embrulho de oferta.",
+            register: "formal",
+            correct: "すみません、プレゼントように つつんで もらえますか。",
+            options: [
+              "すみません、プレゼントように つつんで もらえますか。",
+              "すみません、おいわいを まんたんに してください。",
+              "この おれいは 少し きつい サイズです。",
+              "てづくりは 二たい二の ひきわけでした。",
+            ],
+            explanationPt: "«プレゼントようにつつんでもらえますか» pede o embrulho especial de oferta.",
+          },
+          {
+            id: "ja-evt-3",
+            situationPt: "Todos à mesa já têm copo cheio no início do jantar de celebração.",
+            register: "neutro",
+            correct: "おめでとうございます！それでは、かんぱい！",
+            options: [
+              "おめでとうございます！それでは、かんぱい！",
+              "ごめんなさい！それでは、クリーニング！",
+              "台風ですが、しちゃくしましょう！",
+              "しょめんで おかえりなさい！",
+            ],
+            explanationPt: "«かんぱい！» (literalmente 'copo seco' = saúde!) dá início oficial a qualquer jantar festivo.",
+          },
+        ],
+        miniDialogue: [
+          {
+            speaker: "Tu",
+            text: "こんにちは|！|今日|は|しょうたい|ありがとうございます|。|おじゃまします|！",
+            pt: "Olá! Muito obrigado pelo convite de hoje. Com licença!",
+            romaji: "Konnichiwa! Kyou wa shoutai arigatou gozaimasu. Ojama shimasu!",
+          },
+          {
+            speaker: "ゆみ",
+            text: "ようこそ|！|くつ|は|そこ|に|おいて|、|どうぞ|中|へ|入って|ください|。",
+            pt: "Bem-vindo! Deixe os sapatos aí e faça favor de entrar.",
+            romaji: "Youkoso! Kutsu wa soko ni oite, douzo naka e haitte kudasai.",
+          },
+          {
+            speaker: "Tu",
+            text: "新しい|家|の|おいわい|に|、|てづくり|の|ケーキ|と|おみやげ|を|もってきました|。",
+            pt: "Para celebrar a casa nova, trouxe um bolo caseiro e uma lembrança.",
+            romaji: "Atarashii ie no oiwai ni, tedzukuri no keeki to omiyage o motte kimashita.",
+          },
+          {
+            speaker: "ゆみ",
+            text: "わあ|、|うれしい|です|、|おれい|を|言います|！|さあ|、|みんな|で|かんぱい|しましょう|！",
+            pt: "Uau, fico tão feliz, muito obrigada! Vamos lá brindar todos juntos!",
+            romaji: "Waa, ureshii desu, orei o iimasu! Saa, minna de kanpai shimashou!",
+          },
+        ],
+      },
+    },
+  },
 ];
 
 /* ---------------- Mini-Diálogos Complementares (Pacotes 1–8) ---------------- */
@@ -7314,7 +9438,333 @@ export const VOCAB_NETWORKS: VocabNetwork[] = [
       ja: ["なるほど", "たしかに", "もちろん", "大丈夫", "ひさしぶり", "たのしみ", "問題", "分かりました", "いいですね", "きをつけて"],
     },
   },
+  {
+    id: "opinioes-argumentos",
+    emoji: "💡",
+    title: "Opiniões, Matizes & Argumentação",
+    subtitle: "Dar o teu ponto de vista, concordar parcialmente e equilibrar prós e contras",
+    tip: "Suavizar uma discordância com «fair point / à mon avis / たしかに» torna qualquer debate profissional ou amigável muito mais natural.",
+    softColor: "var(--color-lilac-soft)",
+    keys: {
+      en: ["in my view", "fair point", "to be honest", "it depends", "on the other hand", "agree", "disagree", "convinced", "perspective", "doubt"],
+      fr: ["à mon avis", "tout à fait", "ça dépend", "en revanche", "franchement", "d'accord", "convaincu", "point de vue", "nuance", "doute"],
+      ja: ["とおもいます", "たしかに", "じつは", "ばあい", "さんせい", "はんたい", "いけん", "りゆう", "もちろん", "たぶん"],
+    },
+  },
+  {
+    id: "quantidades-medidas",
+    emoji: "📏",
+    title: "Quantidades, Preços & Proporções",
+    subtitle: "Aproximar valores, falar de metades, gratuitidade, excesso ou suficiência",
+    tip: "Essencial em compras, orçamentos, receitas, alugueres e viagens para negociar ou estimar sem bloqueios.",
+    softColor: "var(--color-teal-soft)",
+    keys: {
+      en: ["roughly", "plenty of", "affordable", "half", "extra", "free of charge", "enough", "shortage", "average", "included"],
+      fr: ["environ", "moitié", "abordable", "gratuit", "supplémentaire", "suffisant", "compris", "moyenne", "presque", "davantage"],
+      ja: ["だいたい", "半分", "無料", "ぜんぶ", "たりる", "あまり", "すこし", "ちょうど", "わりびき", "おおい"],
+    },
+  },
+  {
+    id: "emocoes-estados",
+    emoji: "❤️",
+    title: "Emoções, Energia & Estados de Espírito",
+    subtitle: "Ir além do «bem/mal» para exprimir alívio, entusiasmo, cansaço ou saudade",
+    tip: "Vocabulário emocional preciso aproxima imenso nas amizades, consultas médicas e conversas do quotidiano.",
+    softColor: "var(--color-coral-soft)",
+    keys: {
+      en: ["relieved", "exhausted", "overwhelmed", "grateful", "homesick", "thrilled", "anxious", "proud", "relaxed", "curious"],
+      fr: ["soulagé", "épuisé", "débordé", "reconnaissant", "nostalgique", "ravi", "inquiet", "fier", "détendu", "curieux"],
+      ja: ["ほっとする", "つかれる", "あんしん", "しんぱい", "なつかしい", "うれしい", "きんちょう", "たのしみ", "げんき", "びっくり"],
+    },
+  },
 ];
+
+/* ---------------- Pares Confusos & Nuances de Vocabulário ---------------- */
+
+export interface ConfusablePair {
+  id: string;
+  wordA: string;
+  wordB: string;
+  summaryPt: string;
+  tipPt: string;
+  quizPromptPt: string;
+  quizSentence: string;
+  quizAnswer: string;
+  quizDistractor: string;
+}
+
+export const CONFUSABLE_PAIRS: Record<LangCode, ConfusablePair[]> = {
+  en: [
+    {
+      id: "en-pair-borrow-lend",
+      wordA: "borrow",
+      wordB: "lend",
+      summaryPt: "pedir emprestado (receber) vs. emprestar (dar)",
+      tipPt: "Usa «borrow» quando recebes algo temporariamente (borrow from) e «lend» quando dás algo emprestado (lend to).",
+      quizPromptPt: "Queres pedir uma caneta emprestada a um colega por um minuto.",
+      quizSentence: "Could I ＿＿＿ your pen for a minute?",
+      quizAnswer: "borrow",
+      quizDistractor: "lend",
+    },
+    {
+      id: "en-pair-receipt-recipe",
+      wordA: "receipt",
+      wordB: "recipe",
+      summaryPt: "talão/recibo de compra vs. receita de cozinha",
+      tipPt: "«Receipt» (o 'p' é mudo: ri-sít) é o comprovativo da loja; «recipe» (ré-si-pi) é a receita culinária!",
+      quizPromptPt: "Precisas de guardar o talão da compra caso queiras trocar o casaco.",
+      quizSentence: "Keep the ＿＿＿ in case you want to exchange the jacket.",
+      quizAnswer: "receipt",
+      quizDistractor: "recipe",
+    },
+    {
+      id: "en-pair-sensible-sensitive",
+      wordA: "sensible",
+      wordB: "sensitive",
+      summaryPt: "sensato/prudente vs. sensível",
+      tipPt: "Falso amigo clássico: «sensible» significa prudente/ajuizado; «sensitive» significa sensível (pele, dentes ou emoções).",
+      quizPromptPt: "Queres elogiar uma escolha prudente ao contratar seguro completo no aluguer do carro.",
+      quizSentence: "Adding full insurance on the rental car was a very ＿＿＿ decision.",
+      quizAnswer: "sensible",
+      quizDistractor: "sensitive",
+    },
+    {
+      id: "en-pair-remind-remember",
+      wordA: "remind",
+      wordB: "remember",
+      summaryPt: "fazer lembrar alguém vs. lembrar-se sozinho",
+      tipPt: "Tu «remember» um facto por ti próprio, mas outra pessoa ou um alarme «reminds you» (avisa-te / faz-te lembrar).",
+      quizPromptPt: "Pedes a um colega que te avise da reunião das três horas.",
+      quizSentence: "Could you ＿＿＿ me about the three o'clock meeting?",
+      quizAnswer: "remind",
+      quizDistractor: "remember",
+    },
+    {
+      id: "en-pair-fun-funny",
+      wordA: "fun",
+      wordB: "funny",
+      summaryPt: "divertido/agradável vs. cómico/que faz rir",
+      tipPt: "Um passeio ou jogo é «fun» (dá gosto); uma piada é «funny» (faz rir — ou pode até significar 'esquisito'!).",
+      quizPromptPt: "Queres dizer que o jogo de futebol de ontem no parque foi muito divertido.",
+      quizSentence: "Playing football in the park yesterday was really ＿＿＿!",
+      quizAnswer: "fun",
+      quizDistractor: "funny",
+    },
+    {
+      id: "en-pair-fee-tax",
+      wordA: "fee",
+      wordB: "tax",
+      summaryPt: "taxa/comissão de serviço vs. imposto do Estado",
+      tipPt: "Bancos, entregas e universidades cobram «a fee»; governos cobram «tax» (como o IVA/VAT).",
+      quizPromptPt: "Perguntas no banco se a conta tem comissão mensal de manutenção.",
+      quizSentence: "Does this bank account charge a monthly ＿＿＿?",
+      quizAnswer: "fee",
+      quizDistractor: "tax",
+    },
+    {
+      id: "en-pair-miss-lose",
+      wordA: "miss",
+      wordB: "lose",
+      summaryPt: "perder transporte/sentir falta vs. perder objecto/jogo",
+      tipPt: "Em inglês «miss» usa-se para comboios, voos, prazos e saudades; «lose» usa-se para chaves, carteira ou jogos.",
+      quizPromptPt: "Se não correrem até à plataforma, vão perder o último comboio.",
+      quizSentence: "Hurry up, or we'll ＿＿＿ the last train home!",
+      quizAnswer: "miss",
+      quizDistractor: "lose",
+    },
+    {
+      id: "en-pair-customs-costume",
+      wordA: "customs",
+      wordB: "costume",
+      summaryPt: "alfândega vs. fantasia/traje",
+      tipPt: "No aeroporto passas por «customs» (sempre com -s final); «costume» é traje de espectáculo ou Carnaval.",
+      quizPromptPt: "Acabaste de aterrar num voo internacional sem mercadorias sujeitas a imposto.",
+      quizSentence: "We have nothing to declare at ＿＿＿.",
+      quizAnswer: "customs",
+      quizDistractor: "costume",
+    },
+  ],
+  fr: [
+    {
+      id: "fr-pair-attendre-entendre",
+      wordA: "attendre",
+      wordB: "entendre",
+      summaryPt: "esperar vs. ouvir",
+      tipPt: "Falso amigo muito frequente: «attendre» é esperar (não 'atender'!); «entendre» é ouvir (e 'entender' é «comprendre»!).",
+      quizPromptPt: "Há barulho na linha durante a chamada e perguntas se te conseguem ouvir bem.",
+      quizSentence: "Allô, il y a du bruit — est-ce que vous pouvez bien m'＿＿＿ ?",
+      quizAnswer: "entendre",
+      quizDistractor: "attendre",
+    },
+    {
+      id: "fr-pair-librairie-bibliotheque",
+      wordA: "librairie",
+      wordB: "bibliothèque",
+      summaryPt: "livraria (loja) vs. biblioteca pública",
+      tipPt: "Compras livros numa «librairie»; requisitas livros ou estudas gratuitamente numa «bibliothèque».",
+      quizPromptPt: "Compraste um romance novo numa pequena livraria do bairro.",
+      quizSentence: "J'ai acheté ce roman dans une petite ＿＿＿ du quartier.",
+      quizAnswer: "librairie",
+      quizDistractor: "bibliothèque",
+    },
+    {
+      id: "fr-pair-savoir-connaitre",
+      wordA: "savoir",
+      wordB: "connaître",
+      summaryPt: "saber facto/verbo vs. conhecer pessoa/lugar",
+      tipPt: "«Savoir» usa-se antes de verbos ou frases (savoir conduire, savoir où); «connaître» usa-se apenas antes de substantivos (pessoas, cidades).",
+      quizPromptPt: "Queres dizer que gostam de conhecer os pequenos bairros de Lyon.",
+      quizSentence: "Nous aimons ＿＿＿ les petits quartiers de Lyon.",
+      quizAnswer: "connaître",
+      quizDistractor: "savoir",
+    },
+    {
+      id: "fr-pair-preter-emprunter",
+      wordA: "prêter",
+      wordB: "emprunter",
+      summaryPt: "emprestar (dar) vs. pedir emprestado",
+      tipPt: "«Prêter» é emprestar algo teu a alguém; «emprunter» é pedir emprestado (ou seguir uma estrada/via!).",
+      quizPromptPt: "Começa um aguaceiro e pedes um guarda-chuva emprestado a um colega.",
+      quizSentence: "Il pleut fort, est-ce que je peux t'＿＿＿ un parapluie ?",
+      quizAnswer: "emprunter",
+      quizDistractor: "prêter",
+    },
+    {
+      id: "fr-pair-taille-pointure",
+      wordA: "taille",
+      wordB: "pointure",
+      summaryPt: "tamanho de roupa vs. número de calçado",
+      tipPt: "Para casacos e calças pede-se «la taille» (S, M, 40); para sapatos e ténis pede-se «la pointure» (39, 42)!",
+      quizPromptPt: "Estás numa sapataria e o empregado pergunta qual é o teu número de calçado.",
+      quizSentence: "Excusez-moi, quelle est votre ＿＿＿ pour ces chaussures ?",
+      quizAnswer: "pointure",
+      quizDistractor: "taille",
+    },
+    {
+      id: "fr-pair-amener-apporter",
+      wordA: "amener",
+      wordB: "apporter",
+      summaryPt: "levar pessoa/animal vs. levar objecto na mão",
+      tipPt: "Leva-se na mão («porter» → «apporter un gâteau») o que se carrega; leva-se consigo («mener» → «amener un ami») quem caminha.",
+      quizPromptPt: "Foste convidado para jantar e perguntas o que podes levar para a sobremesa.",
+      quizSentence: "Merci pour l'invitation ! Qu'est-ce que je peux ＿＿＿ pour le dessert ?",
+      quizAnswer: "apporter",
+      quizDistractor: "amener",
+    },
+    {
+      id: "fr-pair-addition-facture",
+      wordA: "addition",
+      wordB: "facture",
+      summaryPt: "conta do restaurante vs. factura de serviço/obra",
+      tipPt: "No café ou bistrô pede-se sempre «l'addition»; «la facture» usa-se para electricidade, oficina, contratos ou contabilidade.",
+      quizPromptPt: "Terminaste o almoço num restaurante e queres pedir a conta.",
+      quizSentence: "Excusez-moi, pourriez-vous nous apporter l'＿＿＿, s'il vous plaît ?",
+      quizAnswer: "addition",
+      quizDistractor: "facture",
+    },
+    {
+      id: "fr-pair-dossier-fichier",
+      wordA: "dossier",
+      wordB: "fichier",
+      summaryPt: "processo/pasta vs. ficheiro informático",
+      tipPt: "Na administração ou computador, «un dossier» é a pasta/processo; «un fichier» é o ficheiro individual (PDF, imagem).",
+      quizPromptPt: "Queres dizer que envias o ficheiro PDF do orçamento em anexo.",
+      quizSentence: "Je vous envoie le ＿＿＿ PDF du devis par e-mail.",
+      quizAnswer: "fichier",
+      quizDistractor: "dossier",
+    },
+  ],
+  ja: [
+    {
+      id: "ja-pair-sumimasen-gomennasai",
+      wordA: "すみません",
+      wordB: "ごめんなさい",
+      summaryPt: "com licença / desculpe formal vs. desculpa pessoal",
+      tipPt: "«すみません» serve para chamar um funcionário, pedir passagem, agradecer um incómodo ou pedir desculpa pública; «ごめんなさい» usa-se com amigos/família.",
+      quizPromptPt: "Queres chamar educadamente o empregado num restaurante para fazer o pedido.",
+      quizSentence: "＿＿＿、ちゅうもんを おねがいします。",
+      quizAnswer: "すみません",
+      quizDistractor: "ごめんなさい",
+    },
+    {
+      id: "ja-pair-wakarimasu-shitteimasu",
+      wordA: "わかります",
+      wordB: "しっています",
+      summaryPt: "compreender/dominar vs. ter conhecimento/conhecer",
+      tipPt: "«わかります» é compreender uma explicação ou língua; «しっています» (知っています) é conhecer um lugar, pessoa ou informação.",
+      quizPromptPt: "Queres dizer que conheces aquele restaurante perto da estação.",
+      quizSentence: "駅の 近くの あの レストランを ＿＿＿。",
+      quizAnswer: "しっています",
+      quizDistractor: "わかります",
+    },
+    {
+      id: "ja-pair-shoumi-shouhi",
+      wordA: "しょうみきげん",
+      wordB: "しょうひきげん",
+      summaryPt: "consumir de preferência antes vs. data-limite de segurança",
+      tipPt: "«賞味期限» (しょうみきげん) indica qualidade ideal; «消費期限» (しょうひきげん) é o limite estrito de segurança alimentar em frescos!",
+      quizPromptPt: "Compras uma marmita fresca e vês a data-limite estrita até hoje à noite.",
+      quizSentence: "この おべんとうの ＿＿＿は 今日の 夜までです。",
+      quizAnswer: "しょうひきげん",
+      quizDistractor: "しょうみきげん",
+    },
+    {
+      id: "ja-pair-kitsui-yurui",
+      wordA: "きつい",
+      wordB: "ゆるい",
+      summaryPt: "apertado vs. largo (roupa e sapatos)",
+      tipPt: "No provador ou sapataria, «きつい» indica que a peça aperta; «ゆるい» indica que está larga ou folgada.",
+      quizPromptPt: "Os sapatos estão apertados e precisas de um tamanho acima.",
+      quizSentence: "この くつは 少し ＿＿＿ので、大きい サイズは ありますか。",
+      quizAnswer: "きつい",
+      quizDistractor: "ゆるい",
+    },
+    {
+      id: "ja-pair-omiyage-temiyage",
+      wordA: "おみやげ",
+      wordB: "てみやげ",
+      summaryPt: "lembrança de viagem vs. presente ao visitar casa",
+      tipPt: "«おみやげ» traz-se de uma viagem para colegas e amigos; «てみやげ» (手土産) são doces/fruta que levas ao visitar a casa de alguém.",
+      quizPromptPt: "Foste convidado a casa de um anfitrião japonês e levas uma caixa de doces.",
+      quizSentence: "つまらない ものですが、＿＿＿に おかしを もってきました。",
+      quizAnswer: "てみやげ",
+      quizDistractor: "おみやげ",
+    },
+    {
+      id: "ja-pair-karimasu-kashimasu",
+      wordA: "かります",
+      wordB: "かします",
+      summaryPt: "pedir emprestado/alugar vs. emprestar",
+      tipPt: "«借ります» (かります) é pedir emprestado ou alugar um carro/livro; «貸します» (かします) é emprestar algo teu a alguém.",
+      quizPromptPt: "Vais alugar um carro perto do aeroporto durante três dias.",
+      quizSentence: "空港の 近くで 三日間 レンタカーを ＿＿＿。",
+      quizAnswer: "かります",
+      quizDistractor: "かします",
+    },
+    {
+      id: "ja-pair-anshin-shinpai",
+      wordA: "あんしん",
+      wordB: "しんぱい",
+      summaryPt: "tranquilidade/alívio vs. preocupação",
+      tipPt: "«あんしん» expressa alívio quando tudo corre bem; «しんぱい» expressa preocupação («しんぱいしないで» = não te preocupes).",
+      quizPromptPt: "Soubeste que todos chegaram bem a casa depois do tufão e sentiste alívio.",
+      quizSentence: "みんな 元気だと 聞いて、ほんとうに ＿＿＿しました。",
+      quizAnswer: "あんしん",
+      quizDistractor: "しんぱい",
+    },
+    {
+      id: "ja-pair-tadaima-okaeri",
+      wordA: "ただいま",
+      wordB: "おかえりなさい",
+      summaryPt: "cheguei a casa vs. bem-vindo de volta",
+      tipPt: "Quem chega a casa diz «ただいま»; quem já está em casa acolhe dizendo «おかえりなさい»!",
+      quizPromptPt: "Estás em casa e alguém da família abre a porta dizendo «ただいま!».",
+      quizSentence: "あ、＿＿＿！外は 寒かったでしょう。",
+      quizAnswer: "おかえりなさい",
+      quizDistractor: "ただいま",
+    },
+  ],
+};
 
 export interface ContextPackProgress {
   savedCount: number;
@@ -7388,14 +9838,19 @@ export function globalContextStats(
 
 const INTEREST_TO_PACKS: { match: string[]; packIds: string[]; label: string }[] = [
   {
-    match: ["viagens", "travel", "turismo", "ferias", "hotel"],
-    packIds: ["aeroporto", "hotel", "transportes", "emergencia", "restaurante"],
+    match: ["viagens", "travel", "turismo", "ferias", "hotel", "carro", "conducao"],
+    packIds: ["aeroporto", "hotel", "transportes", "conducao", "clima", "emergencia", "restaurante"],
     label: "o teu interesse em viagens",
   },
   {
     match: ["trabalho", "carreira", "work", "negocios"],
-    packIds: ["carreira", "remoto", "financas", "burocracia"],
+    packIds: ["carreira", "remoto", "negociacao", "financas", "burocracia"],
     label: "o teu foco profissional",
+  },
+  {
+    match: ["futebol", "jogos", "estadio", "equipa"],
+    packIds: ["desporto", "bem-estar", "social"],
+    label: "a tua paixão por futebol e desporto",
   },
   {
     match: ["estudos", "universidade", "study", "exames"],
@@ -7403,28 +9858,33 @@ const INTEREST_TO_PACKS: { match: string[]; packIds: string[]; label: string }[]
     label: "os teus objectivos académicos",
   },
   {
-    match: ["comida", "cultura", "gastronomia", "food", "culture", "cinema", "musica"],
-    packIds: ["restaurante", "cultura", "supermercado", "social", "falsos-amigos"],
+    match: ["comida", "cultura", "gastronomia", "food", "culture", "cinema", "musica", "festas"],
+    packIds: ["restaurante", "cultura", "eventos", "supermercado", "social", "falsos-amigos"],
     label: "o teu gosto por cultura e gastronomia",
   },
   {
     match: ["desporto", "saude", "bem-estar", "fitness", "ginasio"],
-    packIds: ["bem-estar", "saude", "supermercado"],
+    packIds: ["bem-estar", "desporto", "saude", "clima", "supermercado"],
     label: "o teu foco em saúde e bem-estar",
   },
   {
     match: ["familia", "filhos", "criancas", "animais"],
-    packIds: ["familia", "supermercado", "saude", "habitacao"],
+    packIds: ["familia", "eventos", "supermercado", "saude", "habitacao"],
     label: "a tua rotina familiar",
   },
   {
-    match: ["amigos", "social", "conversa", "dia-a-dia", "daily"],
-    packIds: ["social", "supermercado", "habitacao", "servicos", "familia"],
+    match: ["amigos", "social", "conversa", "dia-a-dia", "daily", "compras", "roupa"],
+    packIds: ["social", "eventos", "vestuario", "supermercado", "habitacao", "servicos", "familia"],
     label: "conversas naturais do dia-a-dia",
   },
   {
+    match: ["natureza", "clima", "trilhos", "montanha", "praia"],
+    packIds: ["clima", "conducao", "transportes", "emergencia"],
+    label: "o teu gosto por natureza e ar livre",
+  },
+  {
     match: ["tecnologia", "tech", "digital"],
-    packIds: ["digital", "remoto", "servicos"],
+    packIds: ["digital", "remoto", "negociacao", "servicos"],
     label: "o teu interesse digital",
   },
 ];
@@ -7479,12 +9939,22 @@ export interface WordContextSentence {
   sourceLabel: string;
 }
 
+export interface WordConfusableLink {
+  otherKey: string;
+  otherPt: string;
+  summaryPt: string;
+  tipPt: string;
+}
+
 export interface WordContextInfo {
   packs: ContextPack[];
+  networks: VocabNetwork[];
   extraSentences: WordContextSentence[];
   relatedWords: { key: string; pt: string }[];
   /** Expressões fixas ou palavras compostas que contêm esta palavra. */
   collocations: { key: string; pt: string }[];
+  /** Pares frequentemente confundidos por falantes de português. */
+  confusableWith: WordConfusableLink[];
 }
 
 interface UnitWordHit {
@@ -7542,7 +10012,9 @@ export function wordContextInfo(lang: LangCode, rawKey: string): WordContextInfo
   const key = rawKey.toLowerCase().trim();
   const dict = CONTENT[lang].dictionary;
   const entry = dict[key];
-  if (!key || !entry) return { packs: [], extraSentences: [], relatedWords: [], collocations: [] };
+  if (!key || !entry) {
+    return { packs: [], networks: [], extraSentences: [], relatedWords: [], collocations: [], confusableWith: [] };
+  }
 
   const primaryClean = entry.example ? plainText(entry.example.text, lang).toLowerCase() : "";
   const seenSentences = new Set<string>(primaryClean ? [primaryClean] : []);
@@ -7639,8 +10111,37 @@ export function wordContextInfo(lang: LangCode, rawKey: string): WordContextInfo
     }
   }
 
+  const networks = VOCAB_NETWORKS.filter((net) =>
+    net.keys[lang].some((nk) => nk.toLowerCase() === key || nk.toLowerCase() === baseTarget),
+  );
+
+  const confusableWith: WordConfusableLink[] = [];
+  for (const pair of CONFUSABLE_PAIRS[lang]) {
+    if (pair.wordA === key || pair.wordA === baseTarget) {
+      const otherEntry = dict[pair.wordB];
+      if (otherEntry) {
+        confusableWith.push({
+          otherKey: pair.wordB,
+          otherPt: otherEntry.pt,
+          summaryPt: pair.summaryPt,
+          tipPt: pair.tipPt,
+        });
+      }
+    } else if (pair.wordB === key || pair.wordB === baseTarget) {
+      const otherEntry = dict[pair.wordA];
+      if (otherEntry) {
+        confusableWith.push({
+          otherKey: pair.wordA,
+          otherPt: otherEntry.pt,
+          summaryPt: pair.summaryPt,
+          tipPt: pair.tipPt,
+        });
+      }
+    }
+  }
+
   const relatedWords = relatedKeys.slice(0, 6).map((rk) => ({ key: rk, pt: dict[rk].pt }));
-  return { packs, extraSentences, relatedWords, collocations };
+  return { packs, networks, extraSentences, relatedWords, collocations, confusableWith };
 }
 
 /** Escolhe deterministicamente a Expressão / Palavra do Dia em contexto real (priorizando itens com exemplo ainda por guardar). */
@@ -7760,8 +10261,8 @@ export function searchDictionary(
 
 /* ---------------- Gerador de Treino de Vocabulário em Contexto ---------------- */
 
-export type VocabDrillMode = "cloze" | "recall" | "listen" | "write" | "mixed";
-export type VocabQuestionType = "cloze" | "recall" | "listen" | "write";
+export type VocabDrillMode = "cloze" | "recall" | "listen" | "write" | "pairs" | "mixed";
+export type VocabQuestionType = "cloze" | "recall" | "listen" | "write" | "pairs";
 
 export interface ContextualVocabQuestion {
   id: string;
@@ -7776,6 +10277,8 @@ export interface ContextualVocabQuestion {
   reading?: string;
   romaji?: string;
   note?: string;
+  sourceLabel?: string;
+  contrastTip?: string;
   options: string[];
 }
 
@@ -7849,41 +10352,89 @@ export function buildContextualVocabDrill(
   const seed = Math.max(0, Math.floor(opts.seed ?? 0));
   const mode: VocabDrillMode = opts.mode ?? "cloze";
   const { dictionary, units } = CONTENT[lang];
+
+  // Modo dedicado «Nuances / Pares confusos»: contrasta directamente pares que confundem lusófonos
+  if (mode === "pairs") {
+    const pairs = [...CONFUSABLE_PAIRS[lang]];
+    if (seed > 0 && pairs.length > 1) {
+      const offset = (seed * 3) % pairs.length;
+      pairs.push(...pairs.splice(0, offset));
+    }
+    const allEntries = Object.entries(dictionary).filter(([k]) => k.length >= (lang === "ja" ? 1 : 2));
+    const pairOut: ContextualVocabQuestion[] = [];
+    for (let i = 0; i < pairs.length && pairOut.length < count; i++) {
+      const pr = pairs[i];
+      const answerKey = pr.quizAnswer.toLowerCase();
+      const entry = dictionary[answerKey] ?? dictionary[pr.wordA];
+      if (!entry) continue;
+      const samePosPool = allEntries
+        .filter(([k, e]) => k !== answerKey && k !== pr.quizDistractor.toLowerCase() && e.pos === entry.pos && e.pt !== entry.pt)
+        .map(([k]) => k);
+      const extraDistractors: string[] = [];
+      for (let d = 0; d < samePosPool.length && extraDistractors.length < 2; d++) {
+        const pick = samePosPool[(i * 7 + d * 11 + seed * 13) % samePosPool.length];
+        if (pick && !extraDistractors.includes(pick)) extraDistractors.push(pick);
+      }
+      const options = [pr.quizAnswer, pr.quizDistractor, ...extraDistractors].sort((a, b) => a.localeCompare(b));
+      pairOut.push({
+        id: `ctx-pair-${lang}-${pr.id}-${seed}`,
+        questionType: "pairs",
+        wordKey: answerKey,
+        surfaceAnswer: pr.quizAnswer,
+        maskedSentence: pr.quizSentence,
+        fullSentence: pr.quizSentence.replace("＿＿＿", pr.quizAnswer),
+        ptSentence: pr.quizPromptPt,
+        ptWord: `${pr.wordA} vs. ${pr.wordB} (${pr.summaryPt})`,
+        pos: entry.pos,
+        reading: entry.reading ?? entry.romaji,
+        romaji: entry.romaji,
+        note: pr.tipPt,
+        sourceLabel: `⚖️ Nuance · ${pr.wordA} ↔ ${pr.wordB}`,
+        contrastTip: pr.tipPt,
+        options,
+      });
+    }
+    return pairOut;
+  }
+
   const activePack = opts.packId ? CONTEXT_PACKS.find((p) => p.id === opts.packId) : undefined;
   const activeNetwork = opts.networkId ? VOCAB_NETWORKS.find((n) => n.id === opts.networkId) : undefined;
   const relatedSet = new Set(activePack?.relatedLevels ?? []);
   const sourceUnits = units.filter((u) => u.level <= Math.max(3, maxLevel) || relatedSet.has(u.level));
 
   // Mapa auxiliar de frases de diálogo/contexto onde cada chave aparece
-  const dialogueByKey = new Map<string, { text: string; pt: string }>();
+  const dialogueByKey = new Map<string, { text: string; pt: string; sourceLabel: string }>();
   if (activePack) {
+    const label = `${activePack.emoji} ${activePack.title}`;
     const packLines = [...activePack.byLang[lang].phrases, ...getPackDialogue(activePack, lang)];
     for (const ph of packLines) {
       for (const vk of activePack.byLang[lang].vocabKeys) {
         const k = vk.toLowerCase();
         if (!dialogueByKey.has(k) && tryMaskSentence(ph.text, k, lang)) {
-          dialogueByKey.set(k, { text: ph.text, pt: ph.pt });
+          dialogueByKey.set(k, { text: ph.text, pt: ph.pt, sourceLabel: label });
         }
       }
     }
   } else {
     for (const p of CONTEXT_PACKS) {
+      const label = `${p.emoji} ${p.title}`;
       const packLines = [...p.byLang[lang].phrases, ...getPackDialogue(p, lang)];
       for (const ph of packLines) {
         for (const vk of p.byLang[lang].vocabKeys) {
           const k = vk.toLowerCase();
           if (!dialogueByKey.has(k) && tryMaskSentence(ph.text, k, lang)) {
-            dialogueByKey.set(k, { text: ph.text, pt: ph.pt });
+            dialogueByKey.set(k, { text: ph.text, pt: ph.pt, sourceLabel: label });
           }
         }
       }
     }
   }
   for (const u of [...sourceUnits, ...units]) {
+    const label = `${u.emoji} Nível ${u.level} · ${u.title}`;
     for (const line of u.dialogue) {
       for (const tok of tokenize(line.text, lang, dictionary)) {
         if (!tok.isPunct && tok.key && !dialogueByKey.has(tok.key)) {
-          dialogueByKey.set(tok.key, { text: line.text, pt: line.pt });
+          dialogueByKey.set(tok.key, { text: line.text, pt: line.pt, sourceLabel: label });
         }
       }
     }
@@ -7972,6 +10523,9 @@ export function buildContextualVocabDrill(
       mode === "mixed" ? mixedRotation[(out.length + seed) % mixedRotation.length] : mode;
 
     const options = [maskAttempt.surface, ...distractors].sort((a, b) => a.localeCompare(b));
+    const sourceLabel =
+      altSource?.sourceLabel ??
+      (activePack ? `${activePack.emoji} ${activePack.title}` : activeNetwork ? `${activeNetwork.emoji} ${activeNetwork.title}` : undefined);
     out.push({
       id: `ctx-vocab-${lang}-${key}-${seed}-${i}`,
       questionType,
@@ -7985,6 +10539,7 @@ export function buildContextualVocabDrill(
       reading: entry.reading ?? entry.romaji,
       romaji: entry.romaji,
       note: entry.note,
+      sourceLabel,
       options,
     });
   }

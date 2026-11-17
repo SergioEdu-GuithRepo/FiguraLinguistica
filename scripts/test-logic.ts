@@ -16,6 +16,7 @@ import { DEFAULT_NEURAL, isNeuralVoice, NEURAL_VOICES, neuralVoiceFor, normalize
 import { buildQuickResponsePrompts, buildTranslateSensePrompts, buildStageExam, STAGE_MILESTONES } from "@/lib/fluencia";
 import { COUNTERS, POLITENESS_ROWS, buildCortesiaQuiz } from "@/lib/cortesia";
 import {
+  CONFUSABLE_PAIRS,
   CONTEXT_PACKS,
   VOCAB_NETWORKS,
   buildContextualVocabDrill,
@@ -352,8 +353,9 @@ for (const lang of LANGS) {
     }
   });
   check(`Contextos Reais, Pesquisa de Dicionário e Treino em Frase (${lang})`, () => {
-    assert.equal(CONTEXT_PACKS.length, 20);
-    assert.equal(VOCAB_NETWORKS.length, 5);
+    assert.equal(CONTEXT_PACKS.length, 26);
+    assert.equal(VOCAB_NETWORKS.length, 8);
+    assert.equal(CONFUSABLE_PAIRS[lang].length, 8);
     const unitIds = new Set(CONTENT[lang].units.map((u) => u.id));
     for (const pack of CONTEXT_PACKS) {
       const data = pack.byLang[lang];
@@ -427,20 +429,32 @@ for (const lang of LANGS) {
     const packSr = searchDictionary(lang, "", { packId: "restaurante" });
     assert.equal(packSr.total, CONTEXT_PACKS.find((p) => p.id === "restaurante")!.byLang[lang].vocabKeys.length);
 
-    // Pesquisa de contextos insensível a acentos (ex.: "caucao" -> habitação, "alergia" -> restaurante/saúde, "validade" -> supermercado)
-    assert.equal(searchContexts(lang, "", null).packs.length, 20);
+    // Pesquisa de contextos insensível a acentos (ex.: "caucao" -> habitação, "alergia" -> restaurante/saúde, "validade" -> supermercado, "orcamento" -> negociação)
+    assert.equal(searchContexts(lang, "", null).packs.length, 26);
     const sc = searchContexts(lang, "caucao", null);
     assert.ok(sc.packs.some((p) => p.id === "habitacao"), `${lang} searchContexts caucao`);
     const scSup = searchContexts(lang, "validade", null);
     assert.ok(scSup.packs.some((p) => p.id === "supermercado"), `${lang} searchContexts validade`);
+    const scNeg = searchContexts(lang, "orcamento", null);
+    assert.ok(scNeg.packs.some((p) => p.id === "negociacao"), `${lang} searchContexts orcamento`);
     const scPhrase = searchContexts(lang, "alergia", null);
     assert.ok(scPhrase.matchingPhrases.length >= 1, `${lang} searchContexts matchingPhrases alergia`);
 
-    // Ficha contextual da palavra (pacotes, colocações, frases reais e palavras companheiras) e Expressão do Dia
+    // Modo de treino de Pares Confusos & Nuances
+    const pairsDrill = buildContextualVocabDrill(lang, {}, 9, { count: 6, mode: "pairs" });
+    assert.equal(pairsDrill.length, 6, `${lang} pairs drill length`);
+    assert.ok(pairsDrill.every((q) => q.questionType === "pairs" && q.options.includes(q.surfaceAnswer)), `${lang} pairs drill valid`);
+
+    // Ficha contextual da palavra (pacotes, redes, pares confusos, colocações, frases reais e palavras companheiras) e Expressão do Dia
     const sampleKey = CONTEXT_PACKS.find((p) => p.id === "habitacao")!.byLang[lang].vocabKeys[0];
     const wInfo = wordContextInfo(lang, sampleKey);
     assert.ok(wInfo.packs.some((p) => p.id === "habitacao"), `${lang} wordContextInfo packs`);
     assert.ok(wInfo.relatedWords.length >= 3, `${lang} wordContextInfo relatedWords`);
+    const pairSample = CONFUSABLE_PAIRS[lang][0];
+    const pairInfo = wordContextInfo(lang, pairSample.wordA);
+    assert.ok(pairInfo.confusableWith.some((c) => c.otherKey === pairSample.wordB), `${lang} confusableWith`);
+    const netSample = VOCAB_NETWORKS[0].keys[lang][0];
+    assert.ok(wordContextInfo(lang, netSample).networks.length >= 1, `${lang} wordContextInfo networks`);
     const colProbe = lang === "en" ? "card" : lang === "fr" ? "carte" : "日本";
     assert.ok(wordContextInfo(lang, colProbe).collocations.length >= 2, `${lang} collocations for ${colProbe}`);
     const wotd = wordOfTheDay(lang, {}, "2026-11-16");
@@ -541,12 +555,15 @@ check("contextPackProgress e recommendedContextPack acompanham domínio e intere
   assert.equal(prog.mastered, true);
 
   const gStats = globalContextStats("en", s.srs.en, s.xpEvents);
-  assert.equal(gStats.totalPacks, 20);
+  assert.equal(gStats.totalPacks, 26);
   assert.equal(gStats.masteredPacks, 1);
   assert.ok(gStats.savedContextWords >= carreiraPack.byLang.en.vocabKeys.length);
 
   const rec2 = recommendedContextPack("en", s.settings.interests, s.srs.en, s.xpEvents);
   assert.equal(rec2.pack.id, "remoto");
+
+  const recSport = recommendedContextPack("en", ["futebol"], {}, []);
+  assert.equal(recSport.pack.id, "desporto");
 });
 
 console.log(`\n${passed} testes passaram, ${failures.length} falharam.`);

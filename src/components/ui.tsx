@@ -157,6 +157,101 @@ export function SpeakButton({
   );
 }
 
+let lastCopyAnnouncement = "";
+
+function legacyCopyFallback(text: string): boolean {
+  if (typeof document === "undefined") return false;
+  const field = Object.assign(document.createElement("textarea"), { value: text });
+  field.setAttribute("readonly", "");
+  field.style.cssText = "position:fixed;inset-block-start:0;opacity:0";
+  document.body.append(field);
+  field.select();
+  try {
+    return document.execCommand("copy");
+  } finally {
+    field.remove();
+  }
+}
+
+export function CopyTextButton({
+  text,
+  lang,
+  size = 38,
+  className = "",
+  label = "Copiar texto",
+}: {
+  text: string;
+  lang?: LangCode;
+  size?: number;
+  className?: string;
+  label?: string;
+}) {
+  const [status, setStatus] = useState<"idle" | "copied" | "failed">("idle");
+  const [announcement, setAnnouncement] = useState("");
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(
+    () => () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    },
+    [],
+  );
+
+  const handleCopy = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    const clean = (lang ? plainText(text, lang) : text).trim();
+    if (!clean) return;
+
+    let ok = false;
+    try {
+      await navigator.clipboard.writeText(clean);
+      ok = true;
+    } catch {
+      ok = legacyCopyFallback(clean);
+    }
+
+    if (timerRef.current) clearTimeout(timerRef.current);
+    setStatus("idle");
+    setAnnouncement("");
+
+    let msg = ok ? "Copiado" : "Falhou";
+    if (msg === lastCopyAnnouncement) msg += "\u00A0";
+    lastCopyAnnouncement = msg;
+
+    requestAnimationFrame(() => {
+      setStatus(ok ? "copied" : "failed");
+      setAnnouncement(msg);
+    });
+
+    timerRef.current = setTimeout(() => {
+      setStatus("idle");
+      setAnnouncement("");
+    }, 2000);
+  };
+
+  return (
+    <span className="copy-wrap shrink-0">
+      <button
+        type="button"
+        aria-label={label}
+        data-copied={status === "copied" ? "" : undefined}
+        data-failed={status === "failed" ? "" : undefined}
+        style={{ minInlineSize: Math.max(24, size), minBlockSize: Math.max(24, size) }}
+        className={`copy-btn ${className}`}
+        onClick={handleCopy}
+      >
+        <Icon
+          name={status === "copied" ? "check" : status === "failed" ? "close" : "copy"}
+          size={Math.round(size * 0.46)}
+        />
+      </button>
+      <span role="status" className="copy-tip">
+        {announcement}
+      </span>
+    </span>
+  );
+}
+
 const CONFETTI_COLORS = [
   "var(--color-coral)",
   "var(--color-yellow)",
