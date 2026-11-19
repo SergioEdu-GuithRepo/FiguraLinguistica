@@ -254,6 +254,20 @@ ruby rt {
   color: var(--color-coral);
 }
 
+@media (prefers-reduced-motion: no-preference) {
+  .action-pill,
+  .chip {
+    transition-timing-function: ease-out;
+    transition-timing-function: linear(0, 0.45 15%, 1.06 40%, 0.98 65%, 1);
+  }
+}
+
+/* Foco visível de alto contraste apenas em navegação por teclado (natural-interactions + accessibility) */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: 3px;
+}
+
 /* Filas horizontais de filtros deslizáveis com snap (natural-interactions) */
 .chip-scroller {
   display: flex;
@@ -262,7 +276,8 @@ ruby rt {
   overflow-x: auto;
   scrollbar-width: none;
   scroll-snap-type: x proximity;
-  padding-block-end: 0.2rem;
+  padding-block: 0.15rem 0.25rem;
+  padding-inline: 0.15rem;
 }
 .chip-scroller::-webkit-scrollbar {
   display: none;

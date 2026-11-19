@@ -47,6 +47,8 @@ import {
   rateItem,
   saveWordsBatch,
   toggleWordSaved,
+  phraseFavoriteKey,
+  toggleFavoritePhrase,
   dueItems,
   conversationsLeft,
   addActivity,
@@ -355,9 +357,9 @@ for (const lang of LANGS) {
     }
   });
   check(`Contextos Reais, Pesquisa de Dicionário e Treino em Frase (${lang})`, () => {
-    assert.equal(CONTEXT_PACKS.length, 32);
-    assert.equal(VOCAB_NETWORKS.length, 10);
-    assert.equal(CONFUSABLE_PAIRS[lang].length, 10);
+    assert.equal(CONTEXT_PACKS.length, 36);
+    assert.equal(VOCAB_NETWORKS.length, 12);
+    assert.equal(CONFUSABLE_PAIRS[lang].length, 12);
     const unitIds = new Set(CONTENT[lang].units.map((u) => u.id));
     for (const pack of CONTEXT_PACKS) {
       const data = pack.byLang[lang];
@@ -432,7 +434,7 @@ for (const lang of LANGS) {
     assert.equal(packSr.total, CONTEXT_PACKS.find((p) => p.id === "restaurante")!.byLang[lang].vocabKeys.length);
 
     // Pesquisa de contextos insensível a acentos (ex.: "caucao" -> habitação, "alergia" -> restaurante/saúde, "validade" -> supermercado, "orcamento" -> negociação, "dentista", "reciclagem", "podcast")
-    assert.equal(searchContexts(lang, "", null).packs.length, 32);
+    assert.equal(searchContexts(lang, "", null).packs.length, 36);
     const sc = searchContexts(lang, "caucao", null);
     assert.ok(sc.packs.some((p) => p.id === "habitacao"), `${lang} searchContexts caucao`);
     const scSup = searchContexts(lang, "validade", null);
@@ -577,7 +579,7 @@ check("contextPackProgress e recommendedContextPack acompanham domínio e intere
   assert.equal(prog.mastered, true);
 
   const gStats = globalContextStats("en", s.srs.en, s.xpEvents);
-  assert.equal(gStats.totalPacks, 32);
+  assert.equal(gStats.totalPacks, 36);
   assert.equal(gStats.masteredPacks, 1);
   assert.ok(gStats.savedContextWords >= carreiraPack.byLang.en.vocabKeys.length);
 
@@ -586,6 +588,24 @@ check("contextPackProgress e recommendedContextPack acompanham domínio e intere
 
   const recSport = recommendedContextPack("en", ["futebol"], {}, []);
   assert.equal(recSport.pack.id, "desporto");
+});
+
+check("toggleFavoritePhrase e mergeUserStates preservam frases favoritas por idioma", () => {
+  const s = defaultState("Sérgio");
+  const k1 = phraseFavoriteKey("cafetaria", "Could I have an iced latte with oat milk, please?");
+  const k2 = phraseFavoriteKey("privacidade", "Don't click on that suspicious link — it looks like a phishing scam.");
+  const r1 = toggleFavoritePhrase(s, "en", k1);
+  assert.equal(r1.favorited, true);
+  assert.deepEqual(r1.state.favoritePhrases?.en, [k1]);
+  const r2 = toggleFavoritePhrase(r1.state, "en", k1);
+  assert.equal(r2.favorited, false);
+  assert.deepEqual(r2.state.favoritePhrases?.en, []);
+
+  const devA = toggleFavoritePhrase(defaultState("Sérgio"), "en", k1).state;
+  const devB = toggleFavoritePhrase(defaultState("Sérgio"), "en", k2).state;
+  const merged = mergeUserStates(devA, devB, 1000, 2000, "Sérgio");
+  assert.ok(merged.favoritePhrases?.en.includes(k1));
+  assert.ok(merged.favoritePhrases?.en.includes(k2));
 });
 
 console.log(`\n${passed} testes passaram, ${failures.length} falharam.`);

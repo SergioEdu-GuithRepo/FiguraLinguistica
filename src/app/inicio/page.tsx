@@ -103,6 +103,14 @@ function Home() {
           <Link href="/contextos" className="action-pill !bg-[var(--color-surface)] !px-3.5 shadow-[var(--shadow-card)]">
             <span>🧰 {CONTEXT_PACKS.length} Contextos</span>
           </Link>
+          {(state.favoritePhrases?.[lang]?.length ?? 0) > 0 && (
+            <Link
+              href="/contextos?view=favoritas"
+              className="action-pill !border-[var(--color-yellow)] !bg-[var(--color-yellow-soft)] !px-3.5 !text-[#7a5c0d] shadow-[var(--shadow-card)]"
+            >
+              <span>⭐ Favoritas ({state.favoritePhrases?.[lang]?.length})</span>
+            </Link>
+          )}
           <Link href="/cursos/vocabulario?tab=treino" className="action-pill !bg-[var(--color-surface)] !px-3.5 shadow-[var(--shadow-card)]">
             <span>🧩 Treinar frases</span>
           </Link>

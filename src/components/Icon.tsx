@@ -45,7 +45,8 @@ export type IconName =
   | "plus"
   | "arrow-up"
   | "shuffle"
-  | "sliders";
+  | "sliders"
+  | "star";
 
 const paths: Record<IconName, React.ReactNode> = {
   home: <path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-9.5Z" />,
@@ -175,6 +176,7 @@ const paths: Record<IconName, React.ReactNode> = {
     </>
   ),
   sliders: <path d="M4 6h10M18 6h2M14 4v4M4 12h4M12 12h8M8 10v4M4 18h12M20 18h0M16 16v4" />,
+  star: <path d="m12 3 2.9 5.9 6.5.9-4.7 4.6 1.1 6.5L12 17.8 6.2 20.9l1.1-6.5L2.6 9.8l6.5-.9L12 3Z" />,
 };
 
 export function Icon({

@@ -167,6 +167,9 @@ export function ContextualVocabDrill({
       } else if (answered && e.key === "Enter" && el?.tagName !== "BUTTON") {
         e.preventDefault();
         next();
+      } else if ((q.questionType === "listen" || answered) && (e.key === "r" || e.key === "R") && !e.metaKey && !e.ctrlKey && !e.altKey) {
+        e.preventDefault();
+        say(q.fullSentence, lang);
       }
     };
     window.addEventListener("keydown", onKey);
@@ -305,16 +308,18 @@ export function ContextualVocabDrill({
         ) : q.questionType === "listen" ? (
           <div className="mt-2.5 space-y-2.5">
             <div className="flex flex-wrap items-center gap-2">
-              <SpeakButton text={q.fullSentence} lang={lang} size={42} className="!bg-white" label="Ouvir frase normal" />
+              <SpeakButton text={q.fullSentence} lang={lang} pillLabel="Ouvir" label="Ouvir frase normal" />
               <SpeakButton
                 text={q.fullSentence}
                 lang={lang}
-                size={42}
                 slow
-                className="!bg-[var(--color-teal-soft)]"
+                pillLabel="0.6×"
                 label="Ouvir frase devagar"
               />
-              <span className="text-xs text-[var(--color-muted)]">Ouvir · Devagar 🐢 · Significado: «{q.ptWord}»</span>
+              <span className="kbd-hint" aria-hidden="true" title="Tecla R para repetir áudio">
+                R
+              </span>
+              <span className="text-xs text-[var(--color-muted)]">Significado: «{q.ptWord}»</span>
             </div>
             <p
               lang={speechLang}

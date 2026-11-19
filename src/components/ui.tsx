@@ -8,7 +8,7 @@ import type { LangCode } from "@/lib/types";
 import { plainText } from "@/lib/tokenize";
 import { neuralVoiceFor, voiceForSpeaker } from "@/lib/voices";
 import { sfxCelebrate, sfxSuccess, sfxTap } from "@/lib/sfx";
-import { toggleWordSaved } from "@/lib/state";
+import { phraseFavoriteKey, toggleFavoritePhrase, toggleWordSaved } from "@/lib/state";
 import { Icon } from "./Icon";
 
 /* ---------- hooks ---------- */
@@ -271,6 +271,55 @@ export function SaveWordButton({
       } ${className}`}
     >
       <Icon name="bookmark" size={Math.round(size * 0.46)} filled={saved} />
+    </button>
+  );
+}
+
+export function FavoritePhraseButton({
+  packId,
+  phraseText,
+  phrasePt,
+  lang,
+  pillLabel = "Favorita",
+  className = "",
+  onToggle,
+}: {
+  packId: string;
+  phraseText: string;
+  phrasePt: string;
+  lang: LangCode;
+  pillLabel?: string;
+  className?: string;
+  onToggle?: (nowFavorited: boolean) => void;
+}) {
+  const { state, update } = useApp();
+  const favKey = phraseFavoriteKey(packId, phraseText);
+  const favorited = (state.favoritePhrases?.[lang] ?? []).includes(favKey);
+  const sfxOn = state.settings.soundEffects !== false;
+
+  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    const nextFav = !favorited;
+    if (nextFav) sfxSuccess(sfxOn);
+    else sfxTap(sfxOn);
+    update((s) => toggleFavoritePhrase(s, lang, favKey).state);
+    onToggle?.(nextFav);
+  };
+
+  return (
+    <button
+      type="button"
+      aria-pressed={favorited}
+      aria-label={`${pillLabel}: ${phrasePt}`}
+      onClick={handleClick}
+      className={`action-pill shrink-0 ${
+        favorited
+          ? "correct-pop !border-[var(--color-yellow)] !bg-[var(--color-yellow-soft)] !text-[#7a5c0d]"
+          : ""
+      } ${className}`}
+    >
+      <Icon name="star" size={14} filled={favorited} />
+      <span>{pillLabel}</span>
     </button>
   );
 }

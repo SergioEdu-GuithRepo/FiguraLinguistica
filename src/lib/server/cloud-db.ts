@@ -186,6 +186,7 @@ export function mergeUserStates(
 
   const progress = {} as Record<LangCode, LangProgress>;
   const srs = {} as Record<LangCode, Record<string, Card>>;
+  const favoritePhrases = { en: [] as string[], fr: [] as string[], ja: [] as string[] };
   const errors = { ...def.errors };
 
   for (const l of LANG_LIST) {
@@ -194,6 +195,9 @@ export function mergeUserStates(
       incomingRaw.progress?.[l] ?? def.progress[l],
     );
     srs[l] = mergeCards(baseRaw.srs?.[l], incomingRaw.srs?.[l]);
+    favoritePhrases[l] = Array.from(
+      new Set([...(primary.favoritePhrases?.[l] ?? []), ...(secondary.favoritePhrases?.[l] ?? [])]),
+    ).slice(0, 200);
     const errMap = { ...(secondary.errors?.[l] ?? {}) };
     for (const [cat, stat] of Object.entries(primary.errors?.[l] ?? {})) {
       const prev = errMap[cat];
@@ -240,6 +244,7 @@ export function mergeUserStates(
     settings: { ...def.settings, ...(secondary.settings ?? {}), ...(primary.settings ?? {}) },
     progress,
     srs,
+    favoritePhrases,
     kana: mergeCards(baseRaw.kana, incomingRaw.kana),
     xpEvents,
     errors,

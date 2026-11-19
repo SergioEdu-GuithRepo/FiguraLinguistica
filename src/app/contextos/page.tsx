@@ -13,6 +13,7 @@ import {
   CelebrationBurst,
   CopyTextButton,
   Empty,
+  FavoritePhraseButton,
   ProgressBar,
   SaveWordButton,
   SpeakButton,
@@ -36,7 +37,7 @@ import {
 import { useImeSafeEnter } from "@/lib/ime";
 import { LANGS } from "@/lib/langs";
 import { sfxError, sfxSuccess, sfxTap } from "@/lib/sfx";
-import { addActivity, isUnitUnlocked, saveWordsBatch } from "@/lib/state";
+import { addActivity, isUnitUnlocked, phraseFavoriteKey, saveWordsBatch } from "@/lib/state";
 import { useApp } from "@/lib/store";
 import type { RToken } from "@/lib/tokenize";
 
@@ -224,11 +225,15 @@ function ContextosInner() {
   const dict = CONTENT[lang].dictionary;
 
   const initialPackId = searchParams.get("pack");
+  const initialView = searchParams.get("view");
   const [selectedId, setSelectedId] = useState<string | null>(
     initialPackId && CONTEXT_PACKS.some((p) => p.id === initialPackId) ? initialPackId : null,
   );
   const [query, setQuery] = useState("");
   const [tagFilter, setTagFilter] = useState<string | null>(null);
+  const [statusFilter, setStatusFilter] = useState<"all" | "favoritas" | "por-dominar" | "dominados">(
+    initialView === "favoritas" ? "favoritas" : "all",
+  );
   const [regFilter, setRegFilter] = useState<RegisterLevel | "all">("all");
   const [tab, setTab] = useState<PackTab>("kit");
   const [selfTest, setSelfTest] = useState(false);
@@ -237,6 +242,9 @@ function ContextosInner() {
   const [dlgPlaying, setDlgPlaying] = useState(false);
   const [activeDlgIdx, setActiveDlgIdx] = useState<number | undefined>(undefined);
   const dlgCancelRef = useRef<() => void>(() => {});
+  const [phrasesPlaying, setPhrasesPlaying] = useState(false);
+  const [activePhraseIdx, setActivePhraseIdx] = useState<number | undefined>(undefined);
+  const phrasesCancelRef = useRef<() => void>(() => {});
   const [globalDrillOpen, setGlobalDrillOpen] = useState(false);
   const [tok, setTok] = useState<RToken | null>(null);
   const [toast, setToast] = useState<string | null>(null);
@@ -244,10 +252,28 @@ function ContextosInner() {
 
   const stopDialogueAudio = () => {
     dlgCancelRef.current();
+    phrasesCancelRef.current();
     stop();
     setDlgPlaying(false);
     setActiveDlgIdx(undefined);
+    setPhrasesPlaying(false);
+    setActivePhraseIdx(undefined);
   };
+
+  const favoriteKeys = useMemo(() => state.favoritePhrases?.[lang] ?? [], [state.favoritePhrases, lang]);
+  const favoriteItems = useMemo(() => {
+    const out: { pack: ContextPack; phrase: ContextPack["byLang"][typeof lang]["phrases"][number] }[] = [];
+    if (favoriteKeys.length === 0) return out;
+    const keySet = new Set(favoriteKeys);
+    for (const pack of CONTEXT_PACKS) {
+      for (const phrase of pack.byLang[lang].phrases) {
+        if (keySet.has(phraseFavoriteKey(pack.id, phrase.text))) {
+          out.push({ pack, phrase });
+        }
+      }
+    }
+    return out;
+  }, [favoriteKeys, lang]);
 
   const imeSearch = useImeSafeEnter(() => {
     if (typeof document !== "undefined" && document.activeElement instanceof HTMLElement) {
@@ -391,23 +417,56 @@ function ContextosInner() {
                     </h2>
                     <span className="text-xs text-[var(--color-muted)]">Toca numa palavra · Ouvir, 0.6×, copiar ou guardar</span>
                   </div>
-                  <button
-                    type="button"
-                    aria-pressed={selfTest}
-                    aria-label="Modo auto-teste de frases"
-                    onClick={() => {
-                      sfxTap(state.settings.soundEffects !== false);
-                      setSelfTest((v) => !v);
-                      setRevealedPhrases({});
-                      setKnownPhrases({});
-                    }}
-                    className={`chip min-h-[36px] !px-3 !py-1 text-xs ${
-                      selfTest ? "!bg-[var(--color-coral)] text-white" : ""
-                    }`}
-                  >
-                    <Icon name={selfTest ? "eye" : "eye-off"} size={14} />
-                    <span>Auto-teste</span>
-                  </button>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {filteredPhrases.length > 0 && !selfTest && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (phrasesPlaying) {
+                            stopDialogueAudio();
+                            return;
+                          }
+                          stopDialogueAudio();
+                          setPhrasesPlaying(true);
+                          phrasesCancelRef.current = sayMany(
+                            filteredPhrases.map((fp) => fp.text),
+                            lang,
+                            (i) => setActivePhraseIdx(i),
+                            () => {
+                              setPhrasesPlaying(false);
+                              setActivePhraseIdx(undefined);
+                            },
+                          );
+                        }}
+                        className={`chip min-h-[36px] !px-3 !py-1 text-xs font-extrabold ${
+                          phrasesPlaying
+                            ? "!bg-[var(--color-ink)] text-white"
+                            : "!bg-[var(--color-teal-soft)] text-[#24665f]"
+                        }`}
+                      >
+                        <Icon name={phrasesPlaying ? "stop" : "play"} size={14} />
+                        <span>{phrasesPlaying ? "Parar" : "Ouvir todas"}</span>
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      aria-pressed={selfTest}
+                      aria-label="Modo auto-teste de frases"
+                      onClick={() => {
+                        stopDialogueAudio();
+                        sfxTap(state.settings.soundEffects !== false);
+                        setSelfTest((v) => !v);
+                        setRevealedPhrases({});
+                        setKnownPhrases({});
+                      }}
+                      className={`chip min-h-[36px] !px-3 !py-1 text-xs ${
+                        selfTest ? "!bg-[var(--color-coral)] text-white" : ""
+                      }`}
+                    >
+                      <Icon name={selfTest ? "eye" : "eye-off"} size={14} />
+                      <span>Auto-teste</span>
+                    </button>
+                  </div>
                 </div>
 
                 {selfTest && filteredPhrases.length > 0 && (
@@ -471,7 +530,12 @@ function ContextosInner() {
                       const phraseAllSaved =
                         phraseWords.length > 0 && phraseWords.every((w) => !!state.srs[lang][`w:${w.toLowerCase()}`]);
                       return (
-                        <li key={idx} className="card p-4">
+                        <li
+                          key={idx}
+                          className={`card p-4 transition ${
+                            activePhraseIdx === idx ? "ring-2 ring-[var(--color-coral)]" : ""
+                          }`}
+                        >
                           <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                             <span className={`rounded-full px-2.5 py-0.5 text-[11px] font-extrabold ${reg.badgeCls}`}>
                               {reg.label}
@@ -512,6 +576,19 @@ function ContextosInner() {
                                   lang={lang}
                                   pillLabel="Copiar"
                                   label={`Copiar frase: ${p.pt}`}
+                                />
+                                <FavoritePhraseButton
+                                  packId={activePack.id}
+                                  phraseText={p.text}
+                                  phrasePt={p.pt}
+                                  lang={lang}
+                                  onToggle={(nowFav) =>
+                                    setToast(
+                                      nowFav
+                                        ? "⭐ Frase guardada nas tuas favoritas!"
+                                        : "Frase removida das favoritas.",
+                                    )
+                                  }
                                 />
                                 {phraseWords.length > 0 && (
                                   <button
@@ -793,7 +870,7 @@ function ContextosInner() {
       </p>
 
       {/* Resumo global dos contextos + treino transversal */}
-      {!query.trim() && !tagFilter && (
+      {!query.trim() && !tagFilter && statusFilter === "all" && (
         <div className="card mb-4 p-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
@@ -804,14 +881,37 @@ function ContextosInner() {
                 {ctxStats.masteredPacks}/{ctxStats.totalPacks} cenários dominados · {ctxStats.savedContextWords}/{ctxStats.totalContextWords} palavras na revisão
               </div>
             </div>
-            <button
-              type="button"
-              onClick={() => setGlobalDrillOpen((v) => !v)}
-              className="btn btn-primary !px-3.5 !py-2 text-xs"
-            >
-              <Icon name="bolt" size={15} />
-              {globalDrillOpen ? "Fechar treino" : "Treinar vocabulário"}
-            </button>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  sfxTap(state.settings.soundEffects !== false);
+                  const unmastered = CONTEXT_PACKS.filter(
+                    (p) => !contextPackProgress(p, lang, state.srs[lang], state.xpEvents).mastered,
+                  );
+                  const pool = unmastered.length > 0 ? unmastered : CONTEXT_PACKS;
+                  const pick = pool[Math.floor(Math.random() * pool.length)];
+                  if (pick) {
+                    setSelectedId(pick.id);
+                    setTab("kit");
+                    setRegFilter("all");
+                  }
+                }}
+                className="btn btn-soft !min-h-[40px] !px-3 !py-2 text-xs"
+                aria-label="Abrir um contexto aleatório"
+              >
+                <Icon name="shuffle" size={15} />
+                <span>Surpreende-me</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setGlobalDrillOpen((v) => !v)}
+                className="btn btn-primary !min-h-[40px] !px-3.5 !py-2 text-xs"
+              >
+                <Icon name="bolt" size={15} />
+                {globalDrillOpen ? "Fechar treino" : "Treinar vocabulário"}
+              </button>
+            </div>
           </div>
           {globalDrillOpen && (
             <div className="mt-4">
@@ -827,7 +927,7 @@ function ContextosInner() {
       )}
 
       {/* Sugestão inteligente de contexto */}
-      {!query.trim() && !tagFilter && (
+      {!query.trim() && !tagFilter && statusFilter === "all" && (
         <button
           type="button"
           onClick={() => {
@@ -893,39 +993,70 @@ function ContextosInner() {
           </div>
         </div>
 
-        <div className="chip-scroller" role="group" aria-label="Filtrar contextos por tema">
-          <button
-            type="button"
-            aria-pressed={tagFilter === null}
-            className="chip min-h-[38px]"
-            onClick={() => setTagFilter(null)}
-          >
-            Todos ({CONTEXT_PACKS.length})
-          </button>
-          {tags.map((t) => (
+        {/* Filtro rápido por estado / favoritas */}
+        <div className="chip-scroller" role="group" aria-label="Filtrar contextos por estado">
+          {(
+            [
+              ["all", "✨ Todos"],
+              ["favoritas", `⭐ Favoritas (${favoriteItems.length})`],
+              ["por-dominar", `🎯 Por dominar (${ctxStats.totalPacks - ctxStats.masteredPacks})`],
+              ["dominados", `✓ Dominados (${ctxStats.masteredPacks})`],
+            ] as const
+          ).map(([st, label]) => (
             <button
-              key={t}
+              key={st}
               type="button"
-              aria-pressed={tagFilter === t}
-              className="chip min-h-[38px]"
-              onClick={() => setTagFilter(tagFilter === t ? null : t)}
+              aria-pressed={statusFilter === st}
+              className="chip min-h-[38px] !px-3 !py-1 text-xs"
+              onClick={() => {
+                sfxTap(state.settings.soundEffects !== false);
+                setStatusFilter(st);
+              }}
             >
-              {t}
+              {label}
             </button>
           ))}
         </div>
 
-        {(query.trim() || tagFilter) && (
+        {statusFilter !== "favoritas" && (
+          <div className="chip-scroller" role="group" aria-label="Filtrar contextos por tema">
+            <button
+              type="button"
+              aria-pressed={tagFilter === null}
+              className="chip min-h-[38px]"
+              onClick={() => setTagFilter(null)}
+            >
+              Todos os temas ({CONTEXT_PACKS.length})
+            </button>
+            {tags.map((t) => (
+              <button
+                key={t}
+                type="button"
+                aria-pressed={tagFilter === t}
+                className="chip min-h-[38px]"
+                onClick={() => setTagFilter(tagFilter === t ? null : t)}
+              >
+                {t}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {(query.trim() || tagFilter || statusFilter !== "all") && (
           <div className="fade-in flex items-center justify-between gap-2 text-xs">
             <span className="font-bold text-[var(--color-muted)]">
-              {visiblePacks.length} {visiblePacks.length === 1 ? "cenário visível" : "cenários visíveis"}
-              {matchingPhrases.length > 0 && ` · ${matchingPhrases.length} frases directas`}
+              {statusFilter === "favoritas"
+                ? `${favoriteItems.length} ${favoriteItems.length === 1 ? "frase favorita" : "frases favoritas"}`
+                : `${visiblePacks.length} ${visiblePacks.length === 1 ? "cenário visível" : "cenários visíveis"}${
+                    matchingPhrases.length > 0 ? ` · ${matchingPhrases.length} frases directas` : ""
+                  }`}
             </span>
             <button
               type="button"
               onClick={() => {
                 setQuery("");
                 setTagFilter(null);
+                setStatusFilter("all");
               }}
               className="action-pill !min-h-[32px] !border-[var(--color-coral)]/40 !bg-[var(--color-coral-soft)] !px-3 !py-0.5 !text-[var(--color-coral)]"
             >
@@ -991,6 +1122,15 @@ function ContextosInner() {
                       pillLabel="Copiar"
                       label={`Copiar frase: ${m.phrase.pt}`}
                     />
+                    <FavoritePhraseButton
+                      packId={m.pack.id}
+                      phraseText={m.phrase.text}
+                      phrasePt={m.phrase.pt}
+                      lang={lang}
+                      onToggle={(nowFav) =>
+                        setToast(nowFav ? "⭐ Frase guardada nas tuas favoritas!" : "Frase removida das favoritas.")
+                      }
+                    />
                     <span className="text-[11px] text-[var(--color-muted)]">{m.phrase.whenToUse}</span>
                   </div>
                 </li>
@@ -1000,80 +1140,174 @@ function ContextosInner() {
         </section>
       )}
 
-      {visiblePacks.length === 0 ? (
-        <Empty
-          icon="search"
-          title="Nenhum cenário corresponde à pesquisa"
-          text="Experimenta outra situação (ex.: restaurante, caução, entrevista, médico, comboio) ou limpa os filtros."
-        />
-      ) : (
-        <ul role="list" className="flex flex-col gap-3">
-          {visiblePacks.map((pack) => {
-            const data = pack.byLang[lang];
-            const prog = contextPackProgress(pack, lang, state.srs[lang], state.xpEvents);
-            return (
-              <li key={pack.id}>
-                <button
-                  type="button"
-                  data-testid={`context-pack-${pack.id}`}
-                  onClick={() => {
-                    setSelectedId(pack.id);
-                    setTab("kit");
-                    setRegFilter("all");
-                  }}
-                  className="card flex w-full items-center gap-4 p-4 text-left transition hover:-translate-y-0.5 active:scale-[0.99]"
-                >
-                  <span
-                    className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl text-3xl"
-                    style={{ background: pack.softColor }}
-                  >
-                    {pack.emoji}
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="flex flex-wrap items-center gap-1.5 text-xs font-bold text-[var(--color-muted)]">
-                      <span>{pack.tag}</span>
-                      <span>·</span>
-                      <span>{data.phrases.length} frases</span>
-                      <span>·</span>
-                      <span>
-                        {prog.savedCount}/{prog.totalCount} guardadas
+      {statusFilter === "favoritas" ? (
+        favoriteItems.length === 0 ? (
+          <Empty
+            icon="star"
+            title="Ainda não tens frases favoritas"
+            text="Abre qualquer cenário e toca em «⭐ Favorita» nas frases que queres ter sempre à mão no teu Kit de Bolso pessoal."
+            action={
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={() => setStatusFilter("all")}
+              >
+                Explorar os {CONTEXT_PACKS.length} contextos
+              </button>
+            }
+          />
+        ) : (
+          <section className="space-y-3" aria-labelledby="fav-phrases-heading">
+            <h2 id="fav-phrases-heading" className="text-sm font-extrabold">
+              ⭐ O teu Kit de Bolso pessoal ({favoriteItems.length})
+            </h2>
+            <ul role="list" className={`flex flex-col gap-3 lang-${lang}`}>
+              {favoriteItems.map((item, idx) => {
+                const reg = REGISTER_LABEL[item.phrase.register];
+                return (
+                  <li key={`${item.pack.id}-${idx}`} className="card p-4">
+                    <div className="mb-1.5 flex flex-wrap items-center justify-between gap-2">
+                      <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-extrabold ${reg.badgeCls}`}>
+                        {reg.label}
                       </span>
-                      {prog.mastered ? (
-                        <span className="rounded-full bg-[var(--color-good-soft)] px-2 py-0.5 text-[10px] font-extrabold text-[var(--color-good)]">
-                          ✓ Dominado
-                        </span>
-                      ) : (
-                        <>
-                          {prog.situationsDone && (
-                            <span className="rounded-full bg-[var(--color-teal-soft)] px-1.5 py-0.5 text-[10px] font-bold text-[var(--color-ink)]">
-                              🎭 ✓
-                            </span>
-                          )}
-                          {prog.vocabDone && (
-                            <span className="rounded-full bg-[var(--color-lilac-soft)] px-1.5 py-0.5 text-[10px] font-bold text-[var(--color-ink)]">
-                              🧩 ✓
-                            </span>
-                          )}
-                          {prog.convDone && (
-                            <span className="rounded-full bg-[var(--color-coral-soft)] px-1.5 py-0.5 text-[10px] font-bold text-[var(--color-coral)]">
-                              💬 ✓
-                            </span>
-                          )}
-                        </>
-                      )}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setSelectedId(item.pack.id);
+                          setTab("kit");
+                        }}
+                        className="rounded-full bg-[var(--color-bg)] px-2.5 py-0.5 text-[11px] font-bold text-[var(--color-ink)] hover:bg-[var(--color-lilac-soft)]"
+                      >
+                        {item.pack.emoji} {item.pack.title} →
+                      </button>
+                    </div>
+                    <div lang={speechLang} className={`text-base font-extrabold leading-snug ${lang === "ja" ? "jp" : ""}`}>
+                      <TokenLine text={item.phrase.text} lang={lang} onWord={setTok} />
+                    </div>
+                    {lang === "ja" && state.settings.romaji && item.phrase.romaji && (
+                      <p className="mt-0.5 text-xs text-[var(--color-muted)]">{item.phrase.romaji}</p>
+                    )}
+                    <p className="mt-1 text-sm text-[var(--color-muted)]">{item.phrase.pt}</p>
+                    <div className="mt-2.5 flex flex-wrap items-center gap-1.5">
+                      <SpeakButton text={item.phrase.text} lang={lang} pillLabel="Ouvir" label={`Ouvir: ${item.phrase.pt}`} />
+                      <SpeakButton
+                        text={item.phrase.text}
+                        lang={lang}
+                        slow
+                        pillLabel="0.6×"
+                        label={`Ouvir devagar: ${item.phrase.pt}`}
+                      />
+                      <CopyTextButton
+                        text={item.phrase.text}
+                        lang={lang}
+                        pillLabel="Copiar"
+                        label={`Copiar frase: ${item.phrase.pt}`}
+                      />
+                      <FavoritePhraseButton
+                        packId={item.pack.id}
+                        phraseText={item.phrase.text}
+                        phrasePt={item.phrase.pt}
+                        lang={lang}
+                        onToggle={(nowFav) =>
+                          setToast(nowFav ? "⭐ Frase guardada nas tuas favoritas!" : "Frase removida das favoritas.")
+                        }
+                      />
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        )
+      ) : (() => {
+        const filteredByStatus =
+          statusFilter === "all"
+            ? visiblePacks
+            : visiblePacks.filter((pack) => {
+                const mastered = contextPackProgress(pack, lang, state.srs[lang], state.xpEvents).mastered;
+                return statusFilter === "dominados" ? mastered : !mastered;
+              });
+
+        if (filteredByStatus.length === 0) {
+          return (
+            <Empty
+              icon="search"
+              title="Nenhum cenário corresponde a este filtro"
+              text="Experimenta outra situação (ex.: restaurante, cafetaria, sono, privacidade, entrevista) ou limpa os filtros."
+            />
+          );
+        }
+
+        return (
+          <ul role="list" className="flex flex-col gap-3">
+            {filteredByStatus.map((pack) => {
+              const data = pack.byLang[lang];
+              const prog = contextPackProgress(pack, lang, state.srs[lang], state.xpEvents);
+              return (
+                <li key={pack.id}>
+                  <button
+                    type="button"
+                    data-testid={`context-pack-${pack.id}`}
+                    onClick={() => {
+                      setSelectedId(pack.id);
+                      setTab("kit");
+                      setRegFilter("all");
+                    }}
+                    className="card flex w-full items-center gap-4 p-4 text-left transition hover:-translate-y-0.5 active:scale-[0.99]"
+                  >
+                    <span
+                      className="grid h-14 w-14 shrink-0 place-items-center rounded-2xl text-3xl"
+                      style={{ background: pack.softColor }}
+                    >
+                      {pack.emoji}
                     </span>
-                    <span className="mt-0.5 block truncate font-extrabold">{pack.title}</span>
-                    <span className="block truncate text-xs text-[var(--color-muted)]">{pack.subtitle}</span>
-                  </span>
-                  <Icon name="chevron-right" size={20} className="shrink-0 text-[var(--color-muted)]" />
-                </button>
-              </li>
-            );
-          })}
-        </ul>
-      )}
+                    <span className="min-w-0 flex-1">
+                      <span className="flex flex-wrap items-center gap-1.5 text-xs font-bold text-[var(--color-muted)]">
+                        <span>{pack.tag}</span>
+                        <span>·</span>
+                        <span>{data.phrases.length} frases</span>
+                        <span>·</span>
+                        <span>
+                          {prog.savedCount}/{prog.totalCount} guardadas
+                        </span>
+                        {prog.mastered ? (
+                          <span className="rounded-full bg-[var(--color-good-soft)] px-2 py-0.5 text-[10px] font-extrabold text-[var(--color-good)]">
+                            ✓ Dominado
+                          </span>
+                        ) : (
+                          <>
+                            {prog.situationsDone && (
+                              <span className="rounded-full bg-[var(--color-teal-soft)] px-1.5 py-0.5 text-[10px] font-bold text-[var(--color-ink)]">
+                                🎭 ✓
+                              </span>
+                            )}
+                            {prog.vocabDone && (
+                              <span className="rounded-full bg-[var(--color-lilac-soft)] px-1.5 py-0.5 text-[10px] font-bold text-[var(--color-ink)]">
+                                🧩 ✓
+                              </span>
+                            )}
+                            {prog.convDone && (
+                              <span className="rounded-full bg-[var(--color-coral-soft)] px-1.5 py-0.5 text-[10px] font-bold text-[var(--color-coral)]">
+                                💬 ✓
+                              </span>
+                            )}
+                          </>
+                        )}
+                      </span>
+                      <span className="mt-0.5 block truncate font-extrabold">{pack.title}</span>
+                      <span className="block truncate text-xs text-[var(--color-muted)]">{pack.subtitle}</span>
+                    </span>
+                    <Icon name="chevron-right" size={20} className="shrink-0 text-[var(--color-muted)]" />
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        );
+      })()}
 
       <WordSheet tok={tok} lang={lang} onClose={() => setTok(null)} />
+      <Toast text={toast} onDone={() => setToast(null)} />
       <BackToTopButton />
     </>
   );

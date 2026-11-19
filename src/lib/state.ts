@@ -127,6 +127,8 @@ export interface UserState {
   progress: Record<LangCode, LangProgress>;
   /** Cartões de repetição espaçada: chave "w:<palavra>" ou "p:<idMolde>" */
   srs: Record<LangCode, Record<string, Card>>;
+  /** Frases favoritas do Kit de Bolso: chave "<packId>::<texto>" */
+  favoritePhrases?: Record<LangCode, string[]>;
   kana: Record<string, Card>;
   xpEvents: XpEvent[];
   errors: Record<LangCode, Record<string, ErrorStat>>;
@@ -175,6 +177,7 @@ export function defaultState(name: string): UserState {
     },
     progress: { en: emptyLang(), fr: emptyLang(), ja: emptyLang() },
     srs: { en: {}, fr: {}, ja: {} },
+    favoritePhrases: { en: [], fr: [], ja: [] },
     kana: {},
     xpEvents: [],
     errors: { en: {}, fr: {}, ja: {} },
@@ -383,6 +386,33 @@ export function toggleWordSaved(
       },
     },
     saved: true,
+  };
+}
+
+/** Chave estável para identificar uma frase favorita de um pacote de contexto. */
+export function phraseFavoriteKey(packId: string, phraseText: string): string {
+  return `${packId}::${phraseText}`;
+}
+
+/** Alterna o estado de favorito de uma frase do Kit de Bolso. */
+export function toggleFavoritePhrase(
+  s: UserState,
+  lang: LangCode,
+  phraseKey: string,
+): { state: UserState; favorited: boolean } {
+  const prevMap = s.favoritePhrases ?? { en: [], fr: [], ja: [] };
+  const prevList = prevMap[lang] ?? [];
+  const exists = prevList.includes(phraseKey);
+  const nextList = exists ? prevList.filter((k) => k !== phraseKey) : [phraseKey, ...prevList].slice(0, 200);
+  return {
+    state: {
+      ...s,
+      favoritePhrases: {
+        ...prevMap,
+        [lang]: nextList,
+      },
+    },
+    favorited: !exists,
   };
 }
 
