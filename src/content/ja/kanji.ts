@@ -43,7 +43,7 @@ export const KANJI_ORDER =
   // níveis 46–54 (Etapa 6: Domínio)
   "空港銀仕事議発表保健康文化世界" +
   // Contextos Reais & Quotidiano (JLPT N5/N4 frequentes)
-  "曜佐藤問題回早少明度予定肉魚宿帰丈夫次働近旅黒末枚杯英止無風暑寒知借貸着場運転駐約台蒸焼強動";
+  "曜佐藤問題回早少明度予定肉魚宿帰丈夫次働近旅黒末枚杯英止無風暑寒知借貸着場運転駐約台蒸焼強動歯送届便味切直捨声信";
 
 const ex = (word: string, reading: string, romaji: string, pt: string): KanjiExample => ({ word, reading, romaji, pt });
 
@@ -546,4 +546,34 @@ export const KANJI: Kanji[] = [
   { char: "動", meaning: "mover; movimento; funcionar", on: ["ドウ"], kun: ["うご.く", "うご.かす"], strokes: 11,
     examples: [ex("運動", "うんどう", "undou", "exercício físico"), ex("動く", "うごく", "ugoku", "mover-se; funcionar")],
     tip: "aplicar força (力) a algo pesado (重) para o pôr em movimento" },
+  { char: "歯", meaning: "dente", on: ["シ"], kun: ["は"], strokes: 12,
+    examples: [ex("歯", "は", "ha", "dente"), ex("歯医者", "はいしゃ", "haisha", "dentista")],
+    tip: "uma boca aberta (凵) com os dentes alinhados lá dentro" },
+  { char: "送", meaning: "enviar; remeter; acompanhar", on: ["ソウ"], kun: ["おく.る"], strokes: 9,
+    examples: [ex("送る", "おくる", "okuru", "enviar; remeter"), ex("送料", "そうりょう", "souryou", "portes de envio")],
+    tip: "levar algo pela estrada (辶) até ao destinatário: enviar" },
+  { char: "届", meaning: "chegar (encomenda); entregar; notificar", on: ["カイ"], kun: ["とど.く", "とど.ける"], strokes: 8,
+    examples: [ex("届く", "とどく", "todoku", "chegar ao destino"), ex("届ける", "とどける", "todokeru", "entregar; levar")],
+    tip: "entregar um pacote directamente à porta (尸) do destinatário" },
+  { char: "便", meaning: "conveniência; correio; voo", on: ["ベン", "ビン"], kun: ["たよ.り"], strokes: 9,
+    examples: [ex("郵便局", "ゆうびんきょく", "yuubinkyoku", "estação de correios"), ex("宅配便", "たくはいびん", "takuhaibin", "entrega ao domicílio")],
+    tip: "uma pessoa (亻) que muda (更) as coisas para ficarem mais práticas" },
+  { char: "味", meaning: "sabor; gosto", on: ["ミ"], kun: ["あじ", "あじ.わう"], strokes: 8,
+    examples: [ex("味", "あじ", "aji", "sabor; tempero"), ex("味見", "あじみ", "ajimi", "provar o tempero")],
+    tip: "provar com a boca (口) algo ainda por descobrir (未): o sabor" },
+  { char: "切", meaning: "cortar; selo; importante; esgotar", on: ["セツ", "サイ"], kun: ["き.る", "き.れる"], strokes: 4,
+    examples: [ex("切る", "きる", "kiru", "cortar; desligar"), ex("切手", "きって", "kitte", "selo postal"), ex("大切", "たいせつ", "taisetsu", "importante; precioso")],
+    tip: "uma lâmina (刀) que corta sete (七) partes duma vez" },
+  { char: "直", meaning: "consertar; reparar; directo; imediatamente", on: ["チョク", "ジキ"], kun: ["なお.す", "なお.る", "ただ.ちに"], strokes: 8,
+    examples: [ex("直す", "なおす", "naosu", "consertar; corrigir"), ex("直接", "ちょくせつ", "chokusetsu", "directamente")],
+    tip: "dez (十) olhos (目) alinhados num traço recto (∟): endireitar e consertar" },
+  { char: "捨", meaning: "deitar fora; descartar", on: ["シャ"], kun: ["す.てる"], strokes: 11,
+    examples: [ex("捨てる", "すてる", "suteru", "deitar no lixo"), ex("使い捨て", "つかいすて", "tsukaisute", "descartável")],
+    tip: "a mão (扌) que tira coisas velhas de casa (舎): deitar fora" },
+  { char: "声", meaning: "voz", on: ["セイ", "ショウ"], kun: ["こえ"], strokes: 7,
+    examples: [ex("声", "こえ", "koe", "voz"), ex("大きい声", "おおきいこえ", "ookii koe", "voz alta")],
+    tip: "o som claro que sai da garganta e se faz ouvir à volta: a voz" },
+  { char: "信", meaning: "confiar; mensagem; sinal", on: ["シン"], kun: [], strokes: 9,
+    examples: [ex("返信", "へんしん", "henshin", "resposta (e-mail/mensagem)"), ex("受信", "じゅしん", "jushin", "recepção; sinal de rede")],
+    tip: "uma pessoa (亻) fiel às suas palavras (言): confiança e comunicação" },
 ];

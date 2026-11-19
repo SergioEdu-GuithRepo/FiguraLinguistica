@@ -1,14 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import type React from "react";
-import { useMemo, useRef, useState } from "react";
+import { Suspense, useMemo, useRef, useState } from "react";
 import { ContextualVocabDrill } from "@/components/ContextualVocabDrill";
 import { Icon } from "@/components/Icon";
 import { WordSheet } from "@/components/Reader";
 import { AppFrame, LanguageSelector } from "@/components/Shell";
-import { Empty, SpeakButton, Toast, TopBar } from "@/components/ui";
+import { BackToTopButton, Empty, SaveWordButton, SpeakButton, Toast, TopBar } from "@/components/ui";
 import { CONTENT } from "@/content";
 import { CONFUSABLE_PAIRS, CONTEXT_PACKS, searchDictionary, VOCAB_NETWORKS, type VocabDrillMode } from "@/lib/contexts";
 import { useImeSafeEnter } from "@/lib/ime";
@@ -19,6 +19,7 @@ import type { RToken } from "@/lib/tokenize";
 import type { PartOfSpeech } from "@/lib/types";
 
 type ModeTab = "cenas" | "dicionario" | "treino";
+type SceneSection = "all" | "redes" | "pares" | "contextos" | "unidades";
 
 const POS_FILTERS: { id: PartOfSpeech | "all"; label: string }[] = [
   { id: "all", label: "Todas" },
@@ -32,12 +33,17 @@ const POS_FILTERS: { id: PartOfSpeech | "all"; label: string }[] = [
 function Vocabulario() {
   const { state, update } = useApp();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const lang = state.activeLang;
   const speechLang = LANGS[lang].speechLang;
   const { units, dictionary } = CONTENT[lang];
   const totalDictCount = useMemo(() => Object.keys(dictionary).length, [dictionary]);
 
-  const [mode, setMode] = useState<ModeTab>("cenas");
+  const initialTab = searchParams.get("tab");
+  const [mode, setMode] = useState<ModeTab>(
+    initialTab === "dicionario" || initialTab === "treino" || initialTab === "cenas" ? initialTab : "cenas",
+  );
+  const [sceneSection, setSceneSection] = useState<SceneSection>("all");
   const [open, setOpen] = useState<string | null>(units[0]?.id ?? null);
   const [openPack, setOpenPack] = useState<string | null>(null);
   const [openNet, setOpenNet] = useState<string | null>(null);
@@ -154,8 +160,35 @@ function Vocabulario() {
 
       <div role="tabpanel" aria-labelledby="vocab-tab-cenas" hidden={mode !== "cenas"}>
         {mode === "cenas" && (
-          <div className="space-y-6">
+          <div className="space-y-5">
+            {/* Filtro rápido de secções para não obrigar a longo scroll */}
+            <div className="chip-scroller" role="group" aria-label="Filtrar secção de cenas">
+              {(
+                [
+                  ["all", "✨ Tudo"],
+                  ["redes", `🧭 Redes (${VOCAB_NETWORKS.length})`],
+                  ["pares", `⚖️ Nuances (${CONFUSABLE_PAIRS[lang].length})`],
+                  ["contextos", `🧰 Contextos (${CONTEXT_PACKS.length})`],
+                  ["unidades", `🎬 Unidades (${units.length})`],
+                ] as const
+              ).map(([secId, secLabel]) => (
+                <button
+                  key={secId}
+                  type="button"
+                  aria-pressed={sceneSection === secId}
+                  onClick={() => {
+                    setSceneSection(secId);
+                    if (secId === "pares") setPairsOpen(true);
+                  }}
+                  className="chip min-h-[36px] !px-3 !py-1 text-xs"
+                >
+                  {secLabel}
+                </button>
+              ))}
+            </div>
+
             {/* Redes transversais de vocabulário estratégico */}
+            {(sceneSection === "all" || sceneSection === "redes") && (
             <section aria-labelledby="vocab-networks-heading">
               <div className="mb-2 flex items-baseline justify-between gap-2">
                 <h2 id="vocab-networks-heading" className="font-extrabold">
@@ -164,7 +197,7 @@ function Vocabulario() {
                 <span className="text-xs font-semibold text-[var(--color-lilac)]">Fluência transversal</span>
               </div>
               <p className="mb-3 text-xs text-[var(--color-muted)]">
-                Conectores, falsos amigos, pedidos corteses, prazos e reacções rápidas que usas em qualquer conversa.
+                Conectores, falsos amigos, pedidos corteses, prazos, chamadas e verbos práticos que usas em qualquer conversa.
               </p>
               <div className={`flex flex-col gap-2.5 lang-${lang}`}>
                 {VOCAB_NETWORKS.map((net) => {
@@ -234,7 +267,6 @@ function Vocabulario() {
                               const k = rawKey.toLowerCase();
                               const e = dictionary[k];
                               if (!e) return null;
-                              const saved = !!state.srs[lang][`w:${k}`];
                               return (
                                 <li key={k} className="flex items-center gap-2 rounded-2xl bg-[var(--color-bg)] p-2">
                                   <SpeakButton text={k} lang={lang} size={36} className="!bg-white" label={`Ouvir ${k}`} />
@@ -252,15 +284,21 @@ function Vocabulario() {
                                         {e.pt}
                                       </span>
                                     </span>
-                                    <span className="flex shrink-0 items-center gap-1.5">
-                                      {e.note && (
-                                        <span className="rounded-full bg-[var(--color-yellow-soft)] px-2 py-0.5 text-[10px] font-bold text-[#7a5c0d]">
-                                          💡
-                                        </span>
-                                      )}
-                                      {saved && <Icon name="bookmark" size={16} filled className="text-[var(--color-coral)]" />}
-                                    </span>
+                                    {e.note && (
+                                      <span className="shrink-0 rounded-full bg-[var(--color-yellow-soft)] px-2 py-0.5 text-[10px] font-bold text-[#7a5c0d]">
+                                        💡
+                                      </span>
+                                    )}
                                   </button>
+                                  <SaveWordButton
+                                    wordKey={k}
+                                    lang={lang}
+                                    size={34}
+                                    className="!bg-white"
+                                    onToggle={(nowSaved) =>
+                                      setToast(nowSaved ? `✓ «${k}» guardada na revisão!` : `«${k}» removida da revisão.`)
+                                    }
+                                  />
                                 </li>
                               );
                             })}
@@ -272,8 +310,10 @@ function Vocabulario() {
                 })}
               </div>
             </section>
+            )}
 
             {/* Pares confusos & nuances para lusófonos */}
+            {(sceneSection === "all" || sceneSection === "pares") && (
             <section aria-labelledby="confusable-pairs-heading">
               <div className="mb-2 flex items-baseline justify-between gap-2">
                 <h2 id="confusable-pairs-heading" className="font-extrabold">
@@ -372,8 +412,10 @@ function Vocabulario() {
                 )}
               </div>
             </section>
+            )}
 
             {/* Colecções temáticas de Contextos Reais (todas abertas desde o nível 1) */}
+            {(sceneSection === "all" || sceneSection === "contextos") && (
             <section aria-labelledby="context-collections-heading">
               <div className="mb-2 flex items-baseline justify-between gap-2">
                 <h2 id="context-collections-heading" className="font-extrabold">
@@ -443,7 +485,6 @@ function Vocabulario() {
                               const k = rawKey.toLowerCase();
                               const e = dictionary[k];
                               if (!e) return null;
-                              const saved = !!state.srs[lang][`w:${k}`];
                               return (
                                 <li key={k} className="flex items-center gap-2 rounded-2xl bg-[var(--color-bg)] p-2">
                                   <SpeakButton text={k} lang={lang} size={36} className="!bg-white" label={`Ouvir ${k}`} />
@@ -464,15 +505,21 @@ function Vocabulario() {
                                         {e.pt}
                                       </span>
                                     </span>
-                                    <span className="flex shrink-0 items-center gap-1.5">
-                                      {e.note && (
-                                        <span className="rounded-full bg-[var(--color-yellow-soft)] px-2 py-0.5 text-[10px] font-bold text-[#7a5c0d]">
-                                          💡
-                                        </span>
-                                      )}
-                                      {saved && <Icon name="bookmark" size={16} filled className="text-[var(--color-coral)]" />}
-                                    </span>
+                                    {e.note && (
+                                      <span className="shrink-0 rounded-full bg-[var(--color-yellow-soft)] px-2 py-0.5 text-[10px] font-bold text-[#7a5c0d]">
+                                        💡
+                                      </span>
+                                    )}
                                   </button>
+                                  <SaveWordButton
+                                    wordKey={k}
+                                    lang={lang}
+                                    size={34}
+                                    className="!bg-white"
+                                    onToggle={(nowSaved) =>
+                                      setToast(nowSaved ? `✓ «${k}» guardada na revisão!` : `«${k}» removida da revisão.`)
+                                    }
+                                  />
                                 </li>
                               );
                             })}
@@ -484,8 +531,10 @@ function Vocabulario() {
                 })}
               </div>
             </section>
+            )}
 
             {/* Cenas sequenciais do currículo */}
+            {(sceneSection === "all" || sceneSection === "unidades") && (
             <section aria-labelledby="curriculum-scenes-heading">
               <h2 id="curriculum-scenes-heading" className="mb-1 font-extrabold">
                 Cenas do Currículo ({units.length} unidades)
@@ -544,7 +593,6 @@ function Vocabulario() {
                             {u.vocab.map((k) => {
                               const e = dictionary[k];
                               if (!e) return null;
-                              const saved = !!state.srs[lang][`w:${k}`];
                               return (
                                 <li key={k} className="flex items-center gap-2 rounded-2xl bg-[var(--color-bg)] p-2">
                                   <SpeakButton text={k} lang={lang} size={36} className="!bg-white" label={`Ouvir ${k}`} />
@@ -565,15 +613,21 @@ function Vocabulario() {
                                         {e.pt}
                                       </span>
                                     </span>
-                                    <span className="flex shrink-0 items-center gap-1.5">
-                                      {e.note && (
-                                        <span className="rounded-full bg-[var(--color-yellow-soft)] px-2 py-0.5 text-[10px] font-bold text-[#7a5c0d]">
-                                          💡
-                                        </span>
-                                      )}
-                                      {saved && <Icon name="bookmark" size={16} filled className="text-[var(--color-coral)]" />}
-                                    </span>
+                                    {e.note && (
+                                      <span className="shrink-0 rounded-full bg-[var(--color-yellow-soft)] px-2 py-0.5 text-[10px] font-bold text-[#7a5c0d]">
+                                        💡
+                                      </span>
+                                    )}
                                   </button>
+                                  <SaveWordButton
+                                    wordKey={k}
+                                    lang={lang}
+                                    size={34}
+                                    className="!bg-white"
+                                    onToggle={(nowSaved) =>
+                                      setToast(nowSaved ? `✓ «${k}» guardada na revisão!` : `«${k}» removida da revisão.`)
+                                    }
+                                  />
                                 </li>
                               );
                             })}
@@ -585,6 +639,7 @@ function Vocabulario() {
                 })}
               </div>
             </section>
+            )}
           </div>
         )}
       </div>
@@ -636,7 +691,7 @@ function Vocabulario() {
               </div>
 
               {/* Filtro por contexto real */}
-              <div className="no-scrollbar mt-3 flex gap-1.5 overflow-x-auto pb-1" role="group" aria-label="Filtrar por pacote de contexto">
+              <div className="chip-scroller mt-3" role="group" aria-label="Filtrar por pacote de contexto">
                 <button
                   type="button"
                   aria-pressed={packFilter === "all"}
@@ -644,9 +699,7 @@ function Vocabulario() {
                     setPackFilter("all");
                     setLimit(60);
                   }}
-                  className={`chip shrink-0 min-h-[34px] !px-3 !py-1 text-xs ${
-                    packFilter === "all" ? "!bg-[var(--color-ink)] text-white" : ""
-                  }`}
+                  className="chip shrink-0 min-h-[34px] !px-3 !py-1 text-xs"
                 >
                   Todos os temas
                 </button>
@@ -659,9 +712,7 @@ function Vocabulario() {
                       setPackFilter(packFilter === p.id ? "all" : p.id);
                       setLimit(60);
                     }}
-                    className={`chip shrink-0 min-h-[34px] !px-3 !py-1 text-xs ${
-                      packFilter === p.id ? "!bg-[var(--color-ink)] text-white" : ""
-                    }`}
+                    className="chip shrink-0 min-h-[34px] !px-3 !py-1 text-xs"
                   >
                     {p.emoji} {p.title.split(/[,&]/)[0].trim()}
                   </button>
@@ -669,7 +720,7 @@ function Vocabulario() {
               </div>
 
               {/* Filtro por rede transversal */}
-              <div className="no-scrollbar mt-2.5 flex gap-1.5 overflow-x-auto pb-1" role="group" aria-label="Filtrar por rede de vocabulário">
+              <div className="chip-scroller mt-2.5" role="group" aria-label="Filtrar por rede de vocabulário">
                 <button
                   type="button"
                   aria-pressed={networkFilter === "all"}
@@ -758,9 +809,50 @@ function Vocabulario() {
               </div>
             </search>
 
-            <p aria-live="polite" className="px-1 text-xs font-bold text-[var(--color-muted)]">
-              {searchResult.total} {searchResult.total === 1 ? "entrada encontrada" : "entradas encontradas"}
-            </p>
+            <div className="flex flex-wrap items-center justify-between gap-2 px-1">
+              <p aria-live="polite" className="text-xs font-bold text-[var(--color-muted)]">
+                {searchResult.total} {searchResult.total === 1 ? "entrada encontrada" : "entradas encontradas"}
+              </p>
+              <div className="flex flex-wrap items-center gap-1.5">
+                {(packFilter !== "all" || networkFilter !== "all") && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDrillPackId(packFilter !== "all" ? packFilter : undefined);
+                      setDrillNetworkId(networkFilter !== "all" ? networkFilter : undefined);
+                      setDrillInitialMode("mixed");
+                      setMode("treino");
+                    }}
+                    className="action-pill !min-h-[32px] !border-[var(--color-teal)]/40 !bg-[var(--color-teal-soft)] !px-3 !py-0.5 !text-[#24665f]"
+                  >
+                    <span>🧩 Treinar este tema</span>
+                  </button>
+                )}
+                {(query.trim() ||
+                  posFilter !== "all" ||
+                  packFilter !== "all" ||
+                  networkFilter !== "all" ||
+                  onlyNotes ||
+                  srsFilter !== "all") && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setQuery("");
+                      setPosFilter("all");
+                      setPackFilter("all");
+                      setNetworkFilter("all");
+                      setOnlyNotes(false);
+                      setSrsFilter("all");
+                      setLimit(60);
+                    }}
+                    className="action-pill !min-h-[32px] !border-[var(--color-coral)]/40 !bg-[var(--color-coral-soft)] !px-3 !py-0.5 !text-[var(--color-coral)]"
+                  >
+                    <Icon name="close" size={13} />
+                    <span>Limpar filtros</span>
+                  </button>
+                )}
+              </div>
+            </div>
 
             {searchResult.items.length === 0 ? (
               <Empty
@@ -771,7 +863,7 @@ function Vocabulario() {
             ) : (
               <>
                 <ul role="list" className={`flex flex-col gap-2 lang-${lang}`}>
-                  {searchResult.items.map(({ key, entry, saved }) => (
+                  {searchResult.items.map(({ key, entry }) => (
                     <li key={key} className="card flex items-center gap-2 p-2.5">
                       <SpeakButton text={key} lang={lang} size={38} label={`Ouvir ${key}`} />
                       <button
@@ -799,8 +891,15 @@ function Vocabulario() {
                             <span className="mt-0.5 block truncate text-xs text-[#7a5c0d]">💡 {entry.note}</span>
                           )}
                         </span>
-                        {saved && <Icon name="bookmark" size={16} filled className="shrink-0 text-[var(--color-coral)]" />}
                       </button>
+                      <SaveWordButton
+                        wordKey={key}
+                        lang={lang}
+                        size={38}
+                        onToggle={(nowSaved) =>
+                          setToast(nowSaved ? `✓ «${key}» guardada na revisão!` : `«${key}» removida da revisão.`)
+                        }
+                      />
                     </li>
                   ))}
                 </ul>
@@ -914,6 +1013,7 @@ function Vocabulario() {
 
       <WordSheet tok={tok} lang={lang} onClose={() => setTok(null)} />
       <Toast text={toast} onDone={() => setToast(null)} />
+      <BackToTopButton />
     </>
   );
 }
@@ -921,7 +1021,9 @@ function Vocabulario() {
 export default function VocabularioPage() {
   return (
     <AppFrame nav={false}>
-      <Vocabulario />
+      <Suspense fallback={null}>
+        <Vocabulario />
+      </Suspense>
     </AppFrame>
   );
 }

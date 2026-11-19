@@ -97,6 +97,7 @@ export function TutorChat({
   const [started] = useState(() => conversationsLeft(state) > 0);
   const [timeLeft, setTimeLeft] = useState(25);
   const endRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   const listenRef = useRef<{ stop: () => void } | null>(null);
   const spokenFirst = useRef(false);
   const turnStartRef = useRef<number>(Date.now());
@@ -319,21 +320,26 @@ export function TutorChat({
         </span>
       </div>
       {mode === "livre" && !finished && (
-        <div className="mb-3 rounded-2xl bg-[var(--color-teal-soft)]/50 px-3 py-2 text-xs">
-          <span className="font-bold text-[#2a6b64]">Vocabulário sugerido: </span>
-          <span className="inline-flex flex-wrap gap-1.5">
-            {unit.vocab.slice(0, 6).map((v) => (
+        <div className="mb-3 rounded-2xl bg-[var(--color-teal-soft)]/50 px-3 py-2.5 text-xs">
+          <div className="mb-1.5 font-bold text-[#2a6b64]">💡 Toca para inserir vocabulário do cenário:</div>
+          <div className="chip-scroller">
+            {unit.vocab.slice(0, 8).map((v) => (
               <button
                 key={v}
                 type="button"
-                className="target rounded-full bg-white px-2 py-0.5 font-semibold shadow-sm hover:bg-[var(--color-yellow-soft)]"
-                onClick={() => setInput((cur) => (cur ? `${cur} ${v}` : v))}
+                className="action-pill target !min-h-[34px] !bg-white !px-2.5 !py-1 shadow-xs"
+                onClick={() => {
+                  setInput((cur) => (cur ? `${cur} ${v}` : v));
+                  inputRef.current?.focus();
+                }}
                 title={dict[v]?.pt ?? v}
               >
-                {v} <span className="text-[10px] text-[var(--color-muted)]">({dict[v]?.pt})</span>
+                <Icon name="plus" size={12} className="text-[var(--color-teal)]" />
+                <span>{v}</span>
+                {dict[v]?.pt && <span className="font-normal text-[var(--color-muted)]">({dict[v].pt})</span>}
               </button>
             ))}
-          </span>
+          </div>
         </div>
       )}
       <div className="mb-3 flex gap-1.5" aria-label={`Passo ${stepIndex + 1} de ${steps.length}`}>
@@ -351,22 +357,35 @@ export function TutorChat({
                   <TokenLine text={m.text} lang={lang} onWord={setWord} />
                 </div>
                 {showPt[k] && m.pt && <div className="fade-in mt-1 text-sm text-[var(--color-muted)]">{m.pt}</div>}
-                <div className="mt-2 flex gap-1.5">
-                  <button className="grid h-8 w-8 place-items-center rounded-full bg-[var(--color-bg)]" aria-label="Ouvir" onClick={() => say(m.text, lang)}>
-                    <Icon name="volume" size={16} />
+                <div className="mt-2.5 flex flex-wrap gap-1.5">
+                  <button
+                    type="button"
+                    className="action-pill !min-h-[34px] !bg-[var(--color-bg)] !px-2.5 !py-1"
+                    aria-label="Ouvir mensagem do tutor"
+                    onClick={() => say(m.text, lang)}
+                  >
+                    <Icon name="volume" size={14} />
+                    <span>Ouvir</span>
                   </button>
                   {m.pt && (
                     <button
-                      className="grid h-8 w-8 place-items-center rounded-full bg-[var(--color-bg)]"
-                      aria-label="Tradução"
+                      type="button"
+                      className="action-pill !min-h-[34px] !bg-[var(--color-bg)] !px-2.5 !py-1"
+                      aria-label="Mostrar tradução em português"
                       aria-pressed={!!showPt[k]}
                       onClick={() => setShowPt((s) => ({ ...s, [k]: !s[k] }))}
                     >
-                      <Icon name="translate" size={16} />
+                      <Icon name="translate" size={14} />
+                      <span>Tradução</span>
                     </button>
                   )}
-                  <button className="grid h-8 w-8 place-items-center rounded-full bg-[var(--color-bg)]" aria-label="Reportar erro" onClick={() => setReport(plainText(m.text, lang))}>
-                    <Icon name="flag" size={14} />
+                  <button
+                    type="button"
+                    className="action-pill !min-h-[34px] !bg-[var(--color-bg)] !px-2.5 !py-1 text-[var(--color-muted)]"
+                    aria-label="Reportar erro nesta frase"
+                    onClick={() => setReport(plainText(m.text, lang))}
+                  >
+                    <Icon name="flag" size={13} />
                   </button>
                 </div>
               </div>
@@ -464,6 +483,7 @@ export function TutorChat({
               }}
             >
               <input
+                ref={inputRef}
                 className="input target flex-1"
                 name="reply"
                 value={input}

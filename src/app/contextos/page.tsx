@@ -3,16 +3,28 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import type React from "react";
-import { Suspense, useMemo, useRef, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { ContextualVocabDrill } from "@/components/ContextualVocabDrill";
 import { Icon } from "@/components/Icon";
 import { DialogueReader, TokenLine, WordSheet } from "@/components/Reader";
 import { AppFrame, LanguageSelector } from "@/components/Shell";
-import { CelebrationBurst, CopyTextButton, Empty, SpeakButton, Toast, TopBar, useSpeaker } from "@/components/ui";
+import {
+  BackToTopButton,
+  CelebrationBurst,
+  CopyTextButton,
+  Empty,
+  ProgressBar,
+  SaveWordButton,
+  SpeakButton,
+  Toast,
+  TopBar,
+  useSpeaker,
+} from "@/components/ui";
 import { CONTENT, getUnit } from "@/content";
 import {
   CONTEXT_PACKS,
   contextPackProgress,
+  extractPhraseVocabKeys,
   getPackDialogue,
   globalContextStats,
   REGISTER_LABEL,
@@ -23,7 +35,7 @@ import {
 } from "@/lib/contexts";
 import { useImeSafeEnter } from "@/lib/ime";
 import { LANGS } from "@/lib/langs";
-import { sfxError, sfxSuccess } from "@/lib/sfx";
+import { sfxError, sfxSuccess, sfxTap } from "@/lib/sfx";
 import { addActivity, isUnitUnlocked, saveWordsBatch } from "@/lib/state";
 import { useApp } from "@/lib/store";
 import type { RToken } from "@/lib/tokenize";
@@ -55,33 +67,12 @@ function SituationQuiz({ pack, onBackToKit }: { pack: ContextPack; onBackToKit: 
     setDone(false);
   };
 
-  if (done) {
-    return (
-      <div className="card fade-in p-6 text-center" data-testid="context-situations-done">
-        <div className="trophy-pop text-4xl">{pack.emoji}</div>
-        <CelebrationBurst xp={20} label="Contexto dominado" />
-        <h3 className="mt-2 text-xl font-extrabold">Situações concluídas!</h3>
-        <p className="mt-1 text-sm text-[var(--color-muted)]">
-          Escolheste a resposta e o registo certos em {score} de {situations.length} cenários reais · +20 XP
-        </p>
-        <div className="mt-5 flex flex-col gap-2 sm:flex-row">
-          <button type="button" className="btn btn-primary flex-1" onClick={reset}>
-            <Icon name="refresh" size={18} /> Repetir cenários
-          </button>
-          <button type="button" className="btn btn-ghost flex-1" onClick={onBackToKit}>
-            Voltar ao Kit de Bolso
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   const sit = situations[idx];
-  const reg = REGISTER_LABEL[sit.register];
+  const reg = REGISTER_LABEL[sit?.register ?? "neutro"];
   const answered = picked !== null;
 
   const choose = (opt: string) => {
-    if (answered) return;
+    if (done || answered || !sit) return;
     setPicked(opt);
     const ok = opt === sit.correct;
     if (ok) {
@@ -105,6 +96,48 @@ function SituationQuiz({ pack, onBackToKit }: { pack: ContextPack; onBackToKit: 
     }
   };
 
+  useEffect(() => {
+    if (done || !sit) return;
+    const onKey = (e: KeyboardEvent) => {
+      const el = e.target as HTMLElement | null;
+      if (el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.closest("dialog"))) return;
+      if (!answered && e.key >= "1" && e.key <= "4") {
+        const opt = sit.options[Number(e.key) - 1];
+        if (opt) {
+          e.preventDefault();
+          choose(opt);
+        }
+      } else if (answered && e.key === "Enter" && el?.tagName !== "BUTTON") {
+        e.preventDefault();
+        next();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [done, answered, idx, lang]);
+
+  if (done) {
+    return (
+      <div className="card fade-in p-6 text-center" data-testid="context-situations-done">
+        <div className="trophy-pop text-4xl">{pack.emoji}</div>
+        <CelebrationBurst xp={20} label="Contexto dominado" />
+        <h3 className="mt-2 text-xl font-extrabold">Situações concluídas!</h3>
+        <p className="mt-1 text-sm text-[var(--color-muted)]">
+          Escolheste a resposta e o registo certos em {score} de {situations.length} cenários reais · +20 XP
+        </p>
+        <div className="mt-5 flex flex-col gap-2 sm:flex-row">
+          <button type="button" className="btn btn-primary flex-1" onClick={reset}>
+            <Icon name="refresh" size={18} /> Repetir cenários
+          </button>
+          <button type="button" className="btn btn-ghost flex-1" onClick={onBackToKit}>
+            Voltar ao Kit de Bolso
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="card p-5" data-testid="context-situations-quiz">
       <div className="flex items-center justify-between gap-2 text-xs font-bold text-[var(--color-muted)]">
@@ -113,6 +146,7 @@ function SituationQuiz({ pack, onBackToKit }: { pack: ContextPack; onBackToKit: 
           {idx + 1}/{situations.length}
         </span>
       </div>
+      <ProgressBar pct={((idx + (answered ? 1 : 0)) / situations.length) * 100} className="mt-2.5" color="var(--color-teal)" />
 
       <div className="mt-3 rounded-2xl bg-[var(--color-bg)] p-4">
         <span className={`inline-block rounded-full px-2.5 py-0.5 text-[11px] font-extrabold ${reg.badgeCls}`}>
@@ -122,7 +156,7 @@ function SituationQuiz({ pack, onBackToKit }: { pack: ContextPack; onBackToKit: 
       </div>
 
       <div className="mt-4 flex flex-col gap-2.5">
-        {sit.options.map((opt) => {
+        {sit.options.map((opt, optIdx) => {
           const isCorrect = opt === sit.correct;
           const isPicked = opt === picked;
           let cls = "border-[var(--color-line)] bg-white hover:border-[var(--color-ink)]/40";
@@ -139,8 +173,15 @@ function SituationQuiz({ pack, onBackToKit }: { pack: ContextPack; onBackToKit: 
               onClick={() => choose(opt)}
               className={`flex min-h-[50px] items-center justify-between gap-3 rounded-2xl border-2 px-4 py-3 text-left font-bold transition active:scale-[0.99] ${cls}`}
             >
-              <span lang={speechLang} className={`target ${lang === "ja" ? "jp" : ""}`}>
-                {opt}
+              <span className="flex min-w-0 flex-1 items-center gap-2.5">
+                {!answered && (
+                  <span className="kbd-hint shrink-0" aria-hidden="true">
+                    {optIdx + 1}
+                  </span>
+                )}
+                <span lang={speechLang} className={`target ${lang === "ja" ? "jp" : ""}`}>
+                  {opt}
+                </span>
               </span>
               {answered && isCorrect && <Icon name="check" size={18} className="shrink-0 text-[var(--color-good)]" />}
             </button>
@@ -150,14 +191,21 @@ function SituationQuiz({ pack, onBackToKit }: { pack: ContextPack; onBackToKit: 
 
       {answered && (
         <div className="fade-in mt-4 space-y-3">
-          <div className="flex items-start gap-3 rounded-2xl bg-[var(--color-teal-soft)]/60 p-3.5 text-sm">
-            <SpeakButton text={sit.correct} lang={lang} size={38} className="!bg-white" label="Ouvir resposta natural" />
-            <p className="flex-1 text-xs leading-relaxed text-[var(--color-ink)]">
+          <div className="rounded-2xl bg-[var(--color-teal-soft)]/60 p-3.5 text-sm">
+            <div className="mb-2 flex flex-wrap items-center gap-2">
+              <SpeakButton text={sit.correct} lang={lang} pillLabel="Ouvir" label="Ouvir resposta natural" />
+              <SpeakButton text={sit.correct} lang={lang} slow pillLabel="0.6×" label="Ouvir resposta devagar" />
+              <CopyTextButton text={sit.correct} lang={lang} pillLabel="Copiar" label="Copiar resposta natural" />
+            </div>
+            <p className="text-xs leading-relaxed text-[var(--color-ink)]">
               <strong className="font-extrabold">Nota de contexto:</strong> {sit.explanationPt}
             </p>
           </div>
           <button type="button" className="btn btn-primary w-full" onClick={next}>
-            {idx + 1 >= situations.length ? "Concluir cenários" : "Seguinte"}
+            <span>{idx + 1 >= situations.length ? "Concluir cenários" : "Seguinte"}</span>
+            <span className="kbd-hint !border-white/40 !bg-white/20 !text-white" aria-hidden="true">
+              ↵
+            </span>
           </button>
         </div>
       )}
@@ -185,6 +233,7 @@ function ContextosInner() {
   const [tab, setTab] = useState<PackTab>("kit");
   const [selfTest, setSelfTest] = useState(false);
   const [revealedPhrases, setRevealedPhrases] = useState<Record<number, boolean>>({});
+  const [knownPhrases, setKnownPhrases] = useState<Record<number, boolean>>({});
   const [dlgPlaying, setDlgPlaying] = useState(false);
   const [activeDlgIdx, setActiveDlgIdx] = useState<number | undefined>(undefined);
   const dlgCancelRef = useRef<() => void>(() => {});
@@ -267,6 +316,7 @@ function ContextosInner() {
             setRegFilter("all");
             setSelfTest(false);
             setRevealedPhrases({});
+            setKnownPhrases({});
           }}
           title={`${activePack.emoji} ${activePack.title}`}
         />
@@ -339,25 +389,55 @@ function ContextosInner() {
                     <h2 id="pocket-phrases-heading" className="font-extrabold">
                       Frases prontas a usar
                     </h2>
-                    <span className="text-xs text-[var(--color-muted)]">Toca numa palavra · Ouvir, 0.6× e copiar</span>
+                    <span className="text-xs text-[var(--color-muted)]">Toca numa palavra · Ouvir, 0.6×, copiar ou guardar</span>
                   </div>
                   <button
                     type="button"
                     aria-pressed={selfTest}
+                    aria-label="Modo auto-teste de frases"
                     onClick={() => {
+                      sfxTap(state.settings.soundEffects !== false);
                       setSelfTest((v) => !v);
                       setRevealedPhrases({});
+                      setKnownPhrases({});
                     }}
                     className={`chip min-h-[36px] !px-3 !py-1 text-xs ${
                       selfTest ? "!bg-[var(--color-coral)] text-white" : ""
                     }`}
                   >
                     <Icon name={selfTest ? "eye" : "eye-off"} size={14} />
-                    {selfTest ? "Mostrar todas" : "Auto-teste"}
+                    <span>Auto-teste</span>
                   </button>
                 </div>
 
-                <div className="mb-3 flex flex-wrap gap-1.5" role="group" aria-label="Filtrar frases por registo social">
+                {selfTest && filteredPhrases.length > 0 && (
+                  <div className="fade-in mb-3 rounded-2xl border border-[var(--color-lilac)]/40 bg-[var(--color-lilac-soft)]/50 p-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+                      <span className="font-extrabold text-[var(--color-ink)]">
+                        🧠 Auto-teste activo:{" "}
+                        {Object.values(knownPhrases).filter(Boolean).length}/{filteredPhrases.length} dominadas
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setRevealedPhrases({});
+                          setKnownPhrases({});
+                        }}
+                        className="action-pill !min-h-[32px] !px-2.5 !py-0.5 text-[11px]"
+                      >
+                        <Icon name="refresh" size={13} />
+                        <span>Esconder todas</span>
+                      </button>
+                    </div>
+                    <ProgressBar
+                      pct={(Object.values(knownPhrases).filter(Boolean).length / filteredPhrases.length) * 100}
+                      className="mt-2"
+                      color="var(--color-good)"
+                    />
+                  </div>
+                )}
+
+                <div className="chip-scroller mb-3" role="group" aria-label="Filtrar frases por registo social">
                   {(
                     [
                       ["all", `Todos (${data.phrases.length})`],
@@ -371,9 +451,7 @@ function ContextosInner() {
                       type="button"
                       aria-pressed={regFilter === r}
                       onClick={() => setRegFilter(r)}
-                      className={`chip min-h-[34px] !px-3 !py-1 text-xs ${
-                        regFilter === r ? "!bg-[var(--color-ink)] text-white" : ""
-                      }`}
+                      className="chip min-h-[36px] !px-3 !py-1 text-xs"
                     >
                       {label}
                     </button>
@@ -389,6 +467,9 @@ function ContextosInner() {
                     {filteredPhrases.map((p, idx) => {
                       const reg = REGISTER_LABEL[p.register];
                       const hiddenByTest = selfTest && !revealedPhrases[idx];
+                      const phraseWords = extractPhraseVocabKeys(p.text, lang);
+                      const phraseAllSaved =
+                        phraseWords.length > 0 && phraseWords.every((w) => !!state.srs[lang][`w:${w.toLowerCase()}`]);
                       return (
                         <li key={idx} className="card p-4">
                           <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
@@ -403,7 +484,7 @@ function ContextosInner() {
                               <button
                                 type="button"
                                 onClick={() => setRevealedPhrases((prev) => ({ ...prev, [idx]: true }))}
-                                className="flex min-h-[42px] w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-[var(--color-lilac)]/60 bg-[var(--color-lilac-soft)]/35 px-3.5 py-2 text-xs font-extrabold text-[var(--color-ink)] transition hover:bg-[var(--color-lilac-soft)]/70"
+                                className="flex min-h-[44px] w-full items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-[var(--color-lilac)]/60 bg-[var(--color-lilac-soft)]/35 px-3.5 py-2 text-xs font-extrabold text-[var(--color-ink)] transition hover:bg-[var(--color-lilac-soft)]/70 active:scale-[0.99]"
                               >
                                 <Icon name="eye" size={16} /> Tenta dizer primeiro — toca para revelar em {meta.name.toLowerCase()}
                               </button>
@@ -417,24 +498,77 @@ function ContextosInner() {
                                 <p className="mt-0.5 text-xs font-medium text-[var(--color-muted)]">{p.romaji}</p>
                               )}
                               <p className="mt-1 text-sm text-[var(--color-muted)]">{p.pt}</p>
-                              <div className="mt-3 flex flex-wrap items-center gap-2">
-                                <SpeakButton text={p.text} lang={lang} size={38} label={`Ouvir: ${p.pt}`} />
+                              <div className="mt-3 flex flex-wrap items-center gap-1.5">
+                                <SpeakButton text={p.text} lang={lang} pillLabel="Ouvir" label={`Ouvir: ${p.pt}`} />
                                 <SpeakButton
                                   text={p.text}
                                   lang={lang}
-                                  size={38}
                                   slow
+                                  pillLabel="0.6×"
                                   label={`Ouvir devagar: ${p.pt}`}
-                                  className="!bg-[var(--color-teal-soft)]/70"
                                 />
                                 <CopyTextButton
                                   text={p.text}
                                   lang={lang}
-                                  size={38}
+                                  pillLabel="Copiar"
                                   label={`Copiar frase: ${p.pt}`}
                                 />
-                                <span className="text-xs text-[var(--color-muted)]">Ouvir · Devagar 🐢 · Copiar</span>
+                                {phraseWords.length > 0 && (
+                                  <button
+                                    type="button"
+                                    disabled={phraseAllSaved}
+                                    onClick={() => {
+                                      const missing = phraseWords.filter((w) => !state.srs[lang][`w:${w.toLowerCase()}`]).length;
+                                      sfxSuccess(state.settings.soundEffects !== false);
+                                      update((s) => saveWordsBatch(s, lang, phraseWords, 2));
+                                      setToast(
+                                        missing > 0
+                                          ? `✓ +${missing} ${missing === 1 ? "palavra guardada" : "palavras guardadas"} desta frase!`
+                                          : "As palavras desta frase já estão na revisão.",
+                                      );
+                                    }}
+                                    className={`action-pill ${
+                                      phraseAllSaved
+                                        ? "!border-[var(--color-good)]/40 !bg-[var(--color-good-soft)] !text-[var(--color-good)]"
+                                        : ""
+                                    }`}
+                                  >
+                                    <Icon name={phraseAllSaved ? "check" : "bookmark"} size={14} filled={phraseAllSaved} />
+                                    <span>{phraseAllSaved ? "Guardadas" : `+ ${phraseWords.length} palavras`}</span>
+                                  </button>
+                                )}
                               </div>
+                              {selfTest && (
+                                <div className="fade-in mt-2.5 flex flex-wrap items-center gap-2 border-t border-[var(--color-line)] pt-2.5">
+                                  <button
+                                    type="button"
+                                    aria-pressed={!!knownPhrases[idx]}
+                                    onClick={() => {
+                                      sfxSuccess(state.settings.soundEffects !== false);
+                                      setKnownPhrases((prev) => ({ ...prev, [idx]: !prev[idx] }));
+                                    }}
+                                    className={`action-pill flex-1 ${
+                                      knownPhrases[idx]
+                                        ? "!border-[var(--color-good)] !bg-[var(--color-good-soft)] !text-[var(--color-good)]"
+                                        : ""
+                                    }`}
+                                  >
+                                    <Icon name="check" size={14} />
+                                    <span>{knownPhrases[idx] ? "Sabia dizer ✓" : "Sabia dizer"}</span>
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setRevealedPhrases((prev) => ({ ...prev, [idx]: false }));
+                                      setKnownPhrases((prev) => ({ ...prev, [idx]: false }));
+                                    }}
+                                    className="action-pill"
+                                  >
+                                    <Icon name="eye-off" size={14} />
+                                    <span>Esconder</span>
+                                  </button>
+                                </div>
+                              )}
                             </>
                           )}
                         </li>
@@ -515,7 +649,6 @@ function ContextosInner() {
                     const k = rawKey.toLowerCase();
                     const entry = dict[k];
                     if (!entry) return null;
-                    const saved = !!state.srs[lang][`w:${k}`];
                     return (
                       <li key={k} className="card flex items-center gap-2 p-2.5">
                         <SpeakButton text={k} lang={lang} size={38} label={`Ouvir ${k}`} />
@@ -536,15 +669,20 @@ function ContextosInner() {
                               {entry.pt}
                             </span>
                           </span>
-                          <span className="flex shrink-0 items-center gap-1.5">
-                            {entry.note && (
-                              <span className="rounded-full bg-[var(--color-yellow-soft)] px-2 py-0.5 text-[10px] font-bold text-[#7a5c0d]">
-                                💡 nota
-                              </span>
-                            )}
-                            {saved && <Icon name="bookmark" size={16} filled className="text-[var(--color-coral)]" />}
-                          </span>
+                          {entry.note && (
+                            <span className="shrink-0 rounded-full bg-[var(--color-yellow-soft)] px-2 py-0.5 text-[10px] font-bold text-[#7a5c0d]">
+                              💡 nota
+                            </span>
+                          )}
                         </button>
+                        <SaveWordButton
+                          wordKey={k}
+                          lang={lang}
+                          size={38}
+                          onToggle={(nowSaved) =>
+                            setToast(nowSaved ? `✓ «${k}» guardada na revisão!` : `«${k}» removida da revisão.`)
+                          }
+                        />
                       </li>
                     );
                   })}
@@ -566,15 +704,21 @@ function ContextosInner() {
                   <div className="mt-3 flex flex-wrap gap-2">
                     <Link
                       href={`/conversa?context=${activePack.id}&mode=guiado`}
-                      className="inline-flex min-h-[40px] flex-1 items-center justify-center gap-1.5 rounded-2xl bg-white px-3.5 py-2 text-xs font-extrabold text-[var(--color-ink)] transition active:scale-95"
+                      className="inline-flex min-h-[40px] flex-1 items-center justify-center gap-1.5 rounded-2xl bg-white px-3 py-2 text-xs font-extrabold text-[var(--color-ink)] transition active:scale-95"
                     >
-                      🎯 Guiado (com ajuda)
+                      🎯 Guiado
                     </Link>
                     <Link
                       href={`/conversa?context=${activePack.id}&mode=livre`}
-                      className="inline-flex min-h-[40px] flex-1 items-center justify-center gap-1.5 rounded-2xl bg-white/20 px-3.5 py-2 text-xs font-extrabold text-white transition hover:bg-white/30 active:scale-95"
+                      className="inline-flex min-h-[40px] flex-1 items-center justify-center gap-1.5 rounded-2xl bg-white/20 px-3 py-2 text-xs font-extrabold text-white transition hover:bg-white/30 active:scale-95"
                     >
-                      💬 Conversa Livre
+                      💬 Livre
+                    </Link>
+                    <Link
+                      href={`/conversa?context=${activePack.id}&mode=desafio`}
+                      className="inline-flex min-h-[40px] flex-1 items-center justify-center gap-1.5 rounded-2xl bg-[var(--color-ink)]/30 px-3 py-2 text-xs font-extrabold text-white transition hover:bg-[var(--color-ink)]/45 active:scale-95"
+                    >
+                      ⚡ Desafio
                     </Link>
                   </div>
                 </div>
@@ -634,6 +778,7 @@ function ContextosInner() {
 
         <WordSheet tok={tok} lang={lang} onClose={() => setTok(null)} />
         <Toast text={toast} onDone={() => setToast(null)} />
+        <BackToTopButton />
       </>
     );
   }
@@ -748,11 +893,11 @@ function ContextosInner() {
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-2" role="group" aria-label="Filtrar contextos por tema">
+        <div className="chip-scroller" role="group" aria-label="Filtrar contextos por tema">
           <button
             type="button"
             aria-pressed={tagFilter === null}
-            className={`chip min-h-[38px] ${tagFilter === null ? "!bg-[var(--color-ink)] text-white" : ""}`}
+            className="chip min-h-[38px]"
             onClick={() => setTagFilter(null)}
           >
             Todos ({CONTEXT_PACKS.length})
@@ -762,13 +907,33 @@ function ContextosInner() {
               key={t}
               type="button"
               aria-pressed={tagFilter === t}
-              className={`chip min-h-[38px] ${tagFilter === t ? "!bg-[var(--color-ink)] text-white" : ""}`}
+              className="chip min-h-[38px]"
               onClick={() => setTagFilter(tagFilter === t ? null : t)}
             >
               {t}
             </button>
           ))}
         </div>
+
+        {(query.trim() || tagFilter) && (
+          <div className="fade-in flex items-center justify-between gap-2 text-xs">
+            <span className="font-bold text-[var(--color-muted)]">
+              {visiblePacks.length} {visiblePacks.length === 1 ? "cenário visível" : "cenários visíveis"}
+              {matchingPhrases.length > 0 && ` · ${matchingPhrases.length} frases directas`}
+            </span>
+            <button
+              type="button"
+              onClick={() => {
+                setQuery("");
+                setTagFilter(null);
+              }}
+              className="action-pill !min-h-[32px] !border-[var(--color-coral)]/40 !bg-[var(--color-coral-soft)] !px-3 !py-0.5 !text-[var(--color-coral)]"
+            >
+              <Icon name="close" size={13} />
+              <span>Limpar filtros</span>
+            </button>
+          </div>
+        )}
       </search>
 
       <p aria-live="polite" className="sr-only">
@@ -811,20 +976,19 @@ function ContextosInner() {
                     <p className="mt-0.5 text-xs text-[var(--color-muted)]">{m.phrase.romaji}</p>
                   )}
                   <p className="mt-1 text-xs text-[var(--color-muted)]">{m.phrase.pt}</p>
-                  <div className="mt-2 flex flex-wrap items-center gap-2">
-                    <SpeakButton text={m.phrase.text} lang={lang} size={34} label={`Ouvir: ${m.phrase.pt}`} />
+                  <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                    <SpeakButton text={m.phrase.text} lang={lang} pillLabel="Ouvir" label={`Ouvir: ${m.phrase.pt}`} />
                     <SpeakButton
                       text={m.phrase.text}
                       lang={lang}
-                      size={34}
                       slow
+                      pillLabel="0.6×"
                       label={`Ouvir devagar: ${m.phrase.pt}`}
-                      className="!bg-[var(--color-teal-soft)]/70"
                     />
                     <CopyTextButton
                       text={m.phrase.text}
                       lang={lang}
-                      size={34}
+                      pillLabel="Copiar"
                       label={`Copiar frase: ${m.phrase.pt}`}
                     />
                     <span className="text-[11px] text-[var(--color-muted)]">{m.phrase.whenToUse}</span>
@@ -910,6 +1074,7 @@ function ContextosInner() {
       )}
 
       <WordSheet tok={tok} lang={lang} onClose={() => setTok(null)} />
+      <BackToTopButton />
     </>
   );
 }

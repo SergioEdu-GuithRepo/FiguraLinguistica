@@ -7,7 +7,7 @@ import { ContextualVocabDrill } from "@/components/ContextualVocabDrill";
 import { Icon } from "@/components/Icon";
 import { WordSheet } from "@/components/Reader";
 import { AppFrame } from "@/components/Shell";
-import { Empty, ProgressRing, SpeakButton, Toast, TopBar } from "@/components/ui";
+import { BackToTopButton, Empty, ProgressRing, SpeakButton, Toast, TopBar } from "@/components/ui";
 import { CONTENT } from "@/content";
 import { CONTEXT_PACKS, contextPackProgress } from "@/lib/contexts";
 import { isStrong, retrievability } from "@/lib/fsrs";
@@ -222,7 +222,7 @@ function Palavras() {
           </div>
         )}
 
-        <div className="flex flex-wrap gap-2" role="group" aria-label="Filtrar estado da memória">
+        <div className="chip-scroller" role="group" aria-label="Filtrar estado da memória">
           {(
             [
               ["todas", "Todas"],
@@ -236,13 +236,32 @@ function Palavras() {
               key={v}
               type="button"
               aria-pressed={filter === v}
-              className={`chip min-h-[38px] ${filter === v ? "!bg-[var(--color-ink)] text-white" : ""}`}
+              className="chip min-h-[38px]"
               onClick={() => setFilter(v)}
             >
               {l}
             </button>
           ))}
         </div>
+
+        {(query.trim() || filter !== "todas") && (
+          <div className="fade-in flex items-center justify-between gap-2 text-xs">
+            <span className="font-bold text-[var(--color-muted)]">
+              {words.length} de {allSaved.length} palavras visíveis
+            </span>
+            <button
+              type="button"
+              onClick={() => {
+                setQuery("");
+                setFilter("todas");
+              }}
+              className="action-pill !min-h-[32px] !border-[var(--color-coral)]/40 !bg-[var(--color-coral-soft)] !px-3 !py-0.5 !text-[var(--color-coral)]"
+            >
+              <Icon name="close" size={13} />
+              <span>Limpar filtros</span>
+            </button>
+          </div>
+        )}
       </search>
 
       <p aria-live="polite" className="sr-only">
@@ -313,6 +332,7 @@ function Palavras() {
       )}
       <WordSheet tok={tok} lang={lang} onClose={() => setTok(null)} />
       <Toast text={toast} onDone={() => setToast(null)} />
+      <BackToTopButton />
     </>
   );
 }

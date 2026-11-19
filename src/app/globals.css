@@ -29,6 +29,15 @@ html {
   -webkit-text-size-adjust: 100%;
   -webkit-tap-highlight-color: transparent;
   --color-surface: #ffffff;
+  --target-size: 24px;
+  scroll-padding-top: calc(4.5rem + env(safe-area-inset-top, 0px));
+  scroll-padding-bottom: calc(6rem + env(safe-area-inset-bottom, 0px));
+}
+
+@media (pointer: coarse) {
+  html {
+    --target-size: 44px;
+  }
 }
 
 html.dark {
@@ -53,7 +62,19 @@ body {
   color: var(--color-ink);
   font-family: var(--font-sans);
   min-height: 100dvh;
+  overflow-wrap: break-word;
   transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
+p,
+blockquote {
+  text-wrap: pretty;
 }
 
 .card {
@@ -66,11 +87,13 @@ body {
     background-color 0.2s ease;
 }
 
-button.card:hover,
-a.card:hover,
-.card-interactive:hover {
-  transform: translateY(-2px);
-  box-shadow: var(--shadow-float);
+@media (hover: hover) {
+  button.card:hover,
+  a.card:hover,
+  .card-interactive:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-float);
+  }
 }
 
 button.card:active,
@@ -105,6 +128,8 @@ ruby rt {
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+  min-inline-size: var(--target-size);
+  min-block-size: max(var(--target-size), 42px);
   border-radius: 16px;
   padding: 0.8rem 1.2rem;
   font-weight: 700;
@@ -116,8 +141,13 @@ ruby rt {
   user-select: none;
   cursor: pointer;
 }
-.btn:hover:not(:disabled) {
-  transform: translateY(-1.5px);
+@media (hover: hover) {
+  .btn:hover:not(:disabled) {
+    transform: translateY(-1.5px);
+  }
+  .btn-primary:hover:not(:disabled) {
+    box-shadow: 0 12px 24px rgba(232, 115, 90, 0.4);
+  }
 }
 .btn:active:not(:disabled) {
   transform: scale(0.955) translateY(0.5px);
@@ -130,9 +160,6 @@ ruby rt {
   background: var(--color-coral);
   color: #fff;
   box-shadow: 0 8px 18px rgba(232, 115, 90, 0.3);
-}
-.btn-primary:hover:not(:disabled) {
-  box-shadow: 0 12px 24px rgba(232, 115, 90, 0.4);
 }
 .btn-dark {
   background: var(--color-ink);
@@ -151,9 +178,13 @@ ruby rt {
 .chip {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 0.35rem;
+  min-inline-size: var(--target-size);
+  min-block-size: max(36px, calc(var(--target-size) - 4px));
   padding: 0.45rem 0.85rem;
   border-radius: 999px;
+  border: 1.5px solid transparent;
   font-weight: 600;
   font-size: 0.875rem;
   background: var(--color-surface);
@@ -162,15 +193,105 @@ ruby rt {
   transition:
     transform 0.16s cubic-bezier(0.22, 1, 0.36, 1),
     background-color 0.18s ease,
+    border-color 0.18s ease,
     color 0.18s ease,
     box-shadow 0.18s ease;
   cursor: pointer;
 }
-.chip:hover:not(:disabled) {
-  transform: translateY(-1px);
+@media (hover: hover) {
+  .chip:hover:not(:disabled) {
+    transform: translateY(-1px);
+    border-color: var(--color-line);
+  }
 }
 .chip:active:not(:disabled) {
   transform: scale(0.93);
+}
+.chip[aria-pressed="true"] {
+  background: var(--color-ink);
+  color: var(--color-surface);
+  border-color: var(--color-ink);
+  font-weight: 800;
+}
+
+/* Pílulas de acção rápida (áudio normal/0.6x, guardar, copiar, ficha) */
+.action-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  min-inline-size: var(--target-size);
+  min-block-size: max(36px, calc(var(--target-size) - 4px));
+  padding: 0.38rem 0.72rem;
+  border-radius: 999px;
+  border: 1.5px solid var(--color-line);
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font-size: 0.75rem;
+  font-weight: 800;
+  cursor: pointer;
+  user-select: none;
+  transition:
+    transform 0.15s cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 0.16s ease,
+    border-color 0.16s ease,
+    color 0.16s ease,
+    box-shadow 0.16s ease;
+}
+@media (hover: hover) {
+  .action-pill:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-card);
+    border-color: var(--color-lilac);
+  }
+}
+.action-pill:active:not(:disabled) {
+  transform: scale(0.94);
+}
+.action-pill[aria-pressed="true"] {
+  background: var(--color-coral-soft);
+  border-color: var(--color-coral);
+  color: var(--color-coral);
+}
+
+/* Filas horizontais de filtros deslizáveis com snap (natural-interactions) */
+.chip-scroller {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  scroll-snap-type: x proximity;
+  padding-block-end: 0.2rem;
+}
+.chip-scroller::-webkit-scrollbar {
+  display: none;
+}
+.chip-scroller > * {
+  flex-shrink: 0;
+  scroll-snap-align: start;
+}
+
+/* Pistas de atalho de teclado apenas em dispositivos com rato/teclado fino */
+.kbd-hint {
+  display: none;
+}
+@media (hover: hover) and (pointer: fine) {
+  .kbd-hint {
+    display: inline-grid;
+    place-items: center;
+    min-inline-size: 1.35rem;
+    block-size: 1.35rem;
+    padding-inline: 0.3rem;
+    border-radius: 6px;
+    border: 1px solid var(--color-line);
+    background: var(--color-bg);
+    color: var(--color-muted);
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 0.68rem;
+    font-weight: 800;
+    line-height: 1;
+  }
 }
 
 .\!bg-\[var\(--color-ink\)\] {

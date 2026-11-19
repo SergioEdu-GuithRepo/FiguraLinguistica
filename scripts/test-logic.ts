@@ -23,6 +23,7 @@ import {
   contextPackProgress,
   contextPackToUnit,
   evaluateTypedVocabAnswer,
+  extractPhraseVocabKeys,
   getContextTutorUnit,
   getPackDialogue,
   globalContextStats,
@@ -45,6 +46,7 @@ import {
   currentStreak,
   rateItem,
   saveWordsBatch,
+  toggleWordSaved,
   dueItems,
   conversationsLeft,
   addActivity,
@@ -353,9 +355,9 @@ for (const lang of LANGS) {
     }
   });
   check(`Contextos Reais, Pesquisa de Dicionário e Treino em Frase (${lang})`, () => {
-    assert.equal(CONTEXT_PACKS.length, 26);
-    assert.equal(VOCAB_NETWORKS.length, 8);
-    assert.equal(CONFUSABLE_PAIRS[lang].length, 8);
+    assert.equal(CONTEXT_PACKS.length, 32);
+    assert.equal(VOCAB_NETWORKS.length, 10);
+    assert.equal(CONFUSABLE_PAIRS[lang].length, 10);
     const unitIds = new Set(CONTENT[lang].units.map((u) => u.id));
     for (const pack of CONTEXT_PACKS) {
       const data = pack.byLang[lang];
@@ -429,20 +431,31 @@ for (const lang of LANGS) {
     const packSr = searchDictionary(lang, "", { packId: "restaurante" });
     assert.equal(packSr.total, CONTEXT_PACKS.find((p) => p.id === "restaurante")!.byLang[lang].vocabKeys.length);
 
-    // Pesquisa de contextos insensível a acentos (ex.: "caucao" -> habitação, "alergia" -> restaurante/saúde, "validade" -> supermercado, "orcamento" -> negociação)
-    assert.equal(searchContexts(lang, "", null).packs.length, 26);
+    // Pesquisa de contextos insensível a acentos (ex.: "caucao" -> habitação, "alergia" -> restaurante/saúde, "validade" -> supermercado, "orcamento" -> negociação, "dentista", "reciclagem", "podcast")
+    assert.equal(searchContexts(lang, "", null).packs.length, 32);
     const sc = searchContexts(lang, "caucao", null);
     assert.ok(sc.packs.some((p) => p.id === "habitacao"), `${lang} searchContexts caucao`);
     const scSup = searchContexts(lang, "validade", null);
     assert.ok(scSup.packs.some((p) => p.id === "supermercado"), `${lang} searchContexts validade`);
     const scNeg = searchContexts(lang, "orcamento", null);
     assert.ok(scNeg.packs.some((p) => p.id === "negociacao"), `${lang} searchContexts orcamento`);
+    const scDent = searchContexts(lang, "dentista", null);
+    assert.ok(scDent.packs.some((p) => p.id === "dentista-optica"), `${lang} searchContexts dentista`);
+    const scRec = searchContexts(lang, "reciclagem", null);
+    assert.ok(scRec.packs.some((p) => p.id === "comunidade-ambiente"), `${lang} searchContexts reciclagem`);
+    const scPod = searchContexts(lang, "podcast", null);
+    assert.ok(scPod.packs.some((p) => p.id === "media-podcasts"), `${lang} searchContexts podcast`);
     const scPhrase = searchContexts(lang, "alergia", null);
     assert.ok(scPhrase.matchingPhrases.length >= 1, `${lang} searchContexts matchingPhrases alergia`);
 
+    // Extracção de vocabulário de frases individuais e rotação da Expressão do Dia
+    const samplePhrase = CONTEXT_PACKS.find((p) => p.id === "cozinha-receitas")!.byLang[lang].phrases[0].text;
+    const extracted = extractPhraseVocabKeys(samplePhrase, lang);
+    assert.ok(extracted.length >= 2, `${lang} extractPhraseVocabKeys (${extracted.length})`);
+
     // Modo de treino de Pares Confusos & Nuances
-    const pairsDrill = buildContextualVocabDrill(lang, {}, 9, { count: 6, mode: "pairs" });
-    assert.equal(pairsDrill.length, 6, `${lang} pairs drill length`);
+    const pairsDrill = buildContextualVocabDrill(lang, {}, 9, { count: 8, mode: "pairs" });
+    assert.equal(pairsDrill.length, 8, `${lang} pairs drill length`);
     assert.ok(pairsDrill.every((q) => q.questionType === "pairs" && q.options.includes(q.surfaceAnswer)), `${lang} pairs drill valid`);
 
     // Ficha contextual da palavra (pacotes, redes, pares confusos, colocações, frases reais e palavras companheiras) e Expressão do Dia
@@ -457,8 +470,10 @@ for (const lang of LANGS) {
     assert.ok(wordContextInfo(lang, netSample).networks.length >= 1, `${lang} wordContextInfo networks`);
     const colProbe = lang === "en" ? "card" : lang === "fr" ? "carte" : "日本";
     assert.ok(wordContextInfo(lang, colProbe).collocations.length >= 2, `${lang} collocations for ${colProbe}`);
-    const wotd = wordOfTheDay(lang, {}, "2026-11-16");
+    const wotd = wordOfTheDay(lang, {}, "2026-11-18", 0);
+    const wotdNext = wordOfTheDay(lang, {}, "2026-11-18", 1);
     assert.ok(wotd.entry.example && wotd.pack, `${lang} wordOfTheDay`);
+    assert.notEqual(wotd.key, wotdNext.key, `${lang} wordOfTheDay offset rotates`);
   });
 }
 
@@ -526,7 +541,7 @@ check("Reconciliação de XP entre dispositivos (CRDT xpEvents + definições v1
   assert.equal(merged.settings.reminderHour, "19:30");
 });
 
-check("saveWordsBatch: guarda pacote de palavras sem sobrescrever cartões existentes", () => {
+check("saveWordsBatch e toggleWordSaved: guarda em lote e alterna palavra individual sem perder estabilidade", () => {
   let s = defaultState("Sérgio");
   s = rateItem(s, "en", "w:passport", 4);
   const prevStability = s.srs.en["w:passport"].s;
@@ -535,6 +550,13 @@ check("saveWordsBatch: guarda pacote de palavras sem sobrescrever cartões exist
   assert.ok(s.srs.en["w:boarding pass"]);
   assert.ok(s.srs.en["w:layover"]);
   assert.equal(s.srs.en["w:__inexistente__"], undefined);
+
+  const t1 = toggleWordSaved(s, "en", "toothache", 2);
+  assert.equal(t1.saved, true);
+  assert.ok(t1.state.srs.en["w:toothache"]);
+  const t2 = toggleWordSaved(t1.state, "en", "toothache", 2);
+  assert.equal(t2.saved, false);
+  assert.equal(t2.state.srs.en["w:toothache"], undefined);
 });
 
 check("contextPackProgress e recommendedContextPack acompanham domínio e interesses", () => {
@@ -555,7 +577,7 @@ check("contextPackProgress e recommendedContextPack acompanham domínio e intere
   assert.equal(prog.mastered, true);
 
   const gStats = globalContextStats("en", s.srs.en, s.xpEvents);
-  assert.equal(gStats.totalPacks, 26);
+  assert.equal(gStats.totalPacks, 32);
   assert.equal(gStats.masteredPacks, 1);
   assert.ok(gStats.savedContextWords >= carreiraPack.byLang.en.vocabKeys.length);
 

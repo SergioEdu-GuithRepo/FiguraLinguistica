@@ -7,7 +7,8 @@ import { LANGS } from "@/lib/langs";
 import type { LangCode } from "@/lib/types";
 import { plainText } from "@/lib/tokenize";
 import { neuralVoiceFor, voiceForSpeaker } from "@/lib/voices";
-import { sfxCelebrate } from "@/lib/sfx";
+import { sfxCelebrate, sfxSuccess, sfxTap } from "@/lib/sfx";
+import { toggleWordSaved } from "@/lib/state";
 import { Icon } from "./Icon";
 
 /* ---------- hooks ---------- */
@@ -120,7 +121,8 @@ export function SpeakButton({
   size = 40,
   className = "",
   slow = false,
-  label = "Ouvir",
+  label = slow ? "Ouvir devagar (0.6×)" : "Ouvir",
+  pillLabel,
 }: {
   text: string;
   lang: LangCode;
@@ -128,16 +130,61 @@ export function SpeakButton({
   className?: string;
   slow?: boolean;
   label?: string;
+  pillLabel?: string;
 }) {
   const { say } = useSpeaker();
   const [playing, setPlaying] = useState(false);
+
+  if (pillLabel) {
+    return (
+      <button
+        type="button"
+        aria-label={label}
+        title={label}
+        className={`action-pill shrink-0 ${
+          playing
+            ? "pulse-ring !border-[var(--color-coral)] !bg-[var(--color-coral)] !text-white"
+            : slow
+              ? "!border-[var(--color-teal)]/40 !bg-[var(--color-teal-soft)]/75"
+              : ""
+        } ${className}`}
+        onClick={(e) => {
+          e.stopPropagation();
+          setPlaying(true);
+          say(text, lang, () => setPlaying(false), slow ? 0.6 : undefined);
+        }}
+      >
+        {playing ? (
+          <span className="flex h-3.5 items-end gap-[2px]" aria-hidden="true">
+            <span className="eq-bar" />
+            <span className="eq-bar" />
+            <span className="eq-bar" />
+          </span>
+        ) : slow ? (
+          <span aria-hidden="true" className="text-xs leading-none">
+            🐢
+          </span>
+        ) : (
+          <Icon name="volume" size={15} />
+        )}
+        <span>{pillLabel}</span>
+      </button>
+    );
+  }
+
   return (
     <button
       type="button"
       aria-label={label}
       title={label}
-      className={`grid shrink-0 place-items-center rounded-full transition hover:-translate-y-0.5 active:scale-90 ${playing ? "pulse-ring bg-[var(--color-coral)] text-white" : "bg-[var(--color-bg)] text-[var(--color-ink)]"} ${className}`}
-      style={{ width: size, height: size }}
+      className={`relative grid shrink-0 place-items-center rounded-full transition hover:-translate-y-0.5 active:scale-90 ${
+        playing
+          ? "pulse-ring bg-[var(--color-coral)] text-white"
+          : slow
+            ? "bg-[var(--color-teal-soft)] text-[var(--color-ink)]"
+            : "bg-[var(--color-bg)] text-[var(--color-ink)]"
+      } ${className}`}
+      style={{ minInlineSize: Math.max(24, size), minBlockSize: Math.max(24, size), width: size, height: size }}
       onClick={(e) => {
         e.stopPropagation();
         setPlaying(true);
@@ -151,8 +198,107 @@ export function SpeakButton({
           <span className="eq-bar" />
         </span>
       ) : (
-        <Icon name="volume" size={Math.round(size * 0.5)} />
+        <Icon name="volume" size={Math.round(size * 0.48)} />
       )}
+      {slow && !playing && (
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute -bottom-1 -right-1 rounded-full bg-[var(--color-ink)] px-1 py-[1px] text-[9px] font-extrabold leading-none text-[var(--color-surface)] shadow-xs"
+        >
+          0.6×
+        </span>
+      )}
+    </button>
+  );
+}
+
+export function SaveWordButton({
+  wordKey,
+  lang,
+  size = 36,
+  pillLabel,
+  className = "",
+  onToggle,
+}: {
+  wordKey: string;
+  lang: LangCode;
+  size?: number;
+  pillLabel?: string;
+  className?: string;
+  onToggle?: (nowSaved: boolean) => void;
+}) {
+  const { state, update } = useApp();
+  const k = wordKey.toLowerCase();
+  const saved = !!state.srs[lang][`w:${k}`];
+  const sfxOn = state.settings.soundEffects !== false;
+
+  const handleClick = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.stopPropagation();
+    const nextSaved = !saved;
+    if (nextSaved) sfxSuccess(sfxOn);
+    else sfxTap(sfxOn);
+    update((s) => toggleWordSaved(s, lang, k, 2).state);
+    onToggle?.(nextSaved);
+  };
+
+  if (pillLabel) {
+    return (
+      <button
+        type="button"
+        aria-pressed={saved}
+        aria-label={`Guardar ${wordKey} na revisão`}
+        onClick={handleClick}
+        className={`action-pill shrink-0 ${className}`}
+      >
+        <Icon name="bookmark" size={14} filled={saved} />
+        <span>{pillLabel}</span>
+      </button>
+    );
+  }
+
+  return (
+    <button
+      type="button"
+      aria-pressed={saved}
+      aria-label={`Guardar ${wordKey} na revisão`}
+      title={saved ? "Na revisão (toca para remover)" : "Guardar na revisão"}
+      onClick={handleClick}
+      style={{ minInlineSize: Math.max(24, size), minBlockSize: Math.max(24, size), width: size, height: size }}
+      className={`grid shrink-0 place-items-center rounded-full transition active:scale-90 ${
+        saved
+          ? "correct-pop bg-[var(--color-coral-soft)] text-[var(--color-coral)]"
+          : "bg-[var(--color-bg)] text-[var(--color-muted)] hover:text-[var(--color-ink)]"
+      } ${className}`}
+    >
+      <Icon name="bookmark" size={Math.round(size * 0.46)} filled={saved} />
+    </button>
+  );
+}
+
+export function BackToTopButton({ threshold = 460 }: { threshold?: number }) {
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const onScroll = () => setVisible(window.scrollY > threshold);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [threshold]);
+
+  if (!visible) return null;
+
+  return (
+    <button
+      type="button"
+      aria-label="Voltar ao topo da página"
+      onClick={() => {
+        const reduce = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+        window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
+      }}
+      className="fade-in fixed bottom-24 right-4 z-30 inline-flex min-h-[42px] items-center gap-1.5 rounded-full border border-[var(--color-line)] bg-[var(--color-surface)]/95 px-3.5 py-2 text-xs font-extrabold text-[var(--color-ink)] shadow-[var(--shadow-float)] backdrop-blur-md transition active:scale-95"
+    >
+      <Icon name="arrow-up" size={15} />
+      <span>Topo</span>
     </button>
   );
 }
@@ -179,12 +325,14 @@ export function CopyTextButton({
   size = 38,
   className = "",
   label = "Copiar texto",
+  pillLabel,
 }: {
   text: string;
   lang?: LangCode;
   size?: number;
   className?: string;
   label?: string;
+  pillLabel?: string;
 }) {
   const [status, setStatus] = useState<"idle" | "copied" | "failed">("idle");
   const [announcement, setAnnouncement] = useState("");
@@ -236,14 +384,21 @@ export function CopyTextButton({
         aria-label={label}
         data-copied={status === "copied" ? "" : undefined}
         data-failed={status === "failed" ? "" : undefined}
-        style={{ minInlineSize: Math.max(24, size), minBlockSize: Math.max(24, size) }}
-        className={`copy-btn ${className}`}
+        style={pillLabel ? undefined : { minInlineSize: Math.max(24, size), minBlockSize: Math.max(24, size) }}
+        className={
+          pillLabel
+            ? `action-pill copy-btn !rounded-full ${
+                status === "copied" ? "!border-[var(--color-good)] !bg-[var(--color-good-soft)] !text-[var(--color-good)]" : ""
+              } ${className}`
+            : `copy-btn ${className}`
+        }
         onClick={handleCopy}
       >
         <Icon
           name={status === "copied" ? "check" : status === "failed" ? "close" : "copy"}
-          size={Math.round(size * 0.46)}
+          size={pillLabel ? 14 : Math.round(size * 0.46)}
         />
+        {pillLabel && <span>{status === "copied" ? "Copiado" : pillLabel}</span>}
       </button>
       <span role="status" className="copy-tip">
         {announcement}

@@ -5,10 +5,11 @@ import { useState } from "react";
 import { AppFrame, LanguageSelector, NotificationsButton, ScreenHeader, StreakBadge } from "@/components/Shell";
 import { Icon } from "@/components/Icon";
 import { WordSheet } from "@/components/Reader";
-import { CopyTextButton, ProgressBar, ProgressRing, SpeakButton, Toast } from "@/components/ui";
+import { CopyTextButton, ProgressBar, ProgressRing, SaveWordButton, SpeakButton, Toast } from "@/components/ui";
 import { getUnit } from "@/content";
 import { CONTEXT_PACKS, wordOfTheDay } from "@/lib/contexts";
 import { LANGS } from "@/lib/langs";
+import { sfxTap } from "@/lib/sfx";
 import {
   conversationsLeft,
   currentStreak,
@@ -16,7 +17,6 @@ import {
   dayKey,
   dueItems,
   nextUnitId,
-  rateItem,
   todayProgress,
   unitProgressPct,
   vocabStats,
@@ -28,9 +28,10 @@ import { plainText, type RToken } from "@/lib/tokenize";
 const WEEKDAYS = ["D", "S", "T", "Q", "Q", "S", "S"];
 
 function Home() {
-  const { state, update } = useApp();
+  const { state } = useApp();
   const [tok, setTok] = useState<RToken | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [wotdOffset, setWotdOffset] = useState(0);
   const lang = state.activeLang;
   const meta = LANGS[lang];
   const today = todayProgress(state);
@@ -45,7 +46,7 @@ function Home() {
   const streak = currentStreak(state);
   const left = conversationsLeft(state);
   const goalN = dailyGoalActivities(state.settings.dailyGoalMin);
-  const wotd = wordOfTheDay(lang, state.srs[lang], dayKey());
+  const wotd = wordOfTheDay(lang, state.srs[lang], dayKey(), wotdOffset);
 
   return (
     <>
@@ -93,6 +94,22 @@ function Home() {
             <Icon name="chat" size={22} />
           </div>
         </Link>
+
+        {/* Barra de acção rápida de 1 toque */}
+        <nav aria-label="Atalhos de prática rápida" className="chip-scroller -my-1">
+          <Link href="/revisao" className="action-pill !bg-[var(--color-surface)] !px-3.5 shadow-[var(--shadow-card)]">
+            <span>⚡ Revisão{due > 0 ? ` (${due})` : ""}</span>
+          </Link>
+          <Link href="/contextos" className="action-pill !bg-[var(--color-surface)] !px-3.5 shadow-[var(--shadow-card)]">
+            <span>🧰 {CONTEXT_PACKS.length} Contextos</span>
+          </Link>
+          <Link href="/cursos/vocabulario?tab=treino" className="action-pill !bg-[var(--color-surface)] !px-3.5 shadow-[var(--shadow-card)]">
+            <span>🧩 Treinar frases</span>
+          </Link>
+          <Link href="/cursos/vocabulario?tab=dicionario" className="action-pill !bg-[var(--color-surface)] !px-3.5 shadow-[var(--shadow-card)]">
+            <span>📖 Dicionário</span>
+          </Link>
+        </nav>
 
         {/* XP */}
         <section className="card p-5" aria-label="XP ganho">
@@ -193,9 +210,23 @@ function Home() {
         {/* Expressão / Palavra do Dia em Contexto */}
         <section className="card p-5" aria-label="Expressão do dia em contexto">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--color-yellow-soft)] px-2.5 py-0.5 text-[11px] font-extrabold text-[#7a5c0d]">
-              🌟 Expressão do dia
-            </span>
+            <div className="flex items-center gap-1.5">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--color-yellow-soft)] px-2.5 py-0.5 text-[11px] font-extrabold text-[#7a5c0d]">
+                🌟 Expressão em destaque
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  sfxTap(state.settings.soundEffects !== false);
+                  setWotdOffset((o) => o + 1);
+                }}
+                aria-label="Mostrar outra expressão de contexto"
+                className="action-pill !min-h-[28px] !px-2.5 !py-0.5 text-[11px]"
+              >
+                <Icon name="shuffle" size={12} />
+                <span>Outra</span>
+              </button>
+            </div>
             <Link
               href={`/contextos?pack=${wotd.pack.id}`}
               className="rounded-full bg-[var(--color-bg)] px-2.5 py-0.5 text-[11px] font-bold text-[var(--color-ink)] hover:bg-[var(--color-teal-soft)]"
@@ -203,7 +234,7 @@ function Home() {
               {wotd.pack.emoji} {wotd.pack.title} →
             </Link>
           </div>
-          <div className="mt-3 flex items-center gap-3">
+          <div className="mt-3 flex items-center gap-2.5">
             <SpeakButton text={wotd.key} lang={lang} size={42} label={`Ouvir ${wotd.key}`} />
             <button
               type="button"
@@ -217,7 +248,7 @@ function Home() {
                   chunk: wotd.key.includes(" "),
                 })
               }
-              className="min-w-0 flex-1 text-left transition hover:opacity-85"
+              className="min-w-0 flex-1 rounded-xl px-1.5 py-1 text-left transition hover:bg-[var(--color-bg)]"
             >
               <div lang={meta.speechLang} className={`target truncate text-lg font-extrabold ${lang === "ja" ? "jp" : ""}`}>
                 {wotd.key}
@@ -227,44 +258,42 @@ function Home() {
                 {wotd.entry.pt}
               </div>
             </button>
-            <button
-              type="button"
-              disabled={wotd.saved}
-              onClick={() => {
-                update((s) => rateItem(s, lang, `w:${wotd.key}`, 2));
-                setToast(`✓ «${wotd.key}» guardada na revisão!`);
-              }}
-              className={`min-h-[38px] shrink-0 rounded-full px-3.5 py-1.5 text-xs font-extrabold transition ${
-                wotd.saved
-                  ? "bg-[var(--color-good-soft)] text-[var(--color-good)]"
-                  : "bg-[var(--color-coral-soft)] text-[var(--color-coral)] hover:bg-[var(--color-coral)] hover:text-white"
-              }`}
-            >
-              {wotd.saved ? "✓ Guardada" : "+ Guardar"}
-            </button>
+            <SaveWordButton
+              wordKey={wotd.key}
+              lang={lang}
+              pillLabel={wotd.saved ? "Guardada" : "Guardar"}
+              onToggle={(nowSaved) =>
+                setToast(nowSaved ? `✓ «${wotd.key}» guardada na revisão!` : `«${wotd.key}» removida da revisão.`)
+              }
+            />
           </div>
           {wotd.entry.example && (
-            <div className="mt-2.5 flex items-center gap-2.5 rounded-2xl bg-[var(--color-bg)] px-3.5 py-2.5 text-xs">
-              <div className="min-w-0 flex-1">
-                <div lang={meta.speechLang} className={`target font-bold text-[var(--color-ink)] ${lang === "ja" ? "jp" : ""}`}>
-                  {plainText(wotd.entry.example.text, lang)}
-                </div>
-                <div className="mt-0.5 text-[var(--color-muted)]">{wotd.entry.example.pt}</div>
+            <div className="mt-2.5 rounded-2xl bg-[var(--color-bg)] px-3.5 py-2.5 text-xs">
+              <div lang={meta.speechLang} className={`target font-bold text-[var(--color-ink)] ${lang === "ja" ? "jp" : ""}`}>
+                {plainText(wotd.entry.example.text, lang)}
               </div>
-              <SpeakButton
-                text={wotd.entry.example.text}
-                lang={lang}
-                size={34}
-                className="!bg-white"
-                label={`Ouvir exemplo: ${wotd.entry.example.pt}`}
-              />
-              <CopyTextButton
-                text={wotd.entry.example.text}
-                lang={lang}
-                size={34}
-                className="!bg-white"
-                label={`Copiar exemplo: ${wotd.entry.example.pt}`}
-              />
+              <div className="mt-0.5 text-[var(--color-muted)]">{wotd.entry.example.pt}</div>
+              <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                <SpeakButton
+                  text={wotd.entry.example.text}
+                  lang={lang}
+                  pillLabel="Ouvir"
+                  label={`Ouvir exemplo: ${wotd.entry.example.pt}`}
+                />
+                <SpeakButton
+                  text={wotd.entry.example.text}
+                  lang={lang}
+                  slow
+                  pillLabel="0.6×"
+                  label={`Ouvir exemplo devagar: ${wotd.entry.example.pt}`}
+                />
+                <CopyTextButton
+                  text={wotd.entry.example.text}
+                  lang={lang}
+                  pillLabel="Copiar"
+                  label={`Copiar exemplo: ${wotd.entry.example.pt}`}
+                />
+              </div>
             </div>
           )}
         </section>
@@ -275,7 +304,7 @@ function Home() {
           <div className="flex-1">
             <div className="font-extrabold">Contextos & Kit de Bolso</div>
             <div className="text-sm text-[var(--color-muted)]">
-              {CONTEXT_PACKS.length} cenários reais: condução, roupa, clima, desporto, negociação, festas e mais
+              {CONTEXT_PACKS.length} cenários reais: dentista, correios, cozinha, casa, reciclagem, podcasts e mais
             </div>
           </div>
           <Icon name="chevron-right" className="text-[var(--color-muted)]" />

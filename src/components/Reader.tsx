@@ -8,14 +8,15 @@ import { segmentJa } from "@/lib/adapt-offline";
 import { wordContextInfo } from "@/lib/contexts";
 import { isStrong } from "@/lib/fsrs";
 import { LANGS, POS_PT } from "@/lib/langs";
-import { rateItem } from "@/lib/state";
+import { sfxSuccess, sfxTap } from "@/lib/sfx";
+import { toggleWordSaved } from "@/lib/state";
 import { useApp } from "@/lib/store";
 import { hasKanji, plainText, tokenize, type RToken } from "@/lib/tokenize";
 import type { DialogueLine, LangCode, Pattern, SentenceBlock } from "@/lib/types";
 
 import { Icon } from "./Icon";
 import { Sheet } from "./Sheet";
-import { CopyTextButton, SpeakButton, Toast, useSpeaker } from "./ui";
+import { CopyTextButton, SpeakButton, Toast } from "./ui";
 
 const KANJI_CHAR_RE = /[\u4e00-\u9faf]/g;
 const KANJI_BY_CHAR = new Map(KANJI.map((k) => [k.char, k]));
@@ -183,8 +184,8 @@ export function WordSheet({ tok, lang, onClose }: { tok: RToken | null; lang: La
                   {[e.reading, e.romaji, e.pron && `[${e.pron}]`].filter(Boolean).join(" · ")}
                 </div>
               </div>
-              <SpeakButton text={activeTok.text} lang={lang} size={48} />
-              <SpeakButton text={activeTok.text} lang={lang} size={40} slow label="Ouvir devagar" className="opacity-70" />
+              <SpeakButton text={activeTok.text} lang={lang} size={46} />
+              <SpeakButton text={activeTok.text} lang={lang} size={40} slow label="Ouvir devagar (0.6×)" />
               <CopyTextButton text={activeTok.text} lang={lang} size={40} label={`Copiar ${activeTok.text}`} />
             </div>
             <div className="mt-4 text-xl font-bold">{e.pt}</div>
@@ -409,20 +410,31 @@ export function WordSheet({ tok, lang, onClose }: { tok: RToken | null; lang: La
                 </div>
               </div>
             )}
-            <div className="mt-5 flex gap-2">
+            <div className="mt-5 flex flex-wrap gap-2">
               <button
                 type="button"
+                aria-pressed={saved}
                 className={`btn flex-1 ${saved ? "btn-soft" : "btn-primary"}`}
                 onClick={() => {
-                  if (!saved) {
-                    update((s) => rateItem(s, lang, `w:${key}`, 2));
-                    setToast("Guardada para revisão ✓");
-                  }
+                  const sfxOn = state.settings.soundEffects !== false;
+                  const nextSaved = !saved;
+                  if (nextSaved) sfxSuccess(sfxOn);
+                  else sfxTap(sfxOn);
+                  update((s) => toggleWordSaved(s, lang, key, 2).state);
+                  setToast(nextSaved ? "✓ Guardada para revisão" : "Removida da revisão");
                 }}
               >
-                <Icon name={saved ? "check" : "bookmark"} size={20} /> {saved ? "Na revisão" : "Guardar"}
+                <Icon name="bookmark" size={19} filled={saved} />
+                <span>{saved ? "Na revisão ✓" : "Guardar"}</span>
               </button>
-              <button type="button" className="btn btn-soft" onClick={() => setReport(true)} aria-label="Reportar erro">
+              <Link
+                href="/cursos/vocabulario?tab=treino"
+                onClick={handleClose}
+                className="btn btn-soft !px-3.5 text-sm"
+              >
+                <span>🧩 Treinar</span>
+              </Link>
+              <button type="button" className="btn btn-soft !px-3.5" onClick={() => setReport(true)} aria-label="Reportar erro">
                 <Icon name="flag" size={20} />
               </button>
             </div>
@@ -450,7 +462,6 @@ export function SentenceSheet({
 }) {
   const [report, setReport] = useState(false);
   const [word, setWord] = useState<RToken | null>(null);
-  const { say } = useSpeaker();
   const pattern = line?.patternId ? patterns?.find((p) => p.id === line.patternId) : undefined;
   return (
     <>
@@ -461,11 +472,10 @@ export function SentenceSheet({
               <TokenLine text={line.text} lang={lang} onWord={setWord} />
             </div>
             {line.romaji && <div className="mt-1 text-sm italic text-[var(--color-muted)]">{line.romaji}</div>}
-            <div className="mt-3 flex gap-2">
-              <SpeakButton text={line.text} lang={lang} size={44} />
-              <button className="chip" onClick={() => say(line.text, lang, undefined, 0.6)}>
-                🐢 Devagar
-              </button>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <SpeakButton text={line.text} lang={lang} pillLabel="Ouvir" label="Ouvir frase" />
+              <SpeakButton text={line.text} lang={lang} slow pillLabel="0.6×" label="Ouvir frase devagar" />
+              <CopyTextButton text={line.text} lang={lang} pillLabel="Copiar" label="Copiar frase" />
             </div>
             <div className="mt-4 rounded-2xl bg-[var(--color-bg)] p-4">
               <div className="text-xs font-bold text-[var(--color-muted)]">TRADUÇÃO NATURAL</div>

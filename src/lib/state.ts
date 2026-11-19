@@ -358,6 +358,34 @@ export function saveWordsBatch(s: UserState, lang: LangCode, keys: string[], rat
   return { ...s, srs: { ...s.srs, [lang]: nextLangSrs } };
 }
 
+/** Alterna o estado guardado de uma palavra individual na revisão espaçada (guarda se não existir; remove se já estiver guardada). */
+export function toggleWordSaved(
+  s: UserState,
+  lang: LangCode,
+  rawKey: string,
+  rating: Rating = 2,
+): { state: UserState; saved: boolean } {
+  const k = rawKey.toLowerCase();
+  const srsKey = `w:${k}`;
+  const cur = s.srs[lang][srsKey];
+  if (cur) {
+    const nextLangSrs = { ...s.srs[lang] };
+    delete nextLangSrs[srsKey];
+    return { state: { ...s, srs: { ...s.srs, [lang]: nextLangSrs } }, saved: false };
+  }
+  if (!CONTENT[lang].dictionary[k]) return { state: s, saved: false };
+  return {
+    state: {
+      ...s,
+      srs: {
+        ...s.srs,
+        [lang]: { ...s.srs[lang], [srsKey]: review(undefined, rating) },
+      },
+    },
+    saved: true,
+  };
+}
+
 export function recordError(s: UserState, lang: LangCode, category: string, example: string): UserState {
   const cur = s.errors[lang][category];
   return {

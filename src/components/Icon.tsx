@@ -41,7 +41,11 @@ export type IconName =
   | "eye-off"
   | "copy"
   | "layers"
-  | "translate";
+  | "translate"
+  | "plus"
+  | "arrow-up"
+  | "shuffle"
+  | "sliders";
 
 const paths: Record<IconName, React.ReactNode> = {
   home: <path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1v-9.5Z" />,
@@ -163,6 +167,14 @@ const paths: Record<IconName, React.ReactNode> = {
   ),
   layers: <path d="m12 3 9 5-9 5-9-5 9-5ZM3 13l9 5 9-5" />,
   translate: <path d="M4 5h9M8.5 3v2M6 5c.5 3 2.5 6 6 7.5M11 5c-.5 3-3 6.5-7 8M13 21l4-10 4 10M14.5 17.5h5" />,
+  plus: <path d="M12 5v14M5 12h14" />,
+  "arrow-up": <path d="M12 19V5M6 11l6-6 6 6" />,
+  shuffle: (
+    <>
+      <path d="M16 3h5v5M4 20 21 3M21 16v5h-5M15 15l6 6M4 4l5 5" />
+    </>
+  ),
+  sliders: <path d="M4 6h10M18 6h2M14 4v4M4 12h4M12 12h8M8 10v4M4 18h12M20 18h0M16 16v4" />,
 };
 
 export function Icon({
